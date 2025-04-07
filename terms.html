@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>BasicSwapDEX.com</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="css/tailwind.min.css">
+    <link rel=icon sizes="32x32" type="image/png" href="images/favicon-32.png">
+    <meta property="og:url" content="https://basicswapdex.com">
+    <meta property="og:site_name" content="BasicSwapDEX">
+    <meta property="og:title" content="BasicSwapDEX">
+    <meta property="og:description" content="The World's Most Secure and Decentralized DEX.Safely swap cryptocurrencies without central points of failure. It’s free, completely trustless, and highly secure.">
+    <meta property="og:image" content="/site-meta.png">
+    <script src="js/main.js"></script>
+    <style>
+      .blur {
+        -webkit-filter: blur(5px);
+        -moz-filter: blur(5px);
+        -o-filter: blur(5px);
+        -ms-filter: blur(5px);
+        filter: blur(5px);
+      }
+    </style>  
+  </head>
+  <body class="antialiased bg-body text-body font-body">
+    <section>
+      <nav class="relative bg-gray-700">
+        <div class="p-8 container flex flex-wrap items-center justify-between items-center mx-auto">
+          <div class="flex justify-between items-center xl:w-full">
+            <div class="xl:w-1/3">
+              <a class="block max-w-max xl:mr-14" href="/">
+                <img class="h-12" src="images/basicswap-logo.svg" alt="">
+              </a>
+            </div>
+            <div class="hidden xl:block">
+              <ul class="flex justify-center">
+                <li class="mr-12">
+                  <a class="text-white hover:text-coolGray-50 font-medium" href="/">Home</a>
+                </li>
+                <li class="mr-12">
+                  <a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="faq">FAQ</a>
+                </li>
+                <li class="mr-12">
+                  <a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="about">About</a>
+                </li>
+                 <li>
+                  <a class="text-coolGray-400 hover:text-coolGray-50 font-medium" target=”_blank” href="https://particl.news/tag/basicswap">Blog</a>
+                </li>               
+              </ul>
+            </div>
+
+            <div class="hidden xl:block xl:w-1/3">
+              <div class="flex items-center justify-end">
+                  <a class="flex flex-wrap justify-center inline-block px-4 py-2.5 bg-blue-500 hover:bg-blue-600 font-bold text-sm text-white border border-blue-500 rounded-md shadow-button focus:ring-0 focus:outline-none" href="https://github.com/basicswap/" target="_blank" rel="noopener noreferrer">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" class="mr-2" viewBox="0 0 24 24"><g fill="#ffffff"><path fill-rule="evenodd" clip-rule="evenodd" fill="#ffffff" d="M12,0.3c-6.6,0-12,5.4-12,12c0,5.3,3.4,9.8,8.2,11.4 C8.8,23.8,9,23.4,9,23.1c0-0.3,0-1,0-2c-3.3,0.7-4-1.6-4-1.6c-0.5-1.4-1.3-1.8-1.3-1.8C2.5,17,3.7,17,3.7,17 c1.2,0.1,1.8,1.2,1.8,1.2c1.1,1.8,2.8,1.3,3.5,1c0.1-0.8,0.4-1.3,0.8-1.6c-2.7-0.3-5.5-1.3-5.5-5.9c0-1.3,0.5-2.4,1.2-3.2 C5.5,8.1,5,6.9,5.7,5.3c0,0,1-0.3,3.3,1.2c1-0.3,2-0.4,3-0.4c1,0,2,0.1,3,0.4c2.3-1.6,3.3-1.2,3.3-1.2c0.7,1.7,0.2,2.9,0.1,3.2 c0.8,0.8,1.2,1.9,1.2,3.2c0,4.6-2.8,5.6-5.5,5.9c0.4,0.4,0.8,1.1,0.8,2.2c0,1.6,0,2.9,0,3.3c0,0.3,0.2,0.7,0.8,0.6 c4.8-1.6,8.2-6.1,8.2-11.4C24,5.7,18.6,0.3,12,0.3z"></path></g></svg> <span>BasicSwap Github</span></a>
+                  </div>
+              </div>
+          </div>
+          <button class="navbar-burger self-center xl:hidden">
+            <svg width="35" height="35" viewbox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect class="text-coolGray-800" width="32" height="32" rx="6" fill="currentColor"></rect>
+              <path class="text-coolGray-400" d="M7 12H25C25.2652 12 25.5196 11.8946 25.7071 11.7071C25.8946 11.5196 26 11.2652 26 11C26 10.7348 25.8946 10.4804 25.7071 10.2929C25.5196 10.1054 25.2652 10 25 10H7C6.73478 10 6.48043 10.1054 6.29289 10.2929C6.10536 10.4804 6 10.7348 6 11C6 11.2652 6.10536 11.5196 6.29289 11.7071C6.48043 11.8946 6.73478 12 7 12ZM25 15H7C6.73478 15 6.48043 15.1054 6.29289 15.2929C6.10536 15.4804 6 15.7348 6 16C6 16.2652 6.10536 16.5196 6.29289 16.7071C6.48043 16.8946 6.73478 17 7 17H25C25.2652 17 25.5196 16.8946 25.7071 16.7071C25.8946 16.5196 26 16.2652 26 16C26 15.7348 25.8946 15.4804 25.7071 15.2929C25.5196 15.1054 25.2652 15 25 15ZM25 20H7C6.73478 20 6.48043 20.1054 6.29289 20.2929C6.10536 20.4804 6 20.7348 6 21C6 21.2652 6.10536 21.5196 6.29289 21.7071C6.48043 21.8946 6.73478 22 7 22H25C25.2652 22 25.5196 21.8946 25.7071 21.7071C25.8946 21.5196 26 21.2652 26 21C26 20.7348 25.8946 20.4804 25.7071 20.2929C25.5196 20.1054 25.2652 20 25 20Z" fill="currentColor"></path>
+            </svg>
+          </button>
+        </div>
+      </nav>
+      <div class="navbar-menu hidden fixed top-0 left-0 z-50 w-full h-full bg-coolGray-900 bg-opacity-50">
+        <div class="fixed top-0 left-0 bottom-0 w-full w-4/6 max-w-xs bg-coolGray-900">
+          <nav class="relative p-6 h-full overflow-y-auto">
+            <div class="flex flex-col justify-between h-full">
+              <a class="inline-block" href="#">
+                <img class="h-8" src="images/basicswap-logo.svg" alt="">
+              </a>
+              <ul class="py-6">
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/">Home</a>
+                </li>
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="markets">Markets</a>
+                </li>
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/faq">FAQ</a>
+                </li>
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/about">About</a>
+                </li>
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/roadmap">Roadmap</a>
+                </li>                
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" target=”_blank” href="https://particl.news/tag/basicswap">Blog</a>
+                </li>
+              </ul>
+              <div class="flex flex-wrap">
+                <div class="w-full">
+                  <a class="inline-block py-4 px-5 w-full text-sm leading-5 text-white bg-blue-500 hover:bg-blue-600 font-medium text-center focus:ring-0 focus:ring-blue-500 focus:ring-opacity-50 rounded-md" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">BasicSwap Github</a>
+                </div>
+              </div>
+            </div>
+          </nav>
+          <a class="navbar-close absolute top-5 p-4 right-3" href="#">
+            <svg width="12" height="12" viewbox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.94004 5.99988L11.14 1.80655C11.2656 1.68101 11.3361 1.51075 11.3361 1.33321C11.3361 1.15568 11.2656 0.985415 11.14 0.859879C11.0145 0.734344 10.8442 0.663818 10.6667 0.663818C10.4892 0.663818 10.3189 0.734344 10.1934 0.859879L6.00004 5.05988L1.80671 0.859879C1.68117 0.734344 1.51091 0.663819 1.33337 0.663819C1.15584 0.663819 0.985576 0.734344 0.860041 0.859879C0.734505 0.985415 0.66398 1.15568 0.66398 1.33321C0.66398 1.51075 0.734505 1.68101 0.860041 1.80655L5.06004 5.99988L0.860041 10.1932C0.797555 10.2552 0.747959 10.3289 0.714113 10.4102C0.680267 10.4914 0.662842 10.5785 0.662842 10.6665C0.662842 10.7546 0.680267 10.8417 0.714113 10.9229C0.747959 11.0042 0.797555 11.0779 0.860041 11.1399C0.922016 11.2024 0.99575 11.252 1.07699 11.2858C1.15823 11.3197 1.24537 11.3371 1.33337 11.3371C1.42138 11.3371 1.50852 11.3197 1.58976 11.2858C1.671 11.252 1.74473 11.2024 1.80671 11.1399L6.00004 6.93988L10.1934 11.1399C10.2554 11.2024 10.3291 11.252 10.4103 11.2858C10.4916 11.3197 10.5787 11.3371 10.6667 11.3371C10.7547 11.3371 10.8419 11.3197 10.9231 11.2858C11.0043 11.252 11.0781 11.2024 11.14 11.1399C11.2025 11.0779 11.2521 11.0042 11.286 10.9229C11.3198 10.8417 11.3372 10.7546 11.3372 10.6665C11.3372 10.5785 11.3198 10.4914 11.286 10.4102C11.2521 10.3289 11.2025 10.2552 11.14 10.1932L6.94004 5.99988Z" fill="#8896AB"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+    <section class="relative py-10 overflow-hidden">
+
+
+
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-4">Terms and Conditions for BasicSwap</h1>
+
+        <section class="mb-6">
+            <h2 class="text-2xl font-semibold mb-2">Introduction</h2>
+            <p class="mb-2 text-xl">Welcome to BasicSwap, a fully decentralized messaging network that facilitates the use of atomic swap technology to swap cryptocurrencies without intermediaries.</p>
+            <p class="mb-2 text-xl">This document outlines how BasicSwap functions and highlights its exclusively decentralized nature. By accessing or using BasicSwap, you agree to and understand these terms and conditions (T&C).</p>
+        </section>
+
+        <section class="mb-6">
+            <h2 class="text-2xl font-semibold mb-2">Nature of the Platform</h2>
+
+            <h3 class="text-xl font-semibold mb-2">Decentralized Operations</h3>
+            <p class="mb-2"><strong>1. Peer-to-Peer Transactions:</strong> Swaps between users on BasicSwap are entirely decentralized, involving no third parties or central points of failure. Transactions are executed via atomic swap technology, which allows users to exchange cryptocurrencies directly without intermediaries. This ensures a higher level of security and privacy.</p>
+
+            <p class="mb-2"><strong>2. Atomic Swap Protocols:</strong> BasicSwap employs two distinct types of atomic swap protocols: HTLC ('Secret Hash') and PTLC ('Adaptor Signature'). These on-chain protocols facilitate the exchange of cryptocurrencies without the need for a trusted third party. HTLC uses hashed time-locked addresses, while PTLC utilizes adaptor signatures to execute swaps. Both protocols are open-source and have been developed by the broader cryptocurrency community, not BasicSwap contributors directly, ensuring their reliability and security. As such, BasicSwap does not process, execute, or initiate swaps on users’ behalf, these actions being assumed exclusively by the respective blockchains of the coins being swapped.</p>
+
+            <p class="mb-2"><strong>3. Decentralized Messaging Network:</strong> BasicSwap uses the open-source SecureMessaging Network (SMSG), a decentralized and open-source data and messaging network (‘mixnet’) similar to BitMessage, to automate and simplify the process of exchanging swap data required for atomic swaps between two peers. This network allows users to connect directly and share the necessary information securely, efficiently, and without intermediaries.</p>
+
+            <p class="mb-2"><strong>4. Broadcasting Swap Offers:</strong> BasicSwap also enables users to broadcast swap offers through the SMSG network for others to see. This decentralized network helps users find and connect with peers interested in swapping cryptocurrencies, facilitating the discovery of suitable swap partners without the need for centralized intermediaries. All data and information related to swap offers are end-to-end encrypted before being propagated by the user’s node on the decentralized SMSG network.</p>
+
+            <p class="mb-2"><strong>5. SMSG Mixnet:</strong> All BasicSwap users automatically operate as nodes within the SMSG messaging network, making it entirely decentralized and autonomous. Messages, including swap data and network offers, are first end-to-end encrypted on the user’s local device, then broadcast through the network, and finally relayed and validated by all nodes to verify their authenticity against the network consensus and protect users' financial information against unauthorized access. No single BasicSwap open-source contributor or organization holds any control or oversight over the SMSG network. It is not possible to use BasicSwap without being an SMSG node.</p>
+
+            <p class="mb-2"><strong>6. Decentralized SWIFT Equivalent:</strong> As such, BasicSwap functions similarly to a decentralized version of SWIFT, providing a messaging protocol that allows for peers to connect directly with each other with the purpose of executing atomic swaps without central points of failure using official coin cores (Bitcoin Core, Litecoin Core). BasicSwap does not process, initiate, or execute swaps; it merely enables peers to communicate with each other and exchange the required information to simplify the process of using atomic swaps on the respective blockchains of the coins being swapped. In essence, BasicSwap operates merely as a decentralized messaging protocol.</p>
+
+            <p class="mb-2"><strong>7. No Centralized Services:</strong> BasicSwap does not create wallets, addresses, or execute swaps on behalf of users. It does not store data on servers or centralized architecture. All processes are decentralized, leveraging established and open-source protocols and blockchain technology without third-party services being provided. BasicSwap is entirely non-custodial as users retain full control over their funds and transactions, without reliance on any central authority or data collection.</p>
+
+            <p class="mb-2"><strong>8. Coin Cores:</strong> BasicSwap requires to be manually compiled by the user using the source code. Once that is done, it must be installed on a local device such as a computer. During this process, users can download and install the core wallets of the cryptocurrencies they enable. BasicSwap uses the native cores (e.g., Bitcoin Core, Litecoin Core) and does not provide custom wallet or core code. This ensures that all wallet functionalities are based on the official and publicly available coin cores, as provided by their respective teams. It is also possible to connect to a pre-existing node that is either already installed on the local device (e.g., Bitcoin Core in a custom folder destination) or available via remote connection (on another device).</p>
+
+            <p class="mb-2"><strong>9. Core Updates:</strong> Since BasicSwap does not provide and maintain custom wallets on behalf of the user, updating the core wallets of enabled coins is the user’s responsibility. It is recommended to keep core wallets up-to-date with the latest versions, especially for compatibility with hard forks or major updates. BasicSwap does not notify users of updates; users should track individual core updates by following the projects of the coins they enable.</p>
+
+            <p class="mb-2"><strong>10. Free and Open Source:</strong> BasicSwap is entirely free to use and open-source. It does not charge fees, commissions, or engage in any form of commercial activity. This open-source nature allows anyone to inspect, contribute to, or fork the code, fostering a transparent and collaborative environment free of central control by a single entity.</p>
+
+            <p class="mb-2"><strong>11. No Central Control:</strong> BasicSwap operates without a company, central team, or organization exerting control over the underlying network. The decentralized structure ensures that no single entity can influence, manipulate, or tamper with messages exchanged between peers.</p>
+
+            <p class="mb-2"><strong>12. Informational Website:</strong> BasicSwapDEX.com serves purely as an informational and educational resource, providing no other service whatsoever. It is not required to run BasicSwap and has no connection to any of the involved protocols. Unlike most DEX platforms, there is no “web GUI” available on BasicSwapDEX.com as users are required to build the platform themselves and run an SMSG node to interact with the rest of the network.</p>
+
+            <p class="mb-2"><strong>13. Particl Node Requirement:</strong> A Particl node is necessary to run BasicSwap, as the SMSG network operates via Particl Core. The usage of the PART coin is not required, and there is no monetization layer included in BasicSwap in PART or any other form of cryptocurrency, token, or revenue. This ensures that users can participate, with minimal friction, without incurring additional costs and that no single party financially benefits from its usage.</p>
+        </section>
+
+        <section class="mb-6">
+            <h2 class="text-2xl font-semibold mb-2">Governance and Development</h2>
+            <p class="mb-2"><strong>1. Code Governance:</strong> All operations on BasicSwap are governed by code and the community. There is no central authority or approval process required for contributing, modifying, forking, or using BasicSwap’s code, technology, or its network. This open governance model encourages innovation and collaboration.</p>
+            <p class="mb-2"><strong>2. Immutability:</strong> Once deployed, swaps on BasicSwap are immutable and subject to the consensus protocol in use on the relevant blockchains, meaning they cannot be altered. This ensures the integrity and reliability of swaps as all actions are recorded on the relevant blockchain and cannot be modified after execution.</p>
+        </section>
+
+       <section class="mb-6">
+    <h2 class="text-2xl font-semibold mb-2">User Responsibilities</h2>
+
+    <h3 class="text-xl font-semibold mb-2">Self-Custody and Security</h3>
+    <p class="mb-2"><strong>1. Non-Custodial:</strong> BasicSwap connects to official and publicly available core wallets (e.g., Bitcoin-qt), making users solely responsible for managing their private keys. Losing access to private keys results in the loss of access to funds. BasicSwap open-source contributors do not have access to user wallets, keys, seeds, or any information relating to them, and cannot assist in case of lost access. Wallets are generated automatically by downloading the official coin core wallets of the cryptocurrencies the user manually activates.</p>
+    <p class="mb-2"><strong>2. Seed phrase:</strong> When first installing BasicSwap, users can either create a new Particl Core wallet or link to an existing one to connect to the SMSG network. It is crucial for users to write down the provided seed phrase, as this will be needed to restore the wallet later or on a different device. All subsequently activated coins on BasicSwap reuse the same seed.</p>
+    <p class="mb-2"><strong>3. Security Measures:</strong> Users must take all necessary precautions to secure their private keys and wallets. The community cannot recover lost keys or funds, emphasizing the importance of personal responsibility and security practices.</p>
+    <p class="mb-2"><strong>4. Resiliency:</strong> As BasicSwap relies on no central party to provide services or key infrastructure, it is exceptionally resilient and will continue to operate even if all development efforts from contributors cease. The decentralized architecture ensures uninterrupted functionality.</p>
+    </section>
+       <section class="mb-6">
+    <h3 class="text-xl font-semibold mb-2">Informed Participation</h3>
+    <p class="mb-2"><strong>1. Due Diligence:</strong> Users should conduct their own research and due diligence before engaging in swaps. Understanding the risks involved in using cryptocurrencies and the relevant blockchains is crucial to making informed decisions.</p>
+    <p class="mb-2"><strong>2. Regulatory Compliance:</strong> Users are responsible for ensuring that their use of BasicSwap complies with local laws and regulations. BasicSwap is code, and its open-source contributors are not responsible for its usage. Users should consult legal experts for any questions or concerns about regulatory compliance in their jurisdiction or usage of the platform itself.</p>
+    </section>
+
+    <section class="mb-6">
+    <h3 class="text-xl font-semibold mb-2">Risks and Disclaimers</h3>
+
+    <h4 class="text-lg font-semibold mb-2">Financial Risks</h4>
+    <p class="mb-2"><strong>1. Market Volatility:</strong> Cryptocurrency markets are highly volatile. Users should be aware of the risks of price fluctuations and the potential for significant financial losses.</p>
+    <p class="mb-2"><strong>2. Loss of Funds:</strong> There is a risk of losing funds due to vulnerabilities, user errors, bugs, or market conditions. BasicSwap open-source contributors are not liable for any loss of funds resulting from the use of the platform. Users must acknowledge these risks and accept full responsibility for their actions.</p>
+    </section>
+
+    <section class="mb-6">
+    <h4 class="text-lg font-semibold mb-2">No Guarantees</h4>
+    <p class="mb-2"><strong>1. No Warranties:</strong> BasicSwap is provided "as is" without any warranties. The community does not guarantee the platform's performance, accuracy, or reliability. Users must understand that the platform is a collaborative effort and may have limitations or issues.</p>
+    <p class="mb-2"><strong>2. No Liability:</strong> The BasicSwap community and its contributors are not liable for any losses or damages arising from the use of BasicSwap. Users agree to use the platform at their own risk and to hold the community harmless from any claims or damages.</p>
+
+  </section>
+  <section class="mb-6">
+    <h2 class="text-2xl font-semibold mb-2">Transparency and Open Source</h2>
+    <p class="mb-2"><strong>1. Open Source Code:</strong> BasicSwap's code is open source and available for anyone to review. This ensures transparency and allows for community contributions, fostering an environment of trust and collaboration.</p>
+    <p class="mb-2"><strong>2. Collaborative Development:</strong> Users are encouraged to participate in the development and improvement of BasicSwap. The open-source nature of the platform allows for continuous innovation and improvements through community efforts without relying on the participation of a specific organization or group of individuals.</p>
+  </section>
+
+<section class="mb-6">
+    <h2 class="text-2xl font-semibold mb-2">Conclusion</h2>
+    <p class="mb-2">By accessing and using BasicSwap, you acknowledge that you understand and accept these terms and conditions.</p>
+</section>
+
+    <section class="bg-white overflow-hidden">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap lg:items-center pt-24 pb-12 -mx-4">
+          <div class="w-full md:w-1/4 lg:w-auto px-4">
+            <a class="block mb-5 md:mb-0 max-w-max" href="/">
+              <img class="h-8" src="images/basicswap-logo-dark.svg" alt="">
+            </a>
+          </div>
+          <div class="w-full md:w-3/4 lg:flex-1 px-4">
+            <div class="flex flex-wrap justify-end -mx-3 lg:-mx-6">
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6"></div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6"></div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6"></div>
+               <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" href="/">Home</a>
+              </div>             
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" href="faq">FAQ</a>
+              </div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" href="about">About</a>
+              </div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" target=”_blank” href="https://particl.news/tag/basicswap">Blog</a>
+              </div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" href="terms">Terms and Conditions</a>
+              </div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" href="/mediakit/mediakit-basicswap.zip">Mediakit</a>
+              </div>          
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="border-b border-coolGray-100"></div>
+      <div class="container px-4 mx-auto mb-10">
+        <div class="flex flex-wrap items-center pt-12">
+          <div class="w-full md:w-1/2 mb-6 md:mb-0"> 
+          <div class="flex items-center">
+            <p class="mr-1 text-sm text-gray-90 font-medium ">© 2025~ </p>
+            <p class="text-sm text-coolGray-400 font-medium">BasicSwapDEX</p>
+          </div>
+        </div>
+
+          <div class="w-full md:w-1/2">
+            <div class="flex flex-wrap md:justify-end -mx-5">
+
+              <div class="px-5">
+                <a class="inline-block text-coolGray-300 hover:text-coolGray-400" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">
+                  <svg width="18" height="18" viewbox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 0C4.0275 0 0 4.13211 0 9.22838C0 13.3065 2.5785 16.7648 6.15375 17.9841C6.60375 18.0709 6.76875 17.7853 6.76875 17.5403C6.76875 17.3212 6.76125 16.7405 6.7575 15.9712C4.254 16.5277 3.726 14.7332 3.726 14.7332C3.3165 13.6681 2.72475 13.3832 2.72475 13.3832C1.9095 12.8111 2.78775 12.8229 2.78775 12.8229C3.6915 12.887 4.16625 13.7737 4.16625 13.7737C4.96875 15.1847 6.273 14.777 6.7875 14.5414C6.8685 13.9443 7.10025 13.5381 7.3575 13.3073C5.35875 13.0764 3.258 12.2829 3.258 8.74709C3.258 7.73988 3.60675 6.91659 4.18425 6.27095C4.083 6.03774 3.77925 5.0994 4.263 3.82846C4.263 3.82846 5.01675 3.58116 6.738 4.77462C7.458 4.56958 8.223 4.46785 8.988 4.46315C9.753 4.46785 10.518 4.56958 11.238 4.77462C12.948 3.58116 13.7017 3.82846 13.7017 3.82846C14.1855 5.0994 13.8818 6.03774 13.7917 6.27095C14.3655 6.91659 14.7142 7.73988 14.7142 8.74709C14.7142 12.2923 12.6105 13.0725 10.608 13.2995C10.923 13.5765 11.2155 14.1423 11.2155 15.0071C11.2155 16.242 11.2043 17.2344 11.2043 17.5341C11.2043 17.7759 11.3617 18.0647 11.823 17.9723C15.4237 16.7609 18 13.3002 18 9.22838C18 4.13211 13.9703 0 9 0Z" fill="currentColor"></path>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+    </div>
+  </body>
+</html>

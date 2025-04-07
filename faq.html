@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>BasicSwapDEX.com</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="css/tailwind.min.css">
+    <script defer src="https://unpkg.com/alpinejs@3.2.3/dist/cdn.min.js"></script>
+    <link rel=icon sizes="32x32" type="image/png" href="images/favicon-32.png">
+    <meta property="og:url" content="https://basicswapdex.com">
+    <meta property="og:site_name" content="BasicSwapDEX">
+    <meta property="og:title" content="BasicSwapDEX">
+    <meta property="og:description" content="The World's Most Secure and Decentralized DEX.Safely swap cryptocurrencies without central points of failure. It’s free, completely trustless, and highly secure.">
+    <meta property="og:image" content="/site-meta.png">
+    <script src="js/main.js"></script>
+    <style>
+      .blur {
+        -webkit-filter: blur(5px);
+        -moz-filter: blur(5px);
+        -o-filter: blur(5px);
+        -ms-filter: blur(5px);
+        filter: blur(5px);
+      }
+    </style>
+  </head>
+  <body class="antialiased bg-body text-body font-body">
+    <section>
+      <nav class="relative bg-gray-700">
+        <div class="p-8 container flex flex-wrap items-center justify-between items-center mx-auto">
+          <div class="flex justify-between items-center xl:w-full">
+            <div class="xl:w-1/3">
+              <a class="block max-w-max xl:mr-14" href="/">
+                <img class="h-12" src="images/basicswap-logo.svg" alt="">
+              </a>
+            </div>
+            <div class="hidden xl:block">
+              <ul class="flex justify-center">
+                <li class="mr-12">
+                  <a class="text-white hover:text-coolGray-50 font-medium" href="/">Home</a>
+                </li>
+                <li class="mr-12">
+                  <a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="faq">FAQ</a>
+                </li>
+                <li class="mr-12">
+                  <a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="about">About</a>
+                </li>
+                 <li>
+                  <a class="text-coolGray-400 hover:text-coolGray-50 font-medium" target=”_blank” href="https://particl.news/tag/basicswap">Blog</a>
+                </li>               
+              </ul>
+            </div>
+
+            <div class="hidden xl:block xl:w-1/3">
+              <div class="flex items-center justify-end">
+                  <a class="flex flex-wrap justify-center inline-block px-4 py-2.5 bg-blue-500 hover:bg-blue-600 font-bold text-sm text-white border border-blue-500 rounded-md shadow-button focus:ring-0 focus:outline-none" href="https://github.com/basicswap/" target="_blank" rel="noopener noreferrer">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" class="mr-2" viewBox="0 0 24 24"><g fill="#ffffff"><path fill-rule="evenodd" clip-rule="evenodd" fill="#ffffff" d="M12,0.3c-6.6,0-12,5.4-12,12c0,5.3,3.4,9.8,8.2,11.4 C8.8,23.8,9,23.4,9,23.1c0-0.3,0-1,0-2c-3.3,0.7-4-1.6-4-1.6c-0.5-1.4-1.3-1.8-1.3-1.8C2.5,17,3.7,17,3.7,17 c1.2,0.1,1.8,1.2,1.8,1.2c1.1,1.8,2.8,1.3,3.5,1c0.1-0.8,0.4-1.3,0.8-1.6c-2.7-0.3-5.5-1.3-5.5-5.9c0-1.3,0.5-2.4,1.2-3.2 C5.5,8.1,5,6.9,5.7,5.3c0,0,1-0.3,3.3,1.2c1-0.3,2-0.4,3-0.4c1,0,2,0.1,3,0.4c2.3-1.6,3.3-1.2,3.3-1.2c0.7,1.7,0.2,2.9,0.1,3.2 c0.8,0.8,1.2,1.9,1.2,3.2c0,4.6-2.8,5.6-5.5,5.9c0.4,0.4,0.8,1.1,0.8,2.2c0,1.6,0,2.9,0,3.3c0,0.3,0.2,0.7,0.8,0.6 c4.8-1.6,8.2-6.1,8.2-11.4C24,5.7,18.6,0.3,12,0.3z"></path></g></svg> <span>BasicSwap Github</span></a>
+                  </div>
+              </div>
+          </div>
+          <button class="navbar-burger self-center xl:hidden">
+            <svg width="35" height="35" viewbox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect class="text-coolGray-800" width="32" height="32" rx="6" fill="currentColor"></rect>
+              <path class="text-coolGray-400" d="M7 12H25C25.2652 12 25.5196 11.8946 25.7071 11.7071C25.8946 11.5196 26 11.2652 26 11C26 10.7348 25.8946 10.4804 25.7071 10.2929C25.5196 10.1054 25.2652 10 25 10H7C6.73478 10 6.48043 10.1054 6.29289 10.2929C6.10536 10.4804 6 10.7348 6 11C6 11.2652 6.10536 11.5196 6.29289 11.7071C6.48043 11.8946 6.73478 12 7 12ZM25 15H7C6.73478 15 6.48043 15.1054 6.29289 15.2929C6.10536 15.4804 6 15.7348 6 16C6 16.2652 6.10536 16.5196 6.29289 16.7071C6.48043 16.8946 6.73478 17 7 17H25C25.2652 17 25.5196 16.8946 25.7071 16.7071C25.8946 16.5196 26 16.2652 26 16C26 15.7348 25.8946 15.4804 25.7071 15.2929C25.5196 15.1054 25.2652 15 25 15ZM25 20H7C6.73478 20 6.48043 20.1054 6.29289 20.2929C6.10536 20.4804 6 20.7348 6 21C6 21.2652 6.10536 21.5196 6.29289 21.7071C6.48043 21.8946 6.73478 22 7 22H25C25.2652 22 25.5196 21.8946 25.7071 21.7071C25.8946 21.5196 26 21.2652 26 21C26 20.7348 25.8946 20.4804 25.7071 20.2929C25.5196 20.1054 25.2652 20 25 20Z" fill="currentColor"></path>
+            </svg>
+          </button>
+        </div>
+      </nav>
+      <div class="navbar-menu hidden fixed top-0 left-0 z-50 w-full h-full bg-coolGray-900 bg-opacity-50">
+        <div class="fixed top-0 left-0 bottom-0 w-full w-4/6 max-w-xs bg-coolGray-900">
+          <nav class="relative p-6 h-full overflow-y-auto">
+            <div class="flex flex-col justify-between h-full">
+              <a class="inline-block" href="#">
+                <img class="h-8" src="images/basicswap-logo.svg" alt="">
+              </a>
+              <ul class="py-6">
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/">Home</a>
+                </li>
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="markets">Markets</a>
+                </li>
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/faq">FAQ</a>
+                </li>
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/about">About</a>
+                </li>
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/roadmap">Roadmap</a>
+                </li>                
+                <li>
+                  <a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" target=”_blank” href="https://particl.news/tag/basicswap">Blog</a>
+                </li>
+              </ul>
+              <div class="flex flex-wrap">
+                <div class="w-full">
+                  <a class="inline-block py-4 px-5 w-full text-sm leading-5 text-white bg-blue-500 hover:bg-blue-600 font-medium text-center focus:ring-0 focus:ring-blue-500 focus:ring-opacity-50 rounded-md" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">BasicSwap Github</a>
+                </div>
+              </div>
+            </div>
+          </nav>
+          <a class="navbar-close absolute top-5 p-4 right-3" href="#">
+            <svg width="12" height="12" viewbox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.94004 5.99988L11.14 1.80655C11.2656 1.68101 11.3361 1.51075 11.3361 1.33321C11.3361 1.15568 11.2656 0.985415 11.14 0.859879C11.0145 0.734344 10.8442 0.663818 10.6667 0.663818C10.4892 0.663818 10.3189 0.734344 10.1934 0.859879L6.00004 5.05988L1.80671 0.859879C1.68117 0.734344 1.51091 0.663819 1.33337 0.663819C1.15584 0.663819 0.985576 0.734344 0.860041 0.859879C0.734505 0.985415 0.66398 1.15568 0.66398 1.33321C0.66398 1.51075 0.734505 1.68101 0.860041 1.80655L5.06004 5.99988L0.860041 10.1932C0.797555 10.2552 0.747959 10.3289 0.714113 10.4102C0.680267 10.4914 0.662842 10.5785 0.662842 10.6665C0.662842 10.7546 0.680267 10.8417 0.714113 10.9229C0.747959 11.0042 0.797555 11.0779 0.860041 11.1399C0.922016 11.2024 0.99575 11.252 1.07699 11.2858C1.15823 11.3197 1.24537 11.3371 1.33337 11.3371C1.42138 11.3371 1.50852 11.3197 1.58976 11.2858C1.671 11.252 1.74473 11.2024 1.80671 11.1399L6.00004 6.93988L10.1934 11.1399C10.2554 11.2024 10.3291 11.252 10.4103 11.2858C10.4916 11.3197 10.5787 11.3371 10.6667 11.3371C10.7547 11.3371 10.8419 11.3197 10.9231 11.2858C11.0043 11.252 11.0781 11.2024 11.14 11.1399C11.2025 11.0779 11.2521 11.0042 11.286 10.9229C11.3198 10.8417 11.3372 10.7546 11.3372 10.6665C11.3372 10.5785 11.3198 10.4914 11.286 10.4102C11.2521 10.3289 11.2025 10.2552 11.14 10.1932L6.94004 5.99988Z" fill="#8896AB"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="relative py-32 bg-white overflow-hidden">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap items-center -m-8">
+          <div class="w-full md:w-1/2 p-8">
+            <h2 class="mb-6 text-6xl md:text-6xl xl:text-10xl font-bold font-heading tracking-px-n leading-tight">Frequently Asked Questions (FAQ)</h2>
+            <p class="font-sans text-lg text-gray-900 leading-relaxed md:max-w-lg">Find an answer to the most frequently asked questions that you may have about BasicSwap DEX.</p>
+          </div>
+          <div class="w-full md:w-1/2 p-8">
+            <img class="transform hover:-translate-y-16 transition ease-in-out duration-1000" src="images/faq.png" alt="">
+          </div>
+        </div>
+      </div>
+    </section>
+    <script>
+      function scrollHandler(element = null) {
+        return {
+          height: 0,
+          element: element,
+          calculateHeight(position) {
+            const distanceFromTop = this.element.offsetTop
+            const contentHeight = this.element.clientHeight
+            const visibleContent = contentHeight - window.innerHeight
+            const start = Math.max(0, position - distanceFromTop)
+            const percent = (start / visibleContent) * 100;
+            requestAnimationFrame(() => {
+              this.height = percent;
+            });
+          },
+          init() {
+            this.element = this.element || document.body;
+            this.calculateHeight(window.scrollY);
+          }
+        };
+      }
+    </script>
+
+    <section class="py-24 bg-gray-50">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap -mx-4">
+          <div class="w-full md:w-1/2 px-4 mb-20 md:mb-0">
+            <div class="max-w-md">
+              <h2 class="mb-4 text-4xl md:text-5xl leading-tight text-coolGray-900 font-bold tracking-tighter">Getting Started</h2>
+              <!--<p class="text-lg md:text-xl text-coolGray-500 font-medium">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Enim nunc faucibus a pellentesque. </p>-->
+            </div>
+          </div>
+          <div class="w-full md:w-1/2 px-4">
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How do I set up BasicSwap?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>1- Visit the build instructions page <a class="text-blue-500" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">here.</a><br><br> 2- Follow the provided instructions to build and launch BasicSwap.<br><br> 3- Allow time for the client and wallets to synchronize. Progress can be monitored on the Wallets page of the DEX.<br><br> 4- After the blockchains have fully synced, you're all set to start!</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How does BasicSwap work under the hood?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>You can find an in-depth explanation of how BasicSwap works by navigating to <a class="text-blue-500" href="https://basicswapdex.com/terms" target="_blank" rel="noopener noreferrer">this page</a>.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How can I deposit coins?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>1- Open BasicSwap and go to the Wallets page.<br><br> 2- Find the coin you want to deposit and click on its Manage button.<br><br> 3- Copy the deposit address shown in BasicSwap. <br><br>4- Transfer your funds to the provided address.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How can I withdraw coins?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>1- Open BasicSwap and go to the Wallets page.<br><br> 2- Click on the Manage button next to the coin you intend to withdraw.<br><br> 3- Input the destination address and the amount you want to withdraw, double-checking for accuracy.<br><br> 4- Hit the Withdraw button to process the transaction.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How can I place or take an offer on the order book?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>The complete steps for placing or accepting an offer on the books are thoroughly outlined at the <a class="text-blue-500" href="https://academy.particl.io/" target="_blank" rel="noopener noreferrer">Particl Academy</a>. To learn how to place an offer, click <a class="text-blue-500" href="https://academy.particl.io/en/latest/basicswap-guides/basicswapguides_make.html" target="_blank" rel="noopener noreferrer">here</a>, and for instructions on taking an offer, click <a class="text-blue-500" href="https://academy.particl.io/en/latest/basicswap-guides/basicswapguides_take.html" target="_blank" rel="noopener noreferrer">here</a>.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How can I follow the progress of an ongoing swap?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>1- Go to the Swaps in Progress tab within BasicSwap.<br> 2- Click on the BID ID of the swap you're interested in tracking.<br> 3- View the Swap Progress section on the page to see the current stage of the atomic swap process.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="py-24 bg-white">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap -mx-4">
+          <div class="w-full md:w-1/2 px-4 mb-20 md:mb-0">
+            <div class="max-w-md">
+              <h2 class="mb-4 text-4xl md:text-5xl leading-tight text-coolGray-900 font-bold tracking-tighter">User Experience</h2>
+              <!--<p class="text-lg md:text-xl text-coolGray-500 font-medium">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Enim nunc faucibus a pellentesque.</p>-->
+            </div>
+          </div>
+          <div class="w-full md:w-1/2 px-4">
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Does BasicSwap require a native coin or token to use?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p><b>No.</b> BasicSwap is defined by its open and inclusive DEX protocol framework. It does not force you to use a native coin or token and lacks a monetization layer to provide a user experience free of friction. This structure makes it an optimal foundational layer on top of which other applications and services can be built.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">What coins are available to trade?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>BasicSwap is an open-source platform. As such, any individual or team can work on getting their coin added to the platform. You can view the current list of supported coins <a class="text-blue-500" href="/markets" target="_blank" rel="noopener noreferrer">here.</a><br><br> If you would like to know how to add a coin to BasicSwap, please visit <a class="text-blue-500" href="https://academy.particl.io/en/latest/basicswap-guides/basicswapguides_apply.html#manual-integration" target="_blank" rel="noopener noreferrer">this series of integration examples</a>.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">What are the fees?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p><b>0%</b>. BasicSwap operates without any trading or service fees and without any commercial activities. It's important to remember, though, that since BasicSwap utilizes atomic swap technology for on-chain settlements, you'll incur the standard blockchain transaction fees for the coins you're exchanging. Typically, these fees amount to just a few cents, and sometimes even less.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How long does it take to set up BasicSwap?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>During the current beta phase, only full BasicSwap nodes are operational. Setting them up involves two key steps: building the application and syncing the blockchains for the coins you've chosen to enable.<br><br> The build process typically ranges from 10 to 30 minutes, influenced by your system's readiness for application builds and your adherence to the provided instructions. This process can be expedited by using the installation wizard (available as an .exe) <a class="text-blue-500" href="https://github.com/gerlofvanek/basicswap-installation-GUI/releases/tag/WIN-v2.0.0" target="_blank" rel="noopener noreferrer">here</a> or the Linux community script available <a class="text-blue-500" href="https://github.com/nahuhh/basicswap-bash/releases/latest" target="_blank" rel="noopener noreferrer">here</a>.<br><br> Syncing the blockchains to your computer varies in time, largely depending on your internet speed and the specific coins you're enabling.<br><br> For Bitcoin, we suggest using the “fast sync” option, which utilizes a pruned chain snapshot to drastically reduce syncing time by over 90%. In the case of Monero, you can begin swapping without waiting for full blockchain synchronization thanks to its bootstrapping feature, which temporarily connects you to a public node during syncing.<br><br></p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How long does it take to complete a swap?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>The duration of a swap varies based on the specific coins involved. Since BasicSwap leverages atomic swap technology, all swap transactions are conducted on-chain. Consequently, you'll need to allow time for several blocks to be confirmed on both involved blockchains, making the swap times reliant on each blockchain's specific block time.<br><br> To approximate a swap's duration, you can calculate it by taking the block time for the coin being swapped and multiplying it by 6 (or 10 for Monero swaps), reflecting the average number of confirmations required to fully complete a swap. </p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">What are the types of order?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>BasicSwap currently supports limit orders exclusively. More order types may be included as contributors keep on improving the protocol.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">What happens if a swap fails?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Should any issues arise during a swap, both parties will automatically receive a refund of their coins at no extra cost, thanks to the atomic nature of the swaps.<br><br> The atomic swap protocol is designed to advance to the next step only when precise conditions are fulfilled. If these conditions aren't met, the swap will time out, and the coins, temporarily secured in atomic swap smart contracts, will be returned to their original owners. </p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Is there any way for a swap to get “stuck”? </h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p><b>No</b>. Swaps cannot get stuck thanks to the atomic nature of atomic swaps. Should any condition go unmet or if either party ceases to advance through the necessary steps, the coins are automatically returned to their original owners after a predetermined period. Thus, it's impossible for coins to become "stuck" within atomic swap smart contracts. </p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Do you need to run a local node to perform a swap?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Currently, in this beta phase, it is necessary for your BasicSwap node to stay online throughout a swap.<br><br> BasicSwap operates on the P2P SecureMessaging network (SMSG) for communication between participating chains, facilitating the exchange of necessary data to the atomic swap smart contracts. Given the step-by-step and atomic structure of these swaps, an SMSG node needs to be online to transmit this data effectively.<br><br></p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Can I run my node on a cloud server or VPS?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Absolutely, running BasicSwap on a VPS is not only possible but also a practical method to ensure it remains operational 24/7. We particularly advise setting up a cloud instance of BasicSwap DEX for those planning to utilize the automated market making script outlined <a class="text-blue-500" href="https://particl.news/the-ultimate-cloud-basicswap-setup-and-automated-market-making/" target="_blank" rel="noopener noreferrer">here</a>. However, it's important to remember that when you run BasicSwap, you also run the official core wallets of each coin you've enabled. As such. using third-party servers carries inherent risks. Therefore, we strongly advise encrypting your BasicSwap instance for added security. </p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Do you collect any data about me?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Absolutely not. BasicSwap operates on a peer-to-peer, open-source basis. As such, there is no central party, operator, or service provider to collect or share your data whatsoever.<br><br> Furthermore, this website does not retain your personal data. </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="py-24 bg-gray-50">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap -mx-4">
+          <div class="w-full md:w-1/2 px-4 mb-20 md:mb-0">
+            <div class="max-w-md">
+              <h2 class="mb-4 text-4xl md:text-5xl leading-tight text-coolGray-900 font-bold tracking-tighter">Technology</h2>
+              <!--<p class="text-lg md:text-xl text-coolGray-500 font-medium">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Enim nunc faucibus a pellentesque. </p>-->
+            </div>
+          </div>
+          <div class="w-full md:w-1/2 px-4">
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">What does BasicSwap being in the beta stage mean?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>BasicSwap is operational on the mainnet and functions reliably, yet it's still in the beta phase due to several factors.<br><br> Firstly, you might notice that some features and functionalities are either in need of refinement or absent altogether. This situation is to be expected during the beta stage of development, as the community of contributors is still working on the protocol.<br><br> Moreover, the end vision for BasicSwap extends far beyond its current state. And while a pivotal point where gathering user feedback and conducting thorough stress tests has been reached, the platform's end vision is much more ambitious than what you see today.<br><br>By opening up the beta phase to the public now, this objective can be achieved more effectively. </p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">What are the core components of the BasicSwap DEX?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>BasicSwap can be best understood as the decentralized version of the SWIFT messaging network; all it does is send and receive messages between two peers via the decentralized SMSG network for them to execute coin swaps together without any central party involvement. <br><br>The coin swapping process itself is not conducted by BasicSwap. Instead, it is handled by on-chain atomic swaps on the respective blockchains of the cryptocurrencies being exchanged. BasicSwap's role is to enable communication between swappers, allowing them to exchange the necessary information for atomic swaps and to publicly broadcast their offers without intermediaries.<br><br>BasicSwap is built on three fundamental components: the atomic swap protocol layer, the SecureMessaging network (SMSG), and the official coin cores of the coins you want to swap. It is then wrapped under a user-friendly GUI to ease the process of swapping for users.<br><br><b>Atomic swaps:</b> The core mechanism enabling direct swaps between parties without intermediaries. Using an atomic, condition-based process, coins are temporarily secured in time-locked addresses until all conditions are satisfied. If any part of the process fails, the swap is voided, and coins are returned to their original owners after a set period. Discover more about atomic swaps <a class="text-blue-500" href="https://github.com/decred/atomicswap" target="_blank" rel="noopener noreferrer">here</a>, with a focus on Monero atomic swaps <a class="text-blue-500" href="https://github.com/h4sh3d/xmr-btc-atomic-swap" target="_blank" rel="noopener noreferrer">here.</a><br><br> <b>SecureMessaging:</b> This peer-to-peer and decentralized messaging network (‘mixnet’) facilitates communication between two peers that seek to swap coins with each other. It enables them to communicate with each other and provide the other with the necessary data (e.g., transaction hashes and proofs) to satisfy atomic swap conditions. It enables blockchain interoperability without centralized control or friction, and additionally supports other DEX functions like BasicSwap’s decentralized order book. Learn more about SMSG <a class="text-blue-500" href="https://particl.news/the-smsg-network-enabling-dapps-with-true-privacy/" target="_blank" rel="noopener noreferrer">here.</a><br><br><b>Coin cores:</b> BasicSwap does not provide wallet functionalities. Instead, it relies on the official coin cores of the cryptocurrencies you wish to swap. When setting up BasicSwap, you download and install coin cores (e.g., Bitcoin Core, Litecoin Core) that provide the wallet functionalities required to manage your coins and execute atomic swaps. Alternatively, you can point BasicSwap to existing nodes, either locally on your device or via remote connection.</a></p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Is the order book really entirely decentralized?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p><b>Yes.</b> BasicSwap's order book is fully decentralized, with no central point of failure or any centralized components. It operates on the SecureMessaging (SMSG) network, ensuring it is completely distributed. For further details on how the SMSG network facilitates this decentralization, you can read more <a class="text-blue-500" href="https://particl.news/the-smsg-network-enabling-dapps-with-true-privacy/" target="_blank" rel="noopener noreferrer">here.</a></p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Who runs the SMSG network that powers the DEX?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>The SMSG network operates as a global peer-to-peer network of nodes. By running BasicSwap, you automatically become part of this network, contributing as an SMSG node. This means the network's strength and continuity are directly supported by the active user base of BasicSwap.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Does BasicSwap connect to a third-party service?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>BasicSwap's core operations and functionalities do not involve connections to third-party services; the platform is fully decentralized, eliminating any centralized points of failure. However, for added convenience within the user interface, features like historical price charts for coins might utilize data from external APIs. </p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Are there premade builds of BasicSwap?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Currently, there is no premade builds for BasicSwap. It requires manual compilation, but rest assured, the process is made simple with our easy-to-follow instructions available <a class="text-blue-500" href="https://academy.particl.io/en/latest/basicswap-guides/basicswapguides_installation.html" target="_blank" rel="noopener noreferrer">here</a>, the <a class="text-blue-500" href="https://github.com/gerlofvanek/basicswap-installation-GUI/releases/tag/WIN-v2.0.0" target="_blank" rel="noopener noreferrer">installation wizard (.exe)</a>, or <a class="text-blue-500" href="https://github.com/nahuhh/basicswap-bash/releases/latest" target="_blank" rel="noopener noreferrer">this Linux installation script</a> written by the community.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Is BasicSwap dependent on a team or organization to operate and function?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p><b>No.</b>As a completely open-source and decentralized DEX, its functionality does not hinge on any team or central organization involvement. If community development and contributions stopped today, BasicSwap would be unaffected and continue working without any difference.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">What makes the BasicSwap network stable?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>The stability of BasicSwap is fundamentally anchored in its design where every user acts as a peer-to-peer (P2P) node, ensuring the DEX remains operational as long as there are users.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Are Monero swaps truly decentralized? What’s the catch?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Questions about this topic are common, and the good news is, there's no catch. BasicSwap leverages <a class="text-blue-500" href="https://github.com/h4sh3d/xmr-btc-atomic-swap" target="_blank" rel="noopener noreferrer">h4sh3d’s Monero atomic swap protocol</a>; all other functionalities are powered by the SecureMessaging (SMSG) network and scriptless scripts. Notably, BasicSwap avoids the use of wrapped Monero tokens, intermediary chains, or any form of workaround. </p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How can I verify and audit BasicSwap’s code?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>The entirety of the platform's code is openly available and fully open-source. For a comprehensive audit or to simply review the code, feel free to visit our GitHub <a class="text-blue-500" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">here</a>. This allows you to scrutinize every line, confirming by yourself that BasicSwap operates exactly the way it's being described. </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="py-24 bg-white">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap -mx-4">
+          <div class="w-full md:w-1/2 px-4 mb-20 md:mb-0">
+            <div class="max-w-md">
+              <h2 class="mb-4 text-4xl md:text-5xl leading-tight text-coolGray-900 font-bold tracking-tighter">Get Involved</h2>
+              <!--<p class="text-lg md:text-xl text-coolGray-500 font-medium">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Enim nunc faucibus a pellentesque. </p>-->
+            </div>
+          </div>
+          <div class="w-full md:w-1/2 px-4">
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How can I learn more about BasicSwap?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Reading this FAQ section is a good first step towards understanding BasicSwap, but you can learn more about it by heading over to its Particl Academy section <a class="text-blue-500" href="https://academy.particl.io/en/latest/basicswap-dex/basicswap_explained.html" target="_blank" rel="noopener noreferrer">here.</a> </p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How can I contribute to BasicSwap?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Explore BasicSwap's GitHub to familiarize yourself with the code and identify how your skills and time can be most effectively utilized. If you're truly motivated to join us in developing this project, don't hesitate to join the <a class="text-blue-500" href="https://matrix.to/#/#basicswap:matrix.org" target="_blank" rel="noopener noreferrer">Matrix channel</a> and contact other contributors there. Passionate individuals that wish to contribute to this important mission are always welcomed!</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How can I get in touch with the community?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Join the <a class="text-blue-500" href="https://matrix.to/#/#basicswap:matrix.org" target="_blank" rel="noopener noreferrer">Matrix channel</a> and come say hello! </p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Where is the BasicSwap community located?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>We’re on <a class="text-blue-500" href="https://matrix.to/#/#basicswap:matrix.org" target="_blank" rel="noopener noreferrer">Matrix</a>, <a class="text-blue-500" href="https://reddit.com/r/particl" target="_blank" rel="noopener noreferrer">Reddit</a>, <a class="text-blue-500" href="https://t.me/basicswapdex" target="_blank" rel="noopener noreferrer">Telegram</a>, and <a class="text-blue-500" href="https://discord.me/particl" target="_blank" rel="noopener noreferrer">Discord</a>.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How can I get involved or help the BasicSwap project?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>There are many ways to help, including contributing code <a class="text-blue-500" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">here</a>. Even if you're not a developer, you can still make a significant impact on the project. The most effective ways to contribute are by spreading the word about BasicSwap and providing liquidity. Increasing user engagement and liquidity on the platform are crucial steps toward enhancing its usability and positioning it as a viable alternative to centralized exchanges. Remember, every contribution counts, no matter the size! </p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h4 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How can I provide liquidity on the order book?</h4>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Adding liquidity to BasicSwap and benefiting from arbitrage opportunities is straightforward with the help of its automated market making script. For detailed instructions on how to utilize this tool, visit the specific guide in the Particl Academy <a class="text-blue-500" href="https://academy.particl.io/en/latest/basicswap-guides/basicswapguides_liquidity_bot.html" target="_blank" rel="noopener noreferrer">here</a>, or check out our video tutorials <a class="text-blue-500" href="https://particl.news/the-ultimate-cloud-basicswap-setup-and-automated-market-making/" target="_blank" rel="noopener noreferrer">here</a>. </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="bg-white overflow-hidden">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap lg:items-center pt-24 pb-12 -mx-4">
+          <div class="w-full md:w-1/4 lg:w-auto px-4">
+            <a class="block mb-5 md:mb-0 max-w-max" href="/">
+              <img class="h-8" src="images/basicswap-logo-dark.svg" alt="">
+            </a>
+          </div>
+          <div class="w-full md:w-3/4 lg:flex-1 px-4">
+            <div class="flex flex-wrap justify-end -mx-3 lg:-mx-6">
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6"></div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6"></div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6"></div>
+               <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" href="/">Home</a>
+              </div>             
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" href="faq">FAQ</a>
+              </div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" href="about">About</a>
+              </div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" target=”_blank” href="https://particl.news/tag/basicswap">Blog</a>
+              </div>
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" href="terms">Terms and Conditions</a>
+              </div>            
+              <div class="w-full md:w-auto p-3 md:py-0 md:px-6">
+                <a class="inline-block text-lg md:text-xl text-coolGray-500 hover:text-coolGray-600 font-medium" href="/mediakit/mediakit-basicswap.zip">Mediakit</a>
+              </div>          
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="border-b border-coolGray-100"></div>
+      <div class="container px-4 mx-auto mb-10">
+        <div class="flex flex-wrap items-center pt-12">
+          <div class="w-full md:w-1/2 mb-6 md:mb-0"> 
+          <div class="flex items-center">
+            <p class="mr-1 text-sm text-gray-90 font-medium ">© 2025~ </p>
+            <p class="text-sm text-coolGray-400 font-medium">BasicSwapDEX</p>
+          </div>
+        </div>
+
+          <div class="w-full md:w-1/2">
+            <div class="flex flex-wrap md:justify-end -mx-5">
+
+              <div class="px-5">
+                <a class="inline-block text-coolGray-300 hover:text-coolGray-400" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">
+                  <svg width="18" height="18" viewbox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 0C4.0275 0 0 4.13211 0 9.22838C0 13.3065 2.5785 16.7648 6.15375 17.9841C6.60375 18.0709 6.76875 17.7853 6.76875 17.5403C6.76875 17.3212 6.76125 16.7405 6.7575 15.9712C4.254 16.5277 3.726 14.7332 3.726 14.7332C3.3165 13.6681 2.72475 13.3832 2.72475 13.3832C1.9095 12.8111 2.78775 12.8229 2.78775 12.8229C3.6915 12.887 4.16625 13.7737 4.16625 13.7737C4.96875 15.1847 6.273 14.777 6.7875 14.5414C6.8685 13.9443 7.10025 13.5381 7.3575 13.3073C5.35875 13.0764 3.258 12.2829 3.258 8.74709C3.258 7.73988 3.60675 6.91659 4.18425 6.27095C4.083 6.03774 3.77925 5.0994 4.263 3.82846C4.263 3.82846 5.01675 3.58116 6.738 4.77462C7.458 4.56958 8.223 4.46785 8.988 4.46315C9.753 4.46785 10.518 4.56958 11.238 4.77462C12.948 3.58116 13.7017 3.82846 13.7017 3.82846C14.1855 5.0994 13.8818 6.03774 13.7917 6.27095C14.3655 6.91659 14.7142 7.73988 14.7142 8.74709C14.7142 12.2923 12.6105 13.0725 10.608 13.2995C10.923 13.5765 11.2155 14.1423 11.2155 15.0071C11.2155 16.242 11.2043 17.2344 11.2043 17.5341C11.2043 17.7759 11.3617 18.0647 11.823 17.9723C15.4237 16.7609 18 13.3002 18 9.22838C18 4.13211 13.9703 0 9 0Z" fill="currentColor"></path>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <script>
+      document.addEventListener('alpine:init', () => {
+        Alpine.store('accordion', {
+          tab: 0
+        });
+        Alpine.data('accordion', (idx) => ({
+          init() {
+            this.idx = idx;
+          },
+          idx: -1,
+          handleClick() {
+            this.$store.accordion.tab = this.$store.accordion.tab === this.idx ? 0 : this.idx;
+          },
+          handleRotate() {
+            return this.$store.accordion.tab === this.idx ? 'rotate-180' : '';
+          },
+          handleToggle() {
+            return this.$store.accordion.tab === this.idx ? `max-height: ${this.$refs.tab.scrollHeight}px` : '';
+          }
+        }));
+      })
+    </script>
+  </body>
+</html>
