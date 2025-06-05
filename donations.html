@@ -360,6 +360,25 @@
       </div>
     </section>
 
+    <!-- Get in Touch Section -->
+    <section id="get-in-touch" class="py-24 bg-gray-50">
+      <div class="container px-4 mx-auto">
+        <div class="text-center">
+          <h2 class="mb-4 text-3xl md:text-4xl leading-tight text-coolGray-900 font-bold tracking-tighter">Get in Touch</h2>
+          <p class="mb-8 text-lg md:text-xl text-coolGray-500 font-medium">Have questions or want to collaborate? We'd love to hear from you.</p>
+          <div class="inline-flex items-center justify-center p-6 bg-white rounded-lg shadow-lg">
+            <svg class="w-6 h-6 mr-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+            </svg>
+            <a href="#" id="contact-email-donations" class="text-lg md:text-xl text-coolGray-700 hover:text-blue-500 font-medium transition duration-200">
+              <span id="email-text-donations">Loading...</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Footer -->
     <section class="bg-white overflow-hidden">
       <div class="container px-4 mx-auto">
@@ -447,7 +466,26 @@
       document.addEventListener('DOMContentLoaded', function() {
         setupDonationAddressCopy();
         setupMobileMenu();
+        setupEmailProtection();
       });
+
+      // Email protection - display email on page load
+      function setupEmailProtection() {
+        // Obfuscated email parts
+        const user = 'business';
+        const domain = 'basicswapdex';
+        const tld = 'com';
+        const email = user + '@' + domain + '.' + tld;
+
+        // Update the link and text
+        const emailLink = document.getElementById('contact-email-donations');
+        const emailText = document.getElementById('email-text-donations');
+
+        if (emailLink && emailText) {
+          emailLink.href = 'mailto:' + email;
+          emailText.textContent = email;
+        }
+      }
 
       function setupDonationAddressCopy() {
         const donationAddresses = document.querySelectorAll('.donation-address');
