@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Adaptor signatures, secure peer messaging, and lightweight Electrum-node lookups. The three primitives that let any two clients settle a cross-chain swap atomically, on chain, without a central matcher.">
     <meta name="keywords" content="BasicSwap protocol, adaptor signatures, OtVES, SMSG, atomic swap, Monero, Bitcoin, decentralized, Electrum">
-    <link rel="canonical" href="https://basicswapdex.com/protocol">
+    <link rel="canonical" href="https://basicswapdex.com/protocol.html">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="css/tailwind.min.css">
@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="#0b0f18">
-    <meta property="og:url" content="https://basicswapdex.com/protocol">
+    <meta property="og:url" content="https://basicswapdex.com/protocol.html">
     <meta property="og:site_name" content="BasicSwap DEX">
     <meta property="og:title" content="Protocol - How BasicSwap settles a swap without a coordinator">
     <meta property="og:description" content="Adaptor signatures, secure peer messaging, and lightweight Electrum-node lookups. The three primitives behind every BasicSwap atomic swap.">
@@ -23,7 +23,7 @@
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://basicswapdex.com/protocol">
+    <meta property="twitter:url" content="https://basicswapdex.com/protocol.html">
     <meta property="twitter:title" content="Protocol - How BasicSwap settles a swap without a coordinator">
     <meta property="twitter:description" content="Adaptor signatures, secure peer messaging, and lightweight Electrum-node lookups. The three primitives behind every BasicSwap atomic swap.">
     <meta property="twitter:image" content="https://basicswapdex.com/site-meta.png">
@@ -33,7 +33,7 @@
   </head>
   <body class="antialiased bg-body text-body font-body">
     <!-- ============ NAV ============ -->
-    <section>
+    <header>
       <nav class="relative bg-gray-700">
         <div class="p-8 container flex flex-wrap items-center justify-between mx-auto">
           <div class="flex justify-between items-center xl:w-full">
@@ -104,7 +104,8 @@
           </a>
         </div>
       </div>
-    </section>
+    </header>
+    <main>
 
     <!-- ============ HERO ============ -->
     <section class="relative bg-gray-700 overflow-hidden">
@@ -410,7 +411,8 @@ confs = tip.height - hist.height + 1
     </section>
 
     <!-- ============ FOOTER ============ -->
-    <section class="bg-white overflow-hidden border-t border-coolGray-100">
+    </main>
+    <footer class="bg-white overflow-hidden border-t border-coolGray-100">
       <div class="container px-4 mx-auto">
         <div class="flex flex-wrap pt-16 pb-12 -mx-4">
           <div class="w-full lg:w-2/5 px-4 mb-12 lg:mb-0">
@@ -470,6 +472,6 @@ confs = tip.height - hist.height + 1
           </div>
         </div>
       </div>
-    </section>
+    </footer>
   </body>
 </html>
