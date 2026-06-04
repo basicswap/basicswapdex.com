@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Protocol - How BasicSwap settles a swap without a coordinator</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Adaptor signatures, secure peer messaging, and lightweight Electrum-node lookups. The three primitives that let any two clients settle a cross-chain swap atomically, on chain, without a central matcher.">
+    <meta name="keywords" content="BasicSwap protocol, adaptor signatures, OtVES, SMSG, atomic swap, Monero, Bitcoin, decentralized, Electrum">
+    <link rel="canonical" href="https://basicswapdex.com/protocol">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="css/tailwind.min.css">
+    <link rel="stylesheet" href="css/content.css">
+    <link rel=icon sizes="32x32" type="image/png" href="images/favicon-32.png">
+    <meta property="og:url" content="https://basicswapdex.com/protocol">
+    <meta property="og:site_name" content="BasicSwap DEX">
+    <meta property="og:title" content="Protocol - How BasicSwap settles a swap without a coordinator">
+    <meta property="og:description" content="Adaptor signatures, secure peer messaging, and lightweight Electrum-node lookups. The three primitives behind every BasicSwap atomic swap.">
+    <meta property="og:image" content="/site-meta.png">
+    <script src="js/main.js"></script>
+  </head>
+  <body class="antialiased bg-body text-body font-body">
+    <!-- ============ NAV ============ -->
+    <section>
+      <nav class="relative bg-gray-700">
+        <div class="p-8 container flex flex-wrap items-center justify-between mx-auto">
+          <div class="flex justify-between items-center xl:w-full">
+            <div class="xl:w-auto">
+              <a class="block max-w-max xl:mr-10" href="index.html">
+                <img class="h-12" src="images/basicswap-logo.svg" alt="BasicSwap DEX Logo">
+              </a>
+            </div>
+            <div class="hidden xl:block">
+              <ul class="flex justify-center">
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="index.html">Home</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="desktop.html">Desktop</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="mobile.html">Mobile</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets</a></li>
+                <li class="mr-7"><a class="text-white hover:text-coolGray-50 font-medium" href="protocol.html">Protocol</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="faq.html">FAQ</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="about.html">About</a></li>
+                <li><a class="text-red-400 hover:text-red-300 font-medium inline-flex items-center" href="donations.html">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
+                  Donations
+                </a></li>
+              </ul>
+            </div>
+            <div class="hidden xl:block">
+              <div class="flex items-center justify-end space-x-3">
+                <a class="inline-block p-2 text-coolGray-400 hover:text-white transition duration-200" href="https://x.com/BasicSwapDEX" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a class="inline-block p-2 text-coolGray-400 hover:text-white transition duration-200" href="https://matrix.to/#/#basicswap:matrix.org" target="_blank" rel="noopener noreferrer" title="Join us on Matrix">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" fill="currentColor"><path d="M.632.55v22.9H2.28V24H0V0h2.28v.55zm7.043 7.26v1.157h.033c.309-.443.683-.784 1.117-1.024.433-.245.936-.365 1.507-.365.54 0 1.033.107 1.481.314.448.208.785.582 1.02 1.108.254-.374.6-.706 1.034-.992.434-.287.95-.43 1.546-.43.453 0 .872.056 1.26.167.388.11.716.286.993.53.276.245.489.559.646.951.152.392.23.863.23 1.417v5.728h-2.349V11.52c0-.286-.01-.559-.032-.812a1.755 1.755 0 0 0-.18-.66 1.106 1.106 0 0 0-.438-.448c-.194-.11-.457-.166-.785-.166-.332 0-.6.064-.803.189a1.38 1.38 0 0 0-.48.499 1.946 1.946 0 0 0-.231.696 5.56 5.56 0 0 0-.06.785v4.826h-2.35v-4.206c0-.265-.023-.52-.067-.766a1.589 1.589 0 0 0-.266-.652 1.32 1.32 0 0 0-.531-.46c-.219-.116-.506-.174-.863-.174-.22 0-.440.043-.659.132-.219.088-.417.207-.594.357-.177.149-.318.33-.423.542-.104.212-.157.452-.157.72v4.507H7.675V7.81zm15.693 16.64V.55h-1.648V0H24v24h-2.28v-.55z"/></svg>
+                </a>
+                <a class="flex flex-wrap justify-center inline-block px-4 py-2.5 bg-blue-500 hover:bg-blue-600 font-bold text-sm text-white border border-blue-500 rounded-md shadow-button focus:ring-0 focus:outline-none" href="https://github.com/basicswap/" target="_blank" rel="noopener noreferrer">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" class="mr-2" viewBox="0 0 24 24"><g fill="#ffffff"><path fill-rule="evenodd" clip-rule="evenodd" fill="#ffffff" d="M12,0.3c-6.6,0-12,5.4-12,12c0,5.3,3.4,9.8,8.2,11.4 C8.8,23.8,9,23.4,9,23.1c0-0.3,0-1,0-2c-3.3,0.7-4-1.6-4-1.6c-0.5-1.4-1.3-1.8-1.3-1.8C2.5,17,3.7,17,3.7,17 c1.2,0.1,1.8,1.2,1.8,1.2c1.1,1.8,2.8,1.3,3.5,1c0.1-0.8,0.4-1.3,0.8-1.6c-2.7-0.3-5.5-1.3-5.5-5.9c0-1.3,0.5-2.4,1.2-3.2 C5.5,8.1,5,6.9,5.7,5.3c0,0,1-0.3,3.3,1.2c1-0.3,2-0.4,3-0.4c1,0,2,0.1,3,0.4c2.3-1.6,3.3-1.2,3.3-1.2c0.7,1.7,0.2,2.9,0.1,3.2 c0.8,0.8,1.2,1.9,1.2,3.2c0,4.6-2.8,5.6-5.5,5.9c0.4,0.4,0.8,1.1,0.8,2.2c0,1.6,0,2.9,0,3.3c0,0.3,0.2,0.7,0.8,0.6 c4.8-1.6,8.2-6.1,8.2-11.4C24,5.7,18.6,0.3,12,0.3z"></path></g></svg> <span>BasicSwap Github</span></a>
+              </div>
+            </div>
+          </div>
+          <button class="navbar-burger self-center xl:hidden">
+            <svg width="35" height="35" viewbox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect class="text-coolGray-800" width="32" height="32" rx="6" fill="currentColor"></rect>
+              <path class="text-coolGray-400" d="M7 12H25C25.2652 12 25.5196 11.8946 25.7071 11.7071C25.8946 11.5196 26 11.2652 26 11C26 10.7348 25.8946 10.4804 25.7071 10.2929C25.5196 10.1054 25.2652 10 25 10H7C6.73478 10 6.48043 10.1054 6.29289 10.2929C6.10536 10.4804 6 10.7348 6 11C6 11.2652 6.10536 11.5196 6.29289 11.7071C6.48043 11.8946 6.73478 12 7 12ZM25 15H7C6.73478 15 6.48043 15.1054 6.29289 15.2929C6.10536 15.4804 6 15.7348 6 16C6 16.2652 6.10536 16.5196 6.29289 16.7071C6.48043 16.8946 6.73478 17 7 17H25C25.2652 17 25.5196 16.8946 25.7071 16.7071C25.8946 16.5196 26 16.2652 26 16C26 15.7348 25.8946 15.4804 25.7071 15.2929C25.5196 15.1054 25.2652 15 25 15ZM25 20H7C6.73478 20 6.48043 20.1054 6.29289 20.2929C6.10536 20.4804 6 20.7348 6 21C6 21.2652 6.10536 21.5196 6.29289 21.7071C6.48043 21.8946 6.73478 22 7 22H25C25.2652 22 25.5196 21.8946 25.7071 21.7071C25.8946 21.5196 26 21.2652 26 21C26 20.7348 25.8946 20.4804 25.7071 20.2929C25.5196 20.1054 25.2652 20 25 20Z" fill="currentColor"></path>
+            </svg>
+          </button>
+        </div>
+      </nav>
+      <div class="navbar-menu hidden fixed top-0 left-0 z-50 w-full h-full bg-coolGray-900 bg-opacity-50">
+        <div class="fixed top-0 left-0 bottom-0 w-full w-4/6 max-w-xs bg-coolGray-900">
+          <nav class="relative p-6 h-full overflow-y-auto">
+            <div class="flex flex-col justify-between h-full">
+              <a class="inline-block" href="index.html"><img class="h-8" src="images/basicswap-logo.svg" alt="BasicSwap DEX Logo"></a>
+              <ul class="py-6">
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="index.html">Home</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="desktop.html">Desktop</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="mobile.html">Mobile</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets</a></li>
+                <li><a class="block py-3 px-4 text-white font-medium hover:bg-coolGray-800 rounded-md" href="protocol.html">Protocol</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="faq.html">FAQ</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="about.html">About</a></li>
+                <li><a class="block py-3 px-4 text-red-400 hover:text-red-300 font-medium hover:bg-coolGray-800 rounded-md" href="donations.html">Donations</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="https://blog.basicswapdex.com/" target="_blank" rel="noopener noreferrer">Blog &#8599;</a></li>
+              </ul>
+              <div class="flex flex-wrap">
+                <div class="w-full"><a class="inline-block py-4 px-5 w-full text-sm leading-5 text-white bg-blue-500 hover:bg-blue-600 font-medium text-center rounded-md" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">BasicSwap Github</a></div>
+              </div>
+            </div>
+          </nav>
+          <a class="navbar-close absolute top-5 p-4 right-3" href="#">
+            <svg width="12" height="12" viewbox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.94004 5.99988L11.14 1.80655C11.2656 1.68101 11.3361 1.51075 11.3361 1.33321C11.3361 1.15568 11.2656 0.985415 11.14 0.859879C11.0145 0.734344 10.8442 0.663818 10.6667 0.663818C10.4892 0.663818 10.3189 0.734344 10.1934 0.859879L6.00004 5.05988L1.80671 0.859879C1.68117 0.734344 1.51091 0.663819 1.33337 0.663819C1.15584 0.663819 0.985576 0.734344 0.860041 0.859879C0.734505 0.985415 0.66398 1.15568 0.66398 1.33321C0.66398 1.51075 0.734505 1.68101 0.860041 1.80655L5.06004 5.99988L0.860041 10.1932C0.797555 10.2552 0.747959 10.3289 0.714113 10.4102C0.680267 10.4914 0.662842 10.5785 0.662842 10.6665C0.662842 10.7546 0.680267 10.8417 0.714113 10.9229C0.747959 11.0042 0.797555 11.0779 0.860041 11.1399C0.922016 11.2024 0.99575 11.252 1.07699 11.2858C1.15823 11.3197 1.24537 11.3371 1.33337 11.3371C1.42138 11.3371 1.50852 11.3197 1.58976 11.2858C1.671 11.252 1.74473 11.2024 1.80671 11.1399L6.00004 6.93988L10.1934 11.1399C10.2554 11.2024 10.3291 11.252 10.4103 11.2858C10.4916 11.3197 10.5787 11.3371 10.6667 11.3371C10.7547 11.3371 10.8419 11.3197 10.9231 11.2858C11.0043 11.252 11.0781 11.2024 11.14 11.1399C11.2025 11.0779 11.2521 11.0042 11.286 10.9229C11.3198 10.8417 11.3372 10.7546 11.3372 10.6665C11.3372 10.5785 11.3198 10.4914 11.286 10.4102C11.2521 10.3289 11.2025 10.2552 11.14 10.1932L6.94004 5.99988Z" fill="#8896AB"></path></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HERO ============ -->
+    <section class="relative bg-gray-700 overflow-hidden">
+      <div class="container px-4 mx-auto py-20 md:py-28">
+        <span class="kicker text-green-400">03 &middot; protocol</span>
+        <h1 class="mt-6 mb-6 max-w-4xl text-5xl md:text-6xl xl:text-7xl font-bold text-white font-heading tracking-tighter leading-none">
+          Three primitives.<br>
+          <span class="text-green-400">One open protocol.</span>
+        </h1>
+        <p class="max-w-3xl text-lg md:text-xl text-coolGray-300 font-medium leading-relaxed">
+          BasicSwap is a decentralized coordination layer for atomic swaps. It holds no funds and does not process, initiate, or execute swaps on your behalf. It carries the encrypted messages traders use to find each other and agree on terms; settlement happens entirely on the blockchains of the coins being traded.
+        </p>
+        <p class="mt-4 max-w-3xl text-lg md:text-xl text-coolGray-300 font-medium leading-relaxed">
+          In that sense it is a SWIFT for cross-chain atomic swaps, except there is no company or operator anyone can compel, censor, or switch off.
+        </p>
+        <a class="mt-10 inline-flex items-center text-green-400 hover:text-green-300 font-bold" href="#what-basicswap-is-not">What BasicSwap is, and what it is not <span class="ml-2">&darr;</span></a>
+      </div>
+    </section>
+
+    <!-- ============ WHAT IT IS / IS NOT ============ -->
+    <section id="what-basicswap-is-not" class="py-24 md:py-32 bg-white">
+      <div class="container px-4 mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-gray-200 border border-gray-200">
+          <div class="bg-white p-8 md:p-10">
+            <div class="kicker text-green-500">what basicswap is</div>
+            <h2 class="mt-4 text-2xl md:text-3xl font-bold text-coolGray-900 leading-tight">A decentralized messaging protocol that facilitates atomic swaps.</h2>
+            <ul class="mt-6 space-y-3 text-coolGray-500 font-medium leading-relaxed">
+              <li class="flex"><span class="mt-2 mr-3 w-1.5 h-1.5 shrink-0 bg-green-500"></span>An end-to-end encrypted mesh that gossips offers, bids, and lock signatures between peers.</li>
+              <li class="flex"><span class="mt-2 mr-3 w-1.5 h-1.5 shrink-0 bg-green-500"></span>A set of open atomic swap protocols (HTLC, OtVES, SwapLock) executed on each coin's own chain.</li>
+              <li class="flex"><span class="mt-2 mr-3 w-1.5 h-1.5 shrink-0 bg-green-500"></span>Open source under MIT. Anyone can read, audit, fork, or extend it.</li>
+            </ul>
+          </div>
+          <div class="bg-white p-8 md:p-10">
+            <div class="kicker text-red-500">what basicswap is not</div>
+            <h2 class="mt-4 text-2xl md:text-3xl font-bold text-coolGray-900 leading-tight">Not an exchange. Not a custodian. Not a server.</h2>
+            <ul class="mt-6 space-y-3 text-coolGray-500 font-medium leading-relaxed">
+              <li class="flex"><span class="mt-2 mr-3 w-1.5 h-1.5 shrink-0 bg-red-500"></span>BasicSwap does not initiate, process, or execute swaps. Each chain does that itself.</li>
+              <li class="flex"><span class="mt-2 mr-3 w-1.5 h-1.5 shrink-0 bg-red-500"></span>BasicSwap does not hold funds, issue wallets, or generate keys. Core wallets do that.</li>
+              <li class="flex"><span class="mt-2 mr-3 w-1.5 h-1.5 shrink-0 bg-red-500"></span>BasicSwap does not run servers or central matching. No operator can pause it.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRIMITIVE 01 ============ -->
+    <section class="py-24 md:py-32 bg-gray-50">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap -mx-4">
+          <div class="w-full lg:w-3/5 px-4 mb-12 lg:mb-0">
+            <div class="kicker text-green-500">primitive 01</div>
+            <h2 class="mt-4 text-3xl md:text-4xl font-bold text-coolGray-900 tracking-tighter leading-tight">Adaptor signatures.<br>Atomicity without a Monero script.</h2>
+            <p class="mt-5 text-lg text-coolGray-500 font-medium leading-relaxed">The Bitcoin side of a BTC&#8596;XMR swap has script. The Monero side does not. That asymmetry is what blocked cross-chain atomic swaps for years. One-Time Verifiably Encrypted Signatures (OtVES) fix it.</p>
+            <p class="mt-4 text-lg text-coolGray-500 font-medium leading-relaxed">The signature that redeems the Bitcoin is encrypted under one party's half of the Monero spend key. Broadcasting that spend reveals the half on-chain; combined with the other half, it unlocks the Monero. On Monero, atomicity is pure cryptography. The Bitcoin side still uses ordinary script and timelocks, which the paper calls semi-scriptless.</p>
+            <p class="mt-4 text-lg text-coolGray-500 font-medium leading-relaxed">BasicSwap was the first DEX to implement OtVES for XMR atomic swaps, working since 2020.</p>
+            <a class="mt-6 inline-flex items-center text-green-600 hover:text-green-500 font-bold" href="https://eprint.iacr.org/2020/1126" target="_blank" rel="noopener noreferrer">Read the BTC&#8596;XMR atomic-swap paper <span class="ml-2">&#8599;</span></a>
+          </div>
+          <div class="w-full lg:w-2/5 px-4">
+            <div class="bg-white border border-gray-200 rounded-md p-8">
+              <div class="kicker text-green-500">otves &middot; simplified</div>
+              <div class="mt-6 space-y-4 font-mono text-sm text-coolGray-700">
+                <div class="flex"><span class="mr-3 text-green-600 font-semibold">01</span><span>Alice locks her XMR under a key split between both parties.</span></div>
+                <div class="flex"><span class="mr-3 text-green-600 font-semibold">02</span><span>Bob locks his BTC, redeemable by Alice with a signature <em>missing a secret</em>.</span></div>
+                <div class="flex"><span class="mr-3 text-green-600 font-semibold">03</span><span>Alice redeems the BTC. The chain forces her to reveal the secret.</span></div>
+                <div class="flex"><span class="mr-3 text-green-600 font-semibold">04</span><span>Bob reads the secret, completes the Monero key, and claims the XMR.</span></div>
+                <div class="mt-6 pt-4 border-t border-gray-200 kicker text-coolGray-400">if anyone walks away &rarr; presigned refunds</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRIMITIVE 02 ============ -->
+    <section class="py-24 md:py-32 bg-white">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap items-start -mx-4">
+          <div class="w-full lg:w-2/5 px-4 mb-12 lg:mb-0">
+            <div class="bg-gray-50 border border-gray-200 rounded-md p-8">
+              <div class="kicker text-blue-500">smsg &middot; message cryptography</div>
+              <dl class="mt-6 space-y-4 font-mono text-sm">
+                <div class="flex justify-between gap-4 pb-3 border-b border-gray-200"><dt class="text-coolGray-500">key exchange</dt><dd class="text-coolGray-900">ECDH (secp256k1)</dd></div>
+                <div class="flex justify-between gap-4 pb-3 border-b border-gray-200"><dt class="text-coolGray-500">encryption</dt><dd class="text-coolGray-900">AES-256-CBC</dd></div>
+                <div class="flex justify-between gap-4 pb-3 border-b border-gray-200"><dt class="text-coolGray-500">auth</dt><dd class="text-coolGray-900">HMAC-SHA256</dd></div>
+                <div class="flex justify-between gap-4 pb-3 border-b border-gray-200"><dt class="text-coolGray-500">storage</dt><dd class="text-coolGray-900">1-hour buckets, 31-day TTL</dd></div>
+                <div class="flex justify-between gap-4"><dt class="text-coolGray-500">spam resistance</dt><dd class="text-coolGray-900">PoW &middot; on-chain fees</dd></div>
+              </dl>
+            </div>
+          </div>
+          <div class="w-full lg:w-3/5 px-4 lg:pl-16">
+            <div class="kicker text-blue-500">primitive 02</div>
+            <h2 class="mt-4 text-3xl md:text-4xl font-bold text-coolGray-900 tracking-tighter leading-tight">SMSG.<br>An encrypted message mesh.</h2>
+            <p class="mt-5 text-lg text-coolGray-500 font-medium leading-relaxed">SMSG is the secure-messaging layer inside Particl's P2P network. It carries the BasicSwap order book and every step of the swap conversation. End-to-end encrypted, peer-to-peer, with no central matcher to subpoena.</p>
+            <p class="mt-4 text-lg text-coolGray-500 font-medium leading-relaxed">The mesh is many small nodes gossiping. Any node can carry any message. No node is privileged. A bid disappears from the open layer once it's delivered: messages live in time-bucketed storage that ages out after 31 days.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRIMITIVE 03 ============ -->
+    <section class="py-24 md:py-32 bg-gray-50">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap -mx-4">
+          <div class="w-full lg:w-3/5 px-4 mb-12 lg:mb-0">
+            <div class="kicker text-violet-500">primitive 03</div>
+            <h2 class="mt-4 text-3xl md:text-4xl font-bold text-coolGray-900 tracking-tighter leading-tight">Lightweight node fetching.<br>No chain to install.</h2>
+            <p class="mt-5 text-lg text-coolGray-500 font-medium leading-relaxed">Phones don't run full nodes. So BasicSwap Mobile reads chain state from public Electrum nodes directly. No daemon to install, no 50 GB sync, no explorer dependency. The thin client speaks the same protocol the heavy client does.</p>
+            <p class="mt-4 text-lg text-coolGray-500 font-medium leading-relaxed">For Monero, the same pattern works against public RPC endpoints with view-only proofs. The phone never syncs a chain. The swap's atomicity holds either way; the trade-off is that light mode trusts the node's view of the chain, where a full coin core verifies it first-hand.</p>
+          </div>
+          <div class="w-full lg:w-2/5 px-4">
+            <div class="bg-white border border-gray-200 rounded-md p-6">
+              <div class="kicker text-violet-500 mb-4">electrum &middot; read pattern</div>
+              <pre class="code-block"><code><span class="c-key">// 1. Subscribe to the chain tip</span>
+tip  = electrum.blockchain.headers.subscribe()
+
+<span class="c-key">// 2. Read history + transactions on demand</span>
+hist = electrum.blockchain.scripthash.get_history(scripthash)
+tx   = electrum.blockchain.transaction.get(txid)
+
+<span class="c-key">// 3. Track confirmation depth against the tip</span>
+confs = tip.height - hist.height + 1
+
+<span class="c-key">// 4. Light mode trusts the server's view.</span>
+<span class="c-key">//    Run a full coin core to verify first-party.</span></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 8-MESSAGE FLOW ============ -->
+    <section class="py-24 md:py-32 bg-white">
+      <div class="container px-4 mx-auto">
+        <span class="kicker text-green-500">otves &middot; the swap, message by message</span>
+        <h2 class="mt-4 mb-5 max-w-4xl text-3xl md:text-4xl xl:text-5xl font-bold text-coolGray-900 tracking-tighter leading-tight">Eight messages.<br>Then settlement, on chain.</h2>
+        <p class="mb-6 max-w-3xl text-lg text-coolGray-500 font-medium leading-relaxed">A BasicSwap OtVES swap is a sequence of eight signed messages on the SMSG mesh, plus on-chain transactions. The sequence below traces one XMR &#8596; BTC swap, and shows who sends what.</p>
+        <div class="inline-flex items-center gap-3 mb-10 px-4 py-2 border border-green-500 bg-green-50 rounded-full">
+          <span class="kicker text-green-600">otves method</span>
+          <span class="font-mono text-xs text-coolGray-500">XMR &#8596; BTC &middot; adaptor signatures</span>
+        </div>
+
+        <div class="kicker text-coolGray-400 mb-4">who's who &middot; each step below is colored by its sender</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-px bg-gray-200 border border-gray-200 mb-12">
+          <div class="bg-white p-5">
+            <div class="flex items-center gap-2">
+              <span class="inline-block w-3 h-3 bg-blue-500 rounded-full"></span>
+              <span class="text-lg font-bold text-coolGray-900">Alice</span>
+            </div>
+            <div class="mt-1 kicker text-blue-500">taker &middot; sends BTC</div>
+          </div>
+          <div class="bg-white p-5">
+            <div class="flex items-center gap-2">
+              <span class="inline-block w-3 h-3 bg-coolGray-400 rounded-full"></span>
+              <span class="text-lg font-bold text-coolGray-900">SMSG mesh</span>
+            </div>
+            <div class="mt-1 kicker text-coolGray-400">the gossip layer every message passes through</div>
+          </div>
+          <div class="bg-white p-5">
+            <div class="flex items-center gap-2">
+              <span class="inline-block w-3 h-3 bg-green-500 rounded-full"></span>
+              <span class="text-lg font-bold text-coolGray-900">Bob</span>
+            </div>
+            <div class="mt-1 kicker text-green-600">maker &middot; sends XMR</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-px bg-gray-200 border border-gray-200">
+          <div class="msg-row bg-white">
+            <div class="flex items-center px-5 py-5 font-mono text-green-600 font-semibold">01</div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <code class="text-sm text-coolGray-900">OfferMessage</code>
+              <span class="mt-1 kicker text-coolGray-400">Bob &rarr; mesh</span>
+            </div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <div class="font-bold text-coolGray-900">Bob publishes an offer</div>
+              <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Bob gossips an OfferMessage onto SMSG: "I will trade 1.25 XMR for 0.052 BTC". The whole mesh now sees it.</p>
+            </div>
+          </div>
+          <div class="msg-row bg-white">
+            <div class="flex items-center px-5 py-5 font-mono text-blue-600 font-semibold">02</div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <code class="text-sm text-coolGray-900">XmrBidMessage</code>
+              <span class="mt-1 kicker text-coolGray-400">Alice &rarr; mesh</span>
+            </div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <div class="font-bold text-coolGray-900">Alice bids</div>
+              <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Alice spots the offer on her client and broadcasts a bid for it. SMSG carries it to Bob without revealing IP or identity.</p>
+            </div>
+          </div>
+          <div class="msg-row bg-white">
+            <div class="flex items-center px-5 py-5 font-mono text-green-600 font-semibold">03</div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <code class="text-sm text-coolGray-900">XmrBidAcceptMessage</code>
+              <span class="mt-1 kicker text-coolGray-400">Bob &rarr; mesh</span>
+            </div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <div class="font-bold text-coolGray-900">Bob accepts</div>
+              <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Bob accepts the bid. Both sides now have the cryptographic material needed to begin the swap.</p>
+            </div>
+          </div>
+          <div class="msg-row bg-white">
+            <div class="flex items-center px-5 py-5 font-mono text-blue-600 font-semibold">04</div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <code class="text-sm text-coolGray-900">XmrBidLockTxSigsMessage</code>
+              <span class="mt-1 kicker text-coolGray-400">Alice &rarr; mesh</span>
+            </div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <div class="font-bold text-coolGray-900">Alice sends lock signatures</div>
+              <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Alice produces adaptor signatures and presigned refund branches. She sends them through SMSG to Bob.</p>
+            </div>
+          </div>
+          <div class="msg-row bg-white">
+            <div class="flex items-center px-5 py-5 font-mono text-green-600 font-semibold">05</div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <code class="text-sm text-coolGray-900">XmrSplitTxMessage</code>
+              <span class="mt-1 kicker text-coolGray-400">Bob &rarr; mesh</span>
+            </div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <div class="font-bold text-coolGray-900">Bob shares the split tx</div>
+              <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Bob shares the Monero split transaction. The XMR funds are locked on chain, but only Alice can spend them with the secret she will reveal.</p>
+            </div>
+          </div>
+          <div class="msg-row bg-white">
+            <div class="flex items-center px-5 py-5 font-mono text-blue-600 font-semibold">06</div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <code class="text-sm text-coolGray-900">XmrBidLockSpendTxMessage</code>
+              <span class="mt-1 kicker text-coolGray-400">Alice &rarr; mesh</span>
+            </div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <div class="font-bold text-coolGray-900">Alice publishes the spend tx</div>
+              <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Alice publishes the BTC spend transaction. The act of publishing reveals the secret embedded in her adaptor signature.</p>
+            </div>
+          </div>
+          <div class="msg-row bg-white">
+            <div class="flex items-center px-5 py-5 font-mono text-green-600 font-semibold">07</div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <code class="text-sm text-coolGray-900">XmrBidLockReleaseMessage</code>
+              <span class="mt-1 kicker text-coolGray-400">Bob &rarr; mesh</span>
+            </div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <div class="font-bold text-coolGray-900">Bob extracts the secret</div>
+              <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Bob extracts the revealed secret from the BTC chain and uses it to claim the XMR Alice locked. The swap atomically completes.</p>
+            </div>
+          </div>
+          <div class="msg-row bg-white">
+            <div class="flex items-center px-5 py-5 font-mono text-green-600 font-semibold">08</div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <code class="text-sm text-coolGray-900">on-chain settlement</code>
+              <span class="mt-1 kicker text-coolGray-400">Alice &#8596; Bob</span>
+            </div>
+            <div class="flex flex-col justify-center px-5 py-5 border-t md:border-t-0 md:border-l border-gray-100">
+              <div class="font-bold text-coolGray-900">Settled, on chain</div>
+              <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Either both transactions confirm or, if anyone walks away, the presigned refund branches return the funds. No coordinator was ever in the loop.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ WHITEPAPER / DOCS ============ -->
+    <!-- TEMPORARILY HIDDEN: re-enable once the real Whitepaper + SMSG doc links are available (replace the placeholder github.com/basicswap hrefs).
+    <section class="py-24 md:py-32 bg-gray-50">
+      <div class="container px-4 mx-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-px bg-gray-200 border border-gray-200">
+          <a href="https://github.com/basicswap" target="_blank" rel="noopener noreferrer" class="bg-white p-8 hover:bg-gray-50 transition duration-200">
+            <div class="kicker text-green-500">reading</div>
+            <h3 class="mt-4 text-2xl font-bold text-coolGray-900">Whitepaper</h3>
+            <p class="mt-2 text-coolGray-500 font-medium leading-relaxed">The full BasicSwap atomic-swap protocol spec, including HTLC, OtVES, and SwapLock variants.</p>
+            <span class="mt-4 inline-flex items-center kicker text-blue-500">Read on GitHub <span class="ml-2">&#8599;</span></span>
+          </a>
+          <a href="https://github.com/basicswap" target="_blank" rel="noopener noreferrer" class="bg-white p-8 hover:bg-gray-50 transition duration-200">
+            <div class="kicker text-violet-500">reading</div>
+            <h3 class="mt-4 text-2xl font-bold text-coolGray-900">SMSG architecture</h3>
+            <p class="mt-2 text-coolGray-500 font-medium leading-relaxed">How the encrypted message mesh routes the order book without a central matcher.</p>
+            <span class="mt-4 inline-flex items-center kicker text-violet-500">Read the doc <span class="ml-2">&#8599;</span></span>
+          </a>
+        </div>
+      </div>
+    </section>
+    -->
+    <!-- /WHITEPAPER / DOCS -->
+
+    <!-- ============ GET STARTED ============ -->
+    <section class="py-24 md:py-32 bg-gray-50 border-t border-gray-200">
+      <div class="container px-4 mx-auto">
+        <span class="kicker text-green-500">get started</span>
+        <h2 class="ed-display mt-4 mb-12 max-w-3xl text-3xl md:text-4xl xl:text-5xl font-bold text-coolGray-900 tracking-tighter leading-tight">Ready to use BasicSwap? Pick a surface.</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-px bg-gray-200 border border-gray-200">
+          <a href="desktop.html" class="group flex flex-col bg-white p-8 md:p-10 hover:bg-gray-50 transition duration-200">
+            <div class="kicker text-violet-500">desktop</div>
+            <h3 class="mt-4 text-2xl font-bold text-coolGray-900">Run the full protocol</h3>
+            <p class="mt-3 flex-1 text-coolGray-500 font-medium leading-relaxed">Self-host a node and your own coin core wallets. Make markets, manage offers, and settle across all 14 chains, with nothing held back.</p>
+            <span class="mt-6 inline-flex items-center kicker text-violet-500">Explore BasicSwap Desktop <span class="ml-2">&rarr;</span></span>
+          </a>
+          <a href="mobile.html" class="group flex flex-col bg-white p-8 md:p-10 hover:bg-gray-50 transition duration-200">
+            <div class="kicker text-blue-500">mobile</div>
+            <h3 class="mt-4 text-2xl font-bold text-coolGray-900">Swap from anywhere</h3>
+            <p class="mt-3 flex-1 text-coolGray-500 font-medium leading-relaxed">The consumer surface, in a browser or mobile wallet. No node to run, no chain to sync, the same atomic guarantees underneath.</p>
+            <span class="mt-6 inline-flex items-center kicker text-blue-500">Explore BasicSwap Mobile <span class="ml-2">&rarr;</span></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FOOTER ============ -->
+    <section class="bg-white overflow-hidden border-t border-coolGray-100">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap pt-16 pb-12 -mx-4">
+          <div class="w-full lg:w-2/5 px-4 mb-12 lg:mb-0">
+            <a class="inline-block mb-6" href="index.html"><img class="h-8" src="images/basicswap-logo-dark.svg" alt="BasicSwap DEX Logo"></a>
+            <p class="max-w-xs text-coolGray-500 font-medium leading-relaxed">A decentralized protocol for cross-chain atomic swaps. No custodian, no account, no protocol fees.</p>
+            <div class="inline-flex items-center mt-6 py-1 px-3 bg-green-50 rounded-full">
+              <span class="inline-block w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
+              <span class="text-xs text-green-700 font-semibold uppercase tracking-wider">Protocol live on mainnet</span>
+            </div>
+          </div>
+          <div class="w-1/2 md:w-1/4 lg:w-1/5 px-4 mb-8 md:mb-0">
+            <h3 class="mb-4 kicker text-coolGray-400">Product</h3>
+            <ul class="space-y-3">
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="desktop.html">Desktop</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="mobile.html">Mobile</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets &#8599;</a></li>
+            </ul>
+          </div>
+          <div class="w-1/2 md:w-1/4 lg:w-1/5 px-4 mb-8 md:mb-0">
+            <h3 class="mb-4 kicker text-coolGray-400">Protocol</h3>
+            <ul class="space-y-3">
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="protocol.html">Protocol</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="terms.html">Terms</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://docs.basicswapdex.com/docs/intro" target="_blank" rel="noopener noreferrer">Docs &#8599;</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://github.com/basicswap" target="_blank" rel="noopener noreferrer">Whitepaper &#8599;</a></li>
+            </ul>
+          </div>
+          <div class="w-1/2 md:w-1/4 lg:w-1/5 px-4">
+            <h3 class="mb-4 kicker text-coolGray-400">Community</h3>
+            <ul class="space-y-3">
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="about.html">About</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="donations.html">Donations</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="faq.html">FAQ</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://github.com/basicswap" target="_blank" rel="noopener noreferrer">GitHub &#8599;</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://matrix.to/#/#basicswap:matrix.org" target="_blank" rel="noopener noreferrer">Matrix &#8599;</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://blog.basicswapdex.com/" target="_blank" rel="noopener noreferrer">Blog &#8599;</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="border-b border-coolGray-100"></div>
+      <div class="container px-4 mx-auto mb-10">
+        <div class="flex flex-wrap items-center pt-12">
+          <div class="w-full md:w-1/2 mb-6 md:mb-0">
+            <div class="flex items-center">
+              <p class="mr-1 text-sm text-gray-900 font-medium">&copy; 2026~ </p>
+              <p class="text-sm text-coolGray-400 font-medium">BasicSwapDEX</p>
+              <a class="ml-4 text-sm text-coolGray-400 hover:text-coolGray-600 font-medium" href="/mediakit/mediakit-basicswap.zip">Mediakit</a>
+            </div>
+          </div>
+          <div class="w-full md:w-1/2">
+            <div class="flex flex-wrap md:justify-end -mx-5">
+              <div class="px-5"><a class="inline-block text-coolGray-300 hover:text-coolGray-400" href="https://x.com/BasicSwapDEX" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></div>
+              <div class="px-5"><a class="inline-block text-coolGray-300 hover:text-coolGray-400" href="https://matrix.to/#/#basicswap:matrix.org" target="_blank" rel="noopener noreferrer" title="Join us on Matrix"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M.632.55v22.9H2.28V24H0V0h2.28v.55zm7.043 7.26v1.157h.033c.309-.443.683-.784 1.117-1.024.433-.245.936-.365 1.507-.365.54 0 1.033.107 1.481.314.448.208.785.582 1.02 1.108.254-.374.6-.706 1.034-.992.434-.287.95-.43 1.546-.43.453 0 .872.056 1.26.167.388.11.716.286.993.53.276.245.489.559.646.951.152.392.23.863.23 1.417v5.728h-2.349V11.52c0-.286-.01-.559-.032-.812a1.755 1.755 0 0 0-.18-.66 1.106 1.106 0 0 0-.438-.448c-.194-.11-.457-.166-.785-.166-.332 0-.6.064-.803.189a1.38 1.38 0 0 0-.48.499 1.946 1.946 0 0 0-.231.696 5.56 5.56 0 0 0-.06.785v4.826h-2.35v-4.206c0-.265-.023-.52-.067-.766a1.589 1.589 0 0 0-.266-.652 1.32 1.32 0 0 0-.531-.46c-.219-.116-.506-.174-.863-.174-.22 0-.440.043-.659.132-.219.088-.417.207-.594.357-.177.149-.318.33-.423.542-.104.212-.157.452-.157.72v4.507H7.675V7.81zm15.693 16.64V.55h-1.648V0H24v24h-2.28v-.55z"/></svg></a></div>
+              <div class="px-5"><a class="inline-block text-coolGray-300 hover:text-coolGray-400" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer" title="View on GitHub"><svg width="18" height="18" viewbox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 0C4.0275 0 0 4.13211 0 9.22838C0 13.3065 2.5785 16.7648 6.15375 17.9841C6.60375 18.0709 6.76875 17.7853 6.76875 17.5403C6.76875 17.3212 6.76125 16.7405 6.7575 15.9712C4.254 16.5277 3.726 14.7332 3.726 14.7332C3.3165 13.6681 2.72475 13.3832 2.72475 13.3832C1.9095 12.8111 2.78775 12.8229 2.78775 12.8229C3.6915 12.887 4.16625 13.7737 4.16625 13.7737C4.96875 15.1847 6.273 14.777 6.7875 14.5414C6.8685 13.9443 7.10025 13.5381 7.3575 13.3073C5.35875 13.0764 3.258 12.2829 3.258 8.74709C3.258 7.73988 3.60675 6.91659 4.18425 6.27095C4.083 6.03774 3.77925 5.0994 4.263 3.82846C4.263 3.82846 5.01675 3.58116 6.738 4.77462C7.458 4.56958 8.223 4.46785 8.988 4.46315C9.753 4.46785 10.518 4.56958 11.238 4.77462C12.948 3.58116 13.7017 3.82846 13.7017 3.82846C14.1855 5.0994 13.8818 6.03774 13.7917 6.27095C14.3655 6.91659 14.7142 7.73988 14.7142 8.74709C14.7142 12.2923 12.6105 13.0725 10.608 13.2995C10.923 13.5765 11.2155 14.1423 11.2155 15.0071C11.2155 16.242 11.2043 17.2344 11.2043 17.5341C11.2043 17.7759 11.3617 18.0647 11.823 17.9723C15.4237 16.7609 18 13.3002 18 9.22838C18 4.13211 13.9703 0 9 0Z" fill="currentColor"></path></svg></a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
