@@ -96,3 +96,250 @@ table.matrix td:hover::after {                 /* vertical band down the hovered
   .dt-hero > .dt-hero-copy { width: auto; max-width: 42rem; flex: 0 1 auto; }
   .dt-hero > .dt-hero-mock { width: auto; flex: 1 1 0%; min-width: 0; }
 }
+
+/* ---- Links hub (/links) — in-house Linktree replacement ----
+   Dark, centred, single-column link landing page. Styled here (not via Tailwind
+   utilities) because PurgeCSS strips any utility not already used elsewhere. */
+.links-hub {
+  position: relative;
+  background-color: #1a202c;       /* matches nav bg-gray-700 (rgb 26,32,44) */
+  /* soft brand glow behind the card, echoing the homepage hero */
+  background-image:
+    radial-gradient(55rem 28rem at 50% -8%, rgba(0, 115, 255, 0.22), transparent 70%),
+    radial-gradient(38rem 22rem at 50% 2%, rgba(168, 85, 247, 0.12), transparent 70%);
+  min-height: calc(100vh - 96px); /* fill viewport below the nav */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: hidden;
+}
+.links-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem 5rem;
+}
+
+/* Framed glass card that holds the whole hub */
+.links-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.25rem;
+  padding: 2.5rem 1.75rem 2rem;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.links-logo { height: 3.25rem; width: auto; margin: 0 auto 1.25rem; display: block; }
+.links-eyebrow { display: block; color: #76a8f9; margin-bottom: 0.6rem; }
+.links-title {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.875rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.6rem;
+}
+.links-tagline {
+  color: #cbd5e1;                 /* coolGray-300-ish */
+  font-weight: 500;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 auto 1.25rem;
+  max-width: 24rem;
+}
+
+/* Live status pill (mirrors the footer "live on mainnet" badge) */
+.links-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 auto 1.75rem;
+  padding: 0.3rem 0.85rem;
+  background: rgba(42, 209, 104, 0.12);
+  border: 1px solid rgba(42, 209, 104, 0.28);
+  border-radius: 999px;
+  color: #7be3a4;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.links-status .dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--bsx-green);
+  box-shadow: 0 0 0 4px rgba(42, 209, 104, 0.15);
+}
+
+/* Social icon row */
+.links-social {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.links-social a {
+  color: #9ca3af;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.links-social a:hover { color: #fff; transform: translateY(-2px); }
+
+/* Link buttons */
+.links-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.link-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 0.75rem;
+  color: #fff;
+  font-weight: 600;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease,
+              transform 0.2s ease, box-shadow 0.2s ease;
+}
+.link-btn:hover {
+  background: rgba(0, 115, 255, 0.10);
+  border-color: var(--bsx-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 115, 255, 0.18);
+}
+
+/* Leading icon slot */
+.li-ic {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #76a8f9;
+  transition: color 0.2s ease;
+}
+.li-ic svg { width: 20px; height: 20px; }
+.li-ic--red { color: var(--bsx-red); }
+.link-btn:hover .li-ic { color: #fff; }
+
+/* Centred label that fills the space between icon and arrow */
+.li-label { flex: 1 1 auto; }
+
+/* Trailing external-link arrow */
+.link-btn .ext {
+  flex: 0 0 auto;
+  color: #9ca3af;
+  font-weight: 400;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.link-btn:hover .ext { color: var(--bsx-blue); transform: translateX(3px); }
+
+/* Featured primary button (filled brand blue) */
+.link-btn--primary {
+  background: var(--bsx-blue);
+  border-color: var(--bsx-blue);
+  box-shadow: 0 8px 24px rgba(0, 115, 255, 0.35);
+}
+.link-btn--primary .li-ic { color: #fff; }
+.link-btn--primary:hover {
+  background: #0063dd;
+  border-color: #0063dd;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 115, 255, 0.45);
+}
+
+/* ---- Mobile-launch waitlist (custom form → Brevo) ----
+   Shared by the band on mobile.html and the card on links.html. Styled for a
+   dark surface; posts straight to the Brevo serve endpoint (no API key, no JS
+   dependency on Brevo). Submission handled in js/main.js. */
+.waitlist-band {
+  position: relative;
+  overflow: hidden;
+  background-color: #1a202c;       /* matches nav bg-gray-700 */
+  background-image: radial-gradient(48rem 22rem at 50% 0%, rgba(0, 115, 255, 0.20), transparent 70%);
+}
+.waitlist-form {
+  display: flex;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 30rem;
+}
+.waitlist-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-weight: 500;
+}
+.waitlist-input::placeholder { color: #8a97a8; }
+.waitlist-input:focus {
+  outline: none;
+  border-color: var(--bsx-blue);
+  box-shadow: 0 0 0 3px rgba(0, 115, 255, 0.25);
+}
+.waitlist-btn {
+  flex: 0 0 auto;
+  padding: 0.85rem 1.4rem;
+  border-radius: 0.65rem;
+  background: var(--bsx-blue);
+  border: 1px solid var(--bsx-blue);
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.waitlist-btn:hover {
+  background: #0063dd;
+  border-color: #0063dd;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(0, 115, 255, 0.35);
+}
+.waitlist-btn[disabled] { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+/* Honeypot — kept in the DOM for Brevo's bot check, hidden from humans */
+.waitlist-hp {
+  position: absolute !important;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.waitlist-msg { margin-top: 0.85rem; font-size: 0.9rem; font-weight: 600; min-height: 1.2em; }
+.waitlist-msg.is-ok  { color: #7be3a4; }
+.waitlist-msg.is-err { color: #ff8a7a; }
+@media (max-width: 480px) {
+  .waitlist-form { flex-direction: column; }
+}
+
+/* Featured waitlist callout (top of the /links hub) */
+.waitlist-feature {
+  margin: 0.25rem 0 1.5rem;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  background: rgba(0, 115, 255, 0.08);
+  border: 1px solid rgba(0, 115, 255, 0.40);
+  border-radius: 0.9rem;
+  box-shadow: 0 10px 30px rgba(0, 115, 255, 0.15);
+}
+.waitlist-feature__title {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.4rem;
+}
+.waitlist-feature__sub {
+  color: #cbd5e1;
+  font-weight: 500;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0 auto 1.25rem;
+  max-width: 22rem;
+}
+.waitlist-feature .waitlist-form { margin: 0 auto; }

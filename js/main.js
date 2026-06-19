@@ -86,4 +86,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }
     }
+
+    // Mobile-launch waitlist: post the email straight to Brevo's serve endpoint
+    // and show an inline message, so the user never leaves the page. Brevo's
+    // serve endpoint is cross-origin, so we use a no-cors POST (response is
+    // opaque) and report success optimistically — the double opt-in confirmation
+    // email is the real gate. Honeypot (email_address_check) must stay empty.
+    const waitlistForms = document.querySelectorAll('.waitlist-form');
+    for (var w = 0; w < waitlistForms.length; w++) {
+        waitlistForms[w].addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.currentTarget;
+            const msg = form.parentNode.querySelector('.waitlist-msg');
+            const btn = form.querySelector('.waitlist-btn');
+            const email = form.querySelector('input[name="EMAIL"]');
+            const honeypot = form.querySelector('input[name="email_address_check"]');
+
+            function setMsg(text, ok) {
+                if (!msg) return;
+                msg.textContent = text;
+                msg.classList.remove('is-ok', 'is-err');
+                msg.classList.add(ok ? 'is-ok' : 'is-err');
+            }
+
+            // Silently ignore bot submissions that fill the honeypot.
+            if (honeypot && honeypot.value) return;
+
+            const value = (email && email.value || '').trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                setMsg('Please enter a valid email address.', false);
+                return;
+            }
+
+            if (btn) btn.disabled = true;
+            fetch(form.action, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: new FormData(form)
+            }).then(function() {
+                form.reset();
+                setMsg("You're on the list! Check your inbox to confirm your spot.", true);
+            }).catch(function() {
+                setMsg('Something went wrong. Please try again.', false);
+            }).finally(function() {
+                if (btn) btn.disabled = false;
+            });
+        });
+    }
 });
