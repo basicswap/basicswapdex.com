@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>FAQ - BasicSwap DEX Frequently Asked Questions</title>
+    <title>FAQ - Atomic swaps, supported coins, fees, and security</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Find answers to frequently asked questions about BasicSwap DEX, atomic swaps, supported cryptocurrencies, security, and how to use the decentralized exchange.">
+    <meta name="description" content="How BasicSwap works, which coins you can trade, what a swap costs, how long one takes, and what happens if a swap fails.">
     <link rel="canonical" href="https://basicswapdex.com/faq">
     <link rel="stylesheet" href="css/tailwind.min.css">
     <link rel="stylesheet" href="css/content.css">
@@ -15,8 +15,8 @@
     <meta name="theme-color" content="#0b0f18">
     <meta property="og:url" content="https://basicswapdex.com/faq">
     <meta property="og:site_name" content="BasicSwap DEX">
-    <meta property="og:title" content="FAQ - BasicSwap DEX Frequently Asked Questions">
-    <meta property="og:description" content="Find answers to frequently asked questions about BasicSwap DEX, atomic swaps, supported cryptocurrencies, security, and how to use the decentralized exchange.">
+    <meta property="og:title" content="FAQ - Atomic swaps, supported coins, fees, and security">
+    <meta property="og:description" content="How BasicSwap works, which coins you can trade, what a swap costs, how long one takes, and what happens if a swap fails.">
     <meta property="og:image" content="https://basicswapdex.com/site-meta.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -25,8 +25,8 @@
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://basicswapdex.com/faq">
-    <meta property="twitter:title" content="FAQ - BasicSwap DEX Frequently Asked Questions">
-    <meta property="twitter:description" content="Find answers to frequently asked questions about BasicSwap DEX, atomic swaps, supported cryptocurrencies, security, and how to use the decentralized exchange.">
+    <meta property="twitter:title" content="FAQ - Atomic swaps, supported coins, fees, and security">
+    <meta property="twitter:description" content="How BasicSwap works, which coins you can trade, what a swap costs, how long one takes, and what happens if a swap fails.">
     <meta property="twitter:image" content="https://basicswapdex.com/site-meta.png">
     <meta property="twitter:site" content="@BasicSwapDEX">
 
@@ -47,6 +47,22 @@
       "@context": "https://schema.org",
       "@type": "FAQPage",
       "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is an atomic swap?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "An atomic swap trades coins across two different blockchains in a single operation, with nobody holding the funds in between. Either both sides complete and each trader receives what was agreed, or the swap expires and every coin returns to its original owner. Cryptography and on-chain timelocks enforce that outcome, rather than a counterparty's good behaviour."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need an account to use BasicSwap?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. There is no signup, no email, and no identity check, because there is no operator to register with. You launch the client, set up a wallet, and trade. Nothing personal is stored, so there is no database anyone could breach."
+          }
+        },
         {
           "@type": "Question",
           "name": "How do I set up BasicSwap?",
@@ -109,6 +125,14 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "BasicSwap is open-source, so anyone can work on adding a coin. You can see the current list of supported coins here. If you want to add one, follow these integration examples."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I swap Bitcoin for Monero?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, in both directions, and it settles on-chain as an atomic swap. BasicSwap implements h4sh3d's Bitcoin to Monero protocol using adaptor signatures, so there are no wrapped tokens, no bridge, and no intermediary chain. Monero also swaps against Litecoin and several other supported coins."
           }
         },
         {
@@ -181,6 +205,14 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "No. BasicSwap is peer-to-peer and open-source. There is no central party, operator, or service provider to collect or share your data. This website stores nothing about you either."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are atomic swaps traceable?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "On-chain, a BasicSwap trade looks like an ordinary transaction. Adaptor signatures leave no marker identifying it as a swap and nothing linking its two legs across chains, so the trade does not announce itself to a chain analyst. Orders travel over encrypted peer-to-peer messaging and can be routed through Tor, and with no operator in the middle there are no logs to keep."
           }
         },
         {
@@ -448,6 +480,28 @@
           <div class="w-full md:w-1/2 px-4">
             <div class="item mb-10" x-data="{isOpen : false}">
               <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h3 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">What is an atomic swap?</h3>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>An atomic swap trades coins across two different blockchains in a single operation, with nobody holding the funds in between. Either both sides complete and each trader receives what was agreed, or the swap expires and every coin returns to its original owner. Cryptography and on-chain timelocks enforce that outcome, rather than a counterparty's good behaviour.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h3 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Do I need an account to use BasicSwap?</h3>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>No. There is no signup, no email, and no identity check, because there is no operator to register with. You launch the client, set up a wallet, and trade. Nothing personal is stored, so there is no database anyone could breach.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
                 <h3 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">How do I set up BasicSwap?</h3>
                 <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
                   <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
@@ -550,6 +604,17 @@
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
               <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h3 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Can I swap Bitcoin for Monero?</h3>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>Yes, in both directions, and it settles on-chain as an atomic swap. BasicSwap implements h4sh3d's Bitcoin to Monero protocol using adaptor signatures, so there are no wrapped tokens, no bridge, and no intermediary chain. Monero also swaps against Litecoin and several other supported coins.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
                 <h3 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">What are the fees?</h3>
                 <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
                   <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
@@ -645,6 +710,17 @@
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
                 <p>No. BasicSwap is peer-to-peer and open-source. There is no central party, operator, or service provider to collect or share your data. This website stores nothing about you either.</p>
+              </div>
+            </div>
+            <div class="item mb-10" x-data="{isOpen : false}">
+              <a href="#" class="flex items-center justify-between" @click.prevent="isOpen = true">
+                <h3 class="text-xl text-blue-900 font-bold" :class="{'' : isOpen == true}">Are atomic swaps traceable?</h3>
+                <svg :class="{'transform rotate-180' : isOpen == true}" class="text-blue-500" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path d="M12.71 8.29C12.6149 8.19896 12.5028 8.12759 12.38 8.08C12.1365 7.97998 11.8635 7.97998 11.62 8.08C11.4972 8.12759 11.3851 8.19896 11.29 8.29L8.29 11.29C8.1017 11.4783 7.99591 11.7337 7.99591 12C7.99591 12.2663 8.1017 12.5217 8.29 12.71C8.4783 12.8983 8.7337 13.0041 9 13.0041C9.2663 13.0041 9.5217 12.8983 9.71 12.71L11 11.41L11 15C11 15.2652 11.1054 15.5196 11.2929 15.7071C11.4804 15.8946 11.7348 16 12 16C12.2652 16 12.5196 15.8946 12.7071 15.7071C12.8946 15.5196 13 15.2652 13 15L13 11.41L14.29 12.71C14.383 12.8037 14.4936 12.8781 14.6154 12.9289C14.7373 12.9797 14.868 13.0058 15 13.0058C15.132 13.0058 15.2627 12.9797 15.3846 12.9289C15.5064 12.8781 15.617 12.8037 15.71 12.71C15.8037 12.617 15.8781 12.5064 15.9289 12.3846C15.9797 12.2627 16.0058 12.132 16.0058 12C16.0058 11.868 15.9797 11.7373 15.9289 11.6154C15.8781 11.4936 15.8037 11.383 15.71 11.29L12.71 8.29ZM12 2C10.0222 2 8.08879 2.58649 6.4443 3.6853C4.79981 4.78412 3.51808 6.3459 2.7612 8.17316C2.00433 10.0004 1.80629 12.0111 2.19215 13.9509C2.578 15.8907 3.53041 17.6725 4.92893 19.0711C6.32746 20.4696 8.10929 21.422 10.0491 21.8078C11.9889 22.1937 13.9996 21.9957 15.8268 21.2388C17.6541 20.4819 19.2159 19.2002 20.3147 17.5557C21.4135 15.9112 22 13.9778 22 12C22 9.34783 20.9464 6.80429 19.0711 4.92893C18.1425 4.00034 17.0401 3.26375 15.8268 2.7612C14.6136 2.25865 13.3132 2 12 2ZM12 20C10.4177 20 8.87103 19.5308 7.55544 18.6518C6.23984 17.7727 5.21446 16.5233 4.60896 15.0615C4.00346 13.5997 3.84503 11.9911 4.15372 10.4393C4.4624 8.88743 5.22432 7.46196 6.34314 6.34314C7.46196 5.22432 8.88743 4.4624 10.4393 4.15371C11.9911 3.84503 13.5997 4.00346 15.0615 4.60896C16.5233 5.21446 17.7727 6.23984 18.6518 7.55543C19.5308 8.87103 20 10.4177 20 12C20 14.1217 19.1571 16.1566 17.6569 17.6569C16.1566 19.1571 14.1217 20 12 20Z" fill="currentColor"></path>
+                </svg>
+              </a>
+              <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
+                <p>On-chain, a BasicSwap trade looks like an ordinary transaction. Adaptor signatures leave no marker identifying it as a swap and nothing linking its two legs across chains, so the trade does not announce itself to a chain analyst. Orders travel over encrypted peer-to-peer messaging and can be routed through Tor, and with no operator in the middle there are no logs to keep.</p>
               </div>
             </div>
           </div>
