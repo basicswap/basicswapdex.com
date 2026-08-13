@@ -5,31 +5,51 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="The consumer surface of the BasicSwap protocol. Browser, mobile, and the wallets you already use. No chain to sync. No account. Self-custodial throughout.">
-    <meta name="keywords" content="BasicSwap Mobile, atomic swaps, light client, mobile wallet, non-custodial, cross-chain">
-    <link rel="canonical" href="https://basicswapdex.com/mobile.html">
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="canonical" href="https://basicswapdex.com/mobile">
     <link rel="stylesheet" href="css/tailwind.min.css">
     <link rel="stylesheet" href="css/content.css">
     <link rel=icon sizes="32x32" type="image/png" href="images/favicon-32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="#0b0f18">
-    <meta property="og:url" content="https://basicswapdex.com/mobile.html">
+    <meta property="og:url" content="https://basicswapdex.com/mobile">
     <meta property="og:site_name" content="BasicSwap DEX">
     <meta property="og:title" content="BasicSwap Mobile - Atomic cross-chain swaps from any browser or phone">
     <meta property="og:description" content="The consumer surface of the BasicSwap protocol. No chain to sync. No account. Self-custodial throughout.">
     <meta property="og:image" content="https://basicswapdex.com/site-meta.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="BasicSwap DEX">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://basicswapdex.com/mobile.html">
+    <meta property="twitter:url" content="https://basicswapdex.com/mobile">
     <meta property="twitter:title" content="BasicSwap Mobile - Atomic cross-chain swaps from any browser or phone">
     <meta property="twitter:description" content="The consumer surface of the BasicSwap protocol. No chain to sync. No account. Self-custodial throughout.">
     <meta property="twitter:image" content="https://basicswapdex.com/site-meta.png">
     <meta property="twitter:site" content="@BasicSwapDEX">
 
     <script defer src="js/main.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://basicswapdex.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Mobile",
+          "item": "https://basicswapdex.com/mobile"
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="antialiased bg-body text-body font-body">
     <!-- ============ NAV ============ -->
@@ -38,20 +58,21 @@
         <div class="p-8 container flex flex-wrap items-center justify-between mx-auto">
           <div class="flex justify-between items-center xl:w-full">
             <div class="xl:w-auto">
-              <a class="block max-w-max xl:mr-10" href="index.html">
-                <img class="h-12" src="images/basicswap-logo.svg" alt="BasicSwap DEX Logo">
+              <a class="block max-w-max xl:mr-10" href="/">
+                <img class="h-12" src="images/basicswap-logo.svg" alt="BasicSwap DEX Logo" width="121" height="32">
               </a>
             </div>
             <div class="hidden xl:block">
               <ul class="flex justify-center">
-                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="index.html">Home</a></li>
-                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="desktop.html">Desktop</a></li>
-                <li class="mr-7"><a class="text-white hover:text-coolGray-50 font-medium" href="mobile.html">Mobile</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/">Home</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/desktop">Desktop</a></li>
+                <li class="mr-7"><a class="text-white hover:text-coolGray-50 font-medium" href="/mobile">Mobile</a></li>
                 <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets</a></li>
-                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="protocol.html">Protocol</a></li>
-                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="faq.html">FAQ</a></li>
-                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="about.html">About</a></li>
-                <li><a class="text-red-400 hover:text-red-300 font-medium inline-flex items-center" href="donations.html">
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/protocol">Protocol</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/faq">FAQ</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/about">About</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="https://blog.basicswapdex.com/" target="_blank" rel="noopener noreferrer">Blog</a></li>
+                <li><a class="text-red-400 hover:text-red-300 font-medium inline-flex items-center" href="/donations">
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
                   Donations
                 </a></li>
@@ -82,16 +103,16 @@
         <div class="fixed top-0 left-0 bottom-0 w-full w-4/6 max-w-xs bg-coolGray-900">
           <nav class="relative p-6 h-full overflow-y-auto">
             <div class="flex flex-col justify-between h-full">
-              <a class="inline-block" href="index.html"><img class="h-8" src="images/basicswap-logo.svg" alt="BasicSwap DEX Logo"></a>
+              <a class="inline-block" href="/"><img class="h-8" src="images/basicswap-logo.svg" alt="BasicSwap DEX Logo" width="121" height="32"></a>
               <ul class="py-6">
-                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="index.html">Home</a></li>
-                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="desktop.html">Desktop</a></li>
-                <li><a class="block py-3 px-4 text-white font-medium hover:bg-coolGray-800 rounded-md" href="mobile.html">Mobile</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/">Home</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/desktop">Desktop</a></li>
+                <li><a class="block py-3 px-4 text-white font-medium hover:bg-coolGray-800 rounded-md" href="/mobile">Mobile</a></li>
                 <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets</a></li>
-                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="protocol.html">Protocol</a></li>
-                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="faq.html">FAQ</a></li>
-                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="about.html">About</a></li>
-                <li><a class="block py-3 px-4 text-red-400 hover:text-red-300 font-medium hover:bg-coolGray-800 rounded-md" href="donations.html">Donations</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/protocol">Protocol</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/faq">FAQ</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/about">About</a></li>
+                <li><a class="block py-3 px-4 text-red-400 hover:text-red-300 font-medium hover:bg-coolGray-800 rounded-md" href="/donations">Donations</a></li>
                 <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="https://blog.basicswapdex.com/" target="_blank" rel="noopener noreferrer">Blog &#8599;</a></li>
               </ul>
               <div class="flex flex-wrap">
@@ -149,7 +170,7 @@
                   <div class="text-xs text-coolGray-400 font-medium">You send</div>
                   <div class="flex items-center justify-between mt-1">
                     <span class="text-2xl font-bold text-coolGray-900">0.50</span>
-                    <span class="flex items-center"><img src="images/monero-circle.png" alt="Monero" class="w-6 h-6 mr-2">XMR</span>
+                    <span class="flex items-center"><img src="images/monero-circle.png" alt="Monero" class="w-6 h-6 mr-2" width="42" height="42">XMR</span>
                   </div>
                 </div>
                 <div class="flex justify-center -my-2 relative z-10">
@@ -159,7 +180,7 @@
                   <div class="text-xs text-coolGray-400 font-medium">You receive</div>
                   <div class="flex items-center justify-between mt-1">
                     <span class="text-2xl font-bold text-coolGray-900">0.00191</span>
-                    <span class="flex items-center"><img src="images/bitcoin-circle.png" alt="Bitcoin" class="w-6 h-6 mr-2">BTC</span>
+                    <span class="flex items-center"><img src="images/bitcoin-circle.png" alt="Bitcoin" class="w-6 h-6 mr-2" width="42" height="42">BTC</span>
                   </div>
                 </div>
                 <button class="w-full mt-4 py-3 bg-blue-500 text-white font-bold rounded-xl">Review swap</button>
@@ -241,7 +262,7 @@
             <p class="mt-3 max-w-2xl text-coolGray-500 font-medium leading-relaxed">Mobile keeps things light. BasicSwap Desktop runs the whole protocol on your machine. Host your own node and coin core wallets for the strongest privacy, security, and decentralization there is.</p>
             <p class="mt-3 max-w-2xl text-coolGray-500 font-medium leading-relaxed">It also unlocks the full set of features mobile integrations may not offer, like market making, advanced order management, swapper reputation, and much more.</p>
           </div>
-          <a class="inline-flex items-center justify-center py-4 px-6 text-sm leading-5 text-violet-600 border border-violet-400 hover:bg-violet-500 hover:text-white font-bold rounded-md transition duration-200 whitespace-nowrap" href="desktop.html">Explore BasicSwap Desktop <span class="ml-2">&rarr;</span></a>
+          <a class="inline-flex items-center justify-center py-4 px-6 text-sm leading-5 text-violet-600 border border-violet-400 hover:bg-violet-500 hover:text-white font-bold rounded-md transition duration-200 whitespace-nowrap" href="/desktop">Explore BasicSwap Desktop <span class="ml-2">&rarr;</span></a>
         </div>
       </div>
     </section>
@@ -271,7 +292,7 @@
       <div class="container px-4 mx-auto">
         <div class="flex flex-wrap pt-16 pb-12 -mx-4">
           <div class="w-full lg:w-2/5 px-4 mb-12 lg:mb-0">
-            <a class="inline-block mb-6" href="index.html"><img class="h-8" src="images/basicswap-logo-dark.svg" alt="BasicSwap DEX Logo"></a>
+            <a class="inline-block mb-6" href="/"><img class="h-8" src="images/basicswap-logo-dark.svg" alt="BasicSwap DEX Logo" width="121" height="32" loading="lazy" decoding="async"></a>
             <p class="max-w-xs text-coolGray-500 font-medium leading-relaxed">A decentralized protocol for cross-chain atomic swaps. No custodian, no account, no protocol fees.</p>
             <div class="inline-flex items-center mt-6 py-1 px-3 bg-green-50 rounded-full">
               <span class="inline-block w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
@@ -281,16 +302,16 @@
           <div class="w-1/2 md:w-1/4 lg:w-1/5 px-4 mb-8 md:mb-0">
             <h3 class="mb-4 kicker text-coolGray-400">Product</h3>
             <ul class="space-y-3">
-              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="desktop.html">Desktop</a></li>
-              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="mobile.html">Mobile</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/desktop">Desktop</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/mobile">Mobile</a></li>
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets &#8599;</a></li>
             </ul>
           </div>
           <div class="w-1/2 md:w-1/4 lg:w-1/5 px-4 mb-8 md:mb-0">
             <h3 class="mb-4 kicker text-coolGray-400">Protocol</h3>
             <ul class="space-y-3">
-              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="protocol.html">Protocol</a></li>
-              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="terms.html">Terms</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/protocol">Protocol</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/terms">Terms</a></li>
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://docs.basicswapdex.com/docs/intro" target="_blank" rel="noopener noreferrer">Docs &#8599;</a></li>
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://github.com/basicswap" target="_blank" rel="noopener noreferrer">Whitepaper &#8599;</a></li>
             </ul>
@@ -298,10 +319,10 @@
           <div class="w-1/2 md:w-1/4 lg:w-1/5 px-4">
             <h3 class="mb-4 kicker text-coolGray-400">Community</h3>
             <ul class="space-y-3">
-              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="about.html">About</a></li>
-              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="donations.html">Donations</a></li>
-              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="faq.html">FAQ</a></li>
-              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="links.html">Links</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/about">About</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/donations">Donations</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/faq">FAQ</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/links">Links</a></li>
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://github.com/basicswap" target="_blank" rel="noopener noreferrer">GitHub &#8599;</a></li>
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://matrix.to/#/#basicswap:matrix.org" target="_blank" rel="noopener noreferrer">Matrix &#8599;</a></li>
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://blog.basicswapdex.com/" target="_blank" rel="noopener noreferrer">Blog &#8599;</a></li>
