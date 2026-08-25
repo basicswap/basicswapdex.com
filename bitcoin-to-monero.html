@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>BTC to XMR atomic swap - Bitcoin to Monero, no custodian</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Swap BTC for XMR on chain, in either direction. Adaptor signatures bind the two payments together, so no bridge, no wrapped token, and no custodian holds the coins.">
+    <link rel="canonical" href="https://basicswapdex.com/bitcoin-to-monero">
+    <link rel="stylesheet" href="css/tailwind.min.css">
+    <link rel="stylesheet" href="css/content.css">
+    <link rel=icon sizes="32x32" type="image/png" href="images/favicon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#0b0f18">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://basicswapdex.com/bitcoin-to-monero">
+    <meta property="og:site_name" content="BasicSwap DEX">
+    <meta property="og:title" content="BTC to XMR atomic swap - Bitcoin to Monero, no custodian">
+    <meta property="og:description" content="Swap BTC for XMR on chain, in either direction. Adaptor signatures bind the two payments together, so no bridge, no wrapped token, and no custodian holds the coins.">
+    <meta property="og:image" content="https://basicswapdex.com/site-meta.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="BasicSwap DEX">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://basicswapdex.com/bitcoin-to-monero">
+    <meta property="twitter:title" content="BTC to XMR atomic swap - Bitcoin to Monero, no custodian">
+    <meta property="twitter:description" content="Swap BTC for XMR on chain, in either direction. Adaptor signatures bind the two payments together, so no bridge, no wrapped token, and no custodian holds the coins.">
+    <meta property="twitter:image" content="https://basicswapdex.com/site-meta.png">
+    <meta property="twitter:site" content="@BasicSwapDEX">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://basicswapdex.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Bitcoin to Monero",
+          "item": "https://basicswapdex.com/bitcoin-to-monero"
+        }
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How long does a Bitcoin to Monero swap take?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Both chains have to confirm, so the wait follows their block times. A default install waits one confirmation on Bitcoin and three on Monero, and a swap makes several of those waits in sequence as each side locks its coins and then claims them. That usually puts the whole thing in the tens of minutes. A custodial service can look quicker because it moves the funds itself instead of waiting on two chains, which is the step BasicSwap does without."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I swap Monero back to Bitcoin?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Both directions run on the same protocol and have done since 2023. You post an offer to sell XMR for BTC the same way you would post one the other way round."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What happens if the other trader disappears?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The swap expires and the coins go back to their owners. That escape route is built at the start, before either side commits a coin, which is why it still works if the other trader vanishes for good or BasicSwap stops existing tomorrow."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to run a Bitcoin node and a Monero node?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "On Desktop you can, and it is the strongest setup, because BasicSwap runs each coin's official core wallet and validates for itself. Lightweight mode is the alternative, leaning on public Electrum servers and Monero nodes for chain state, and mobile wallets that have integrated the protocol work that way too. Whichever you pick, the client has to stay online for the whole swap, because the two sides hand each other data at every step."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are the fees for converting Bitcoin to Monero?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The protocol takes nothing, for either side of the trade. You pay the ordinary network fee on each chain, the same as any other transaction, and that is the whole cost."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can you send Bitcoin to a Monero wallet?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. They are separate chains with different address formats, and a Monero wallet has no way to receive or spend a Bitcoin transaction. Sending BTC to an XMR address will not deliver the funds, and depending on the address it may lose them. Converting is the only route, and that is what a swap does. Your Bitcoin goes to whoever wanted it, their Monero comes to you, and the two payments are bound together so neither can happen alone."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need a Monero wallet before I swap?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "BasicSwap creates one for you. Desktop runs Monero's own wallet software locally and generates the address the swap pays into, so there is nothing to set up beforehand and no address to paste. If you would rather receive into a wallet you already use, withdraw once the swap finishes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is a Bitcoin to Monero swap traceable?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The Bitcoin payment is as public as any other Bitcoin transaction, and the Monero payment carries Monero's usual privacy. What a swap avoids is the marker that links them. Adaptor signatures leave nothing on the Bitcoin chain saying a swap took place or which Monero transaction it pairs with, so the trade looks like ordinary spending rather than an obvious conversion into a privacy coin."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is this different from an instant swap service?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "An instant swap service takes your Bitcoin, holds it, and sends you Monero from its own reserves, which is quicker and means the service can freeze the funds, ask for identification, or fail while holding them. An atomic swap has no such middle step. The coins move directly between two traders and the chains enforce that both payments happen or neither does."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to swap Bitcoin for Monero with an atomic swap",
+      "description": "Settle a BTC to XMR atomic swap on BasicSwap, with no custodian holding the coins.",
+      "totalTime": "PT1H",
+      "supply": [
+        {
+          "@type": "HowToSupply",
+          "name": "Bitcoin or Monero to trade"
+        }
+      ],
+      "tool": [
+        {
+          "@type": "HowToTool",
+          "name": "BasicSwap Desktop"
+        }
+      ],
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Install BasicSwap Desktop",
+          "text": "Desktop builds the protocol and the Bitcoin and Monero core wallets on your own machine. If running two nodes is more than you want to manage, lightweight mode reads what it needs from public Electrum servers and Monero nodes instead.",
+          "url": "https://basicswapdex.com/bitcoin-to-monero#step-1"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Fund the wallet you are selling from",
+          "text": "BasicSwap generates a deposit address inside the coin wallet it manages for you. Send the Bitcoin or Monero you intend to trade to that address and wait for it to confirm.",
+          "url": "https://basicswapdex.com/bitcoin-to-monero#step-2"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Find an offer, or post your own",
+          "text": "The order book arrives over encrypted peer-to-peer messaging. Filter it to the BTC and XMR pair, take an offer at a price that suits you, or post your own and wait for a taker.",
+          "url": "https://basicswapdex.com/bitcoin-to-monero#step-3"
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Stay online until it settles",
+          "text": "Each step hands data to the other side as it happens, so the client has to be running for the swap to progress. Nothing is at risk if you go offline, because the timelocks still return the coins, but the trade will not finish while it is closed.",
+          "url": "https://basicswapdex.com/bitcoin-to-monero#step-4"
+        }
+      ]
+    }
+    </script>
+    <style>
+      .bs-bind { position: relative; }
+      .bs-link { position: relative; margin: 1.15rem 0 1.15rem 0.7rem; padding: 0.15rem 0 0.15rem 1.75rem; }
+      .bs-link::before {
+        content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px;
+        background: linear-gradient(to bottom, rgba(59,130,246,0.15), rgba(59,130,246,0.85), rgba(59,130,246,0.15));
+      }
+      .bs-link::after {
+        content: ""; position: absolute; left: -3px; bottom: 0; width: 7px; height: 7px;
+        border-right: 1px solid #3b82f6; border-bottom: 1px solid #3b82f6;
+        transform: rotate(45deg);
+      }
+      .bs-diagram { max-width: 100%; height: auto; }
+      .bs-diagram .d-kick { font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .12em; }
+      .bs-diagram .d-head { font: 700 17px/1 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+      .bs-diagram .d-body { font: 500 13px/1 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+      .bs-diagram .d-mono { font: 600 15px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .bs-diagram .d-mono-sm { font: 600 13px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .bs-steps { list-style: none; margin: 0; padding: 0; }
+      .bs-steps > li { position: relative; padding: 0 0 1.85rem 3.25rem; }
+      .bs-steps > li:last-child { padding-bottom: 0; }
+      .bs-steps > li::before {
+        content: ""; position: absolute; left: 0.62rem; top: 1.25rem; bottom: 0;
+        width: 1px; background: #e5e7eb;
+      }
+      .bs-steps > li:last-child::before { content: none; }
+      .bs-steps .n { position: absolute; left: 0; top: 0.1rem; }
+      .bs-track { display: grid; grid-template-columns: 1fr; gap: 2.75rem 1.5rem; }
+      @media (min-width: 768px) { .bs-track { grid-template-columns: repeat(2, 1fr); } }
+      @media (min-width: 1024px) { .bs-track { grid-template-columns: repeat(4, 1fr); } }
+      .bs-compare-wrap { overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; }
+      .bs-compare { width: 100%; min-width: 46rem; border-collapse: separate; border-spacing: 0; font-size: 0.9rem; }
+      .bs-compare th, .bs-compare td { padding: 0.95rem 1.15rem; text-align: left; vertical-align: top; }
+      .bs-compare thead th {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+        font-weight: 600; color: #8896ab; background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb; white-space: nowrap;
+      }
+      .bs-compare thead th.own { color: #3575dd; }
+      .bs-compare tbody th {
+        font-weight: 650; color: #2a3342; width: 15rem;
+        border-top: 1px solid #eef0f3;
+      }
+      .bs-compare tbody td { color: #556987; font-weight: 500; border-top: 1px solid #eef0f3; line-height: 1.55; }
+      .bs-compare tbody tr:hover th, .bs-compare tbody tr:hover td { background: #f9fafb; }
+      .bs-compare .own { background: rgba(59, 130, 246, 0.045); }
+      .bs-compare tbody tr:hover .own { background: rgba(59, 130, 246, 0.09); }
+      .bs-compare thead th.own { background: rgba(59, 130, 246, 0.08); border-bottom-color: rgba(59, 130, 246, 0.35); }
+      .bs-compare tbody tr:last-child .own { border-bottom-left-radius: 0; }
+      @media (max-width: 640px) { .bs-compare tbody th { width: auto; } }
+    </style>
+    <script defer src="js/main.js"></script>
+  </head>
+  <body class="antialiased bg-body text-body font-body">
+    <header>
+      <nav class="relative bg-gray-700">
+        <div class="p-8 container flex flex-wrap items-center justify-between mx-auto">
+          <div class="flex justify-between items-center xl:w-full">
+            <div class="xl:w-auto">
+              <a class="block max-w-max xl:mr-10" href="/">
+                <img class="h-12" src="images/basicswap-logo.svg" alt="BasicSwap DEX Logo" width="121" height="32">
+              </a>
+            </div>
+            <div class="hidden xl:block">
+              <ul class="flex justify-center">
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/">Home</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/desktop">Desktop</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/mobile">Mobile</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/protocol">Protocol</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/faq">FAQ</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="/about">About</a></li>
+                <li class="mr-7"><a class="text-coolGray-400 hover:text-coolGray-50 font-medium" href="https://blog.basicswapdex.com/" target="_blank" rel="noopener noreferrer">Blog</a></li>
+                <li><a class="text-red-400 hover:text-red-300 font-medium inline-flex items-center" href="/donations">
+                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
+                  Donations
+                </a></li>
+              </ul>
+            </div>
+            <div class="hidden xl:block">
+              <div class="flex items-center justify-end space-x-3">
+                <a class="inline-block p-2 text-coolGray-400 hover:text-white transition duration-200" href="https://x.com/BasicSwapDEX" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a class="inline-block p-2 text-coolGray-400 hover:text-white transition duration-200" href="https://matrix.to/#/#basicswap:matrix.org" target="_blank" rel="noopener noreferrer" title="Join us on Matrix">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24" fill="currentColor"><path d="M.632.55v22.9H2.28V24H0V0h2.28v.55zm7.043 7.26v1.157h.033c.309-.443.683-.784 1.117-1.024.433-.245.936-.365 1.507-.365.54 0 1.033.107 1.481.314.448.208.785.582 1.02 1.108.254-.374.6-.706 1.034-.992.434-.287.95-.43 1.546-.43.453 0 .872.056 1.26.167.388.11.716.286.993.53.276.245.489.559.646.951.152.392.23.863.23 1.417v5.728h-2.349V11.52c0-.286-.01-.559-.032-.812a1.755 1.755 0 0 0-.18-.66 1.106 1.106 0 0 0-.438-.448c-.194-.11-.457-.166-.785-.166-.332 0-.6.064-.803.189a1.38 1.38 0 0 0-.48.499 1.946 1.946 0 0 0-.231.696 5.56 5.56 0 0 0-.06.785v4.826h-2.35v-4.206c0-.265-.023-.52-.067-.766a1.589 1.589 0 0 0-.266-.652 1.32 1.32 0 0 0-.531-.46c-.219-.116-.506-.174-.863-.174-.22 0-.440.043-.659.132-.219.088-.417.207-.594.357-.177.149-.318.33-.423.542-.104.212-.157.452-.157.72v4.507H7.675V7.81zm15.693 16.64V.55h-1.648V0H24v24h-2.28v-.55z"/></svg>
+                </a>
+                <a class="flex flex-wrap justify-center inline-block px-4 py-2.5 bg-blue-500 hover:bg-blue-600 font-bold text-sm text-white border border-blue-500 rounded-md shadow-button focus:ring-0 focus:outline-none" href="https://github.com/basicswap/" target="_blank" rel="noopener noreferrer">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" class="mr-2" viewBox="0 0 24 24"><g fill="#ffffff"><path fill-rule="evenodd" clip-rule="evenodd" fill="#ffffff" d="M12,0.3c-6.6,0-12,5.4-12,12c0,5.3,3.4,9.8,8.2,11.4 C8.8,23.8,9,23.4,9,23.1c0-0.3,0-1,0-2c-3.3,0.7-4-1.6-4-1.6c-0.5-1.4-1.3-1.8-1.3-1.8C2.5,17,3.7,17,3.7,17 c1.2,0.1,1.8,1.2,1.8,1.2c1.1,1.8,2.8,1.3,3.5,1c0.1-0.8,0.4-1.3,0.8-1.6c-2.7-0.3-5.5-1.3-5.5-5.9c0-1.3,0.5-2.4,1.2-3.2 C5.5,8.1,5,6.9,5.7,5.3c0,0,1-0.3,3.3,1.2c1-0.3,2-0.4,3-0.4c1,0,2,0.1,3,0.4c2.3-1.6,3.3-1.2,3.3-1.2c0.7,1.7,0.2,2.9,0.1,3.2 c0.8,0.8,1.2,1.9,1.2,3.2c0,4.6-2.8,5.6-5.5,5.9c0.4,0.4,0.8,1.1,0.8,2.2c0,1.6,0,2.9,0,3.3c0,0.3,0.2,0.7,0.8,0.6 c4.8-1.6,8.2-6.1,8.2-11.4C24,5.7,18.6,0.3,12,0.3z"></path></g></svg> <span>BasicSwap Github</span></a>
+              </div>
+            </div>
+          </div>
+          <button class="navbar-burger self-center xl:hidden">
+            <svg width="35" height="35" viewbox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect class="text-coolGray-800" width="32" height="32" rx="6" fill="currentColor"></rect>
+              <path class="text-coolGray-400" d="M7 12H25C25.2652 12 25.5196 11.8946 25.7071 11.7071C25.8946 11.5196 26 11.2652 26 11C26 10.7348 25.8946 10.4804 25.7071 10.2929C25.5196 10.1054 25.2652 10 25 10H7C6.73478 10 6.48043 10.1054 6.29289 10.2929C6.10536 10.4804 6 10.7348 6 11C6 11.2652 6.10536 11.5196 6.29289 11.7071C6.48043 11.8946 6.73478 12 7 12ZM25 15H7C6.73478 15 6.48043 15.1054 6.29289 15.2929C6.10536 15.4804 6 15.7348 6 16C6 16.2652 6.10536 16.5196 6.29289 16.7071C6.48043 16.8946 6.73478 17 7 17H25C25.2652 17 25.5196 16.8946 25.7071 16.7071C25.8946 16.5196 26 16.2652 26 16C26 15.7348 25.8946 15.4804 25.7071 15.2929C25.5196 15.1054 25.2652 15 25 15ZM25 20H7C6.73478 20 6.48043 20.1054 6.29289 20.2929C6.10536 20.4804 6 20.7348 6 21C6 21.2652 6.10536 21.5196 6.29289 21.7071C6.48043 21.8946 6.73478 22 7 22H25C25.2652 22 25.5196 21.8946 25.7071 21.7071C25.8946 21.5196 26 21.2652 26 21C26 20.7348 25.8946 20.4804 25.7071 20.2929C25.5196 20.1054 25.2652 20 25 20Z" fill="currentColor"></path>
+            </svg>
+          </button>
+        </div>
+      </nav>
+      <div class="navbar-menu hidden fixed top-0 left-0 z-50 w-full h-full bg-coolGray-900 bg-opacity-50">
+        <div class="fixed top-0 left-0 bottom-0 w-full w-4/6 max-w-xs bg-coolGray-900">
+          <nav class="relative p-6 h-full overflow-y-auto">
+            <div class="flex flex-col justify-between h-full">
+              <a class="inline-block" href="/"><img class="h-8" src="images/basicswap-logo.svg" alt="BasicSwap DEX Logo" width="121" height="32"></a>
+              <ul class="py-6">
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/">Home</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/desktop">Desktop</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/mobile">Mobile</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets</a></li>
+                <li><a class="block py-3 px-4 text-white font-medium hover:bg-coolGray-800 rounded-md" href="/protocol">Protocol</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/faq">FAQ</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="/about">About</a></li>
+                <li><a class="block py-3 px-4 text-red-400 hover:text-red-300 font-medium hover:bg-coolGray-800 rounded-md" href="/donations">Donations</a></li>
+                <li><a class="block py-3 px-4 text-coolGray-400 hover:text-white font-medium hover:bg-coolGray-800 rounded-md" href="https://blog.basicswapdex.com/" target="_blank" rel="noopener noreferrer">Blog &#8599;</a></li>
+              </ul>
+              <div class="flex flex-wrap">
+                <div class="w-full"><a class="inline-block py-4 px-5 w-full text-sm leading-5 text-white bg-blue-500 hover:bg-blue-600 font-medium text-center rounded-md" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">BasicSwap Github</a></div>
+              </div>
+            </div>
+          </nav>
+          <a class="navbar-close absolute top-5 p-4 right-3" href="#">
+            <svg width="12" height="12" viewbox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.94004 5.99988L11.14 1.80655C11.2656 1.68101 11.3361 1.51075 11.3361 1.33321C11.3361 1.15568 11.2656 0.985415 11.14 0.859879C11.0145 0.734344 10.8442 0.663818 10.6667 0.663818C10.4892 0.663818 10.3189 0.734344 10.1934 0.859879L6.00004 5.05988L1.80671 0.859879C1.68117 0.734344 1.51091 0.663819 1.33337 0.663819C1.15584 0.663819 0.985576 0.734344 0.860041 0.859879C0.734505 0.985415 0.66398 1.15568 0.66398 1.33321C0.66398 1.51075 0.734505 1.68101 0.860041 1.80655L5.06004 5.99988L0.860041 10.1932C0.797555 10.2552 0.747959 10.3289 0.714113 10.4102C0.680267 10.4914 0.662842 10.5785 0.662842 10.6665C0.662842 10.7546 0.680267 10.8417 0.714113 10.9229C0.747959 11.0042 0.797555 11.0779 0.860041 11.1399C0.922016 11.2024 0.99575 11.252 1.07699 11.2858C1.15823 11.3197 1.24537 11.3371 1.33337 11.3371C1.42138 11.3371 1.50852 11.3197 1.58976 11.2858C1.671 11.252 1.74473 11.2024 1.80671 11.1399L6.00004 6.93988L10.1934 11.1399C10.2554 11.2024 10.3291 11.252 10.4103 11.2858C10.4916 11.3197 10.5787 11.3371 10.6667 11.3371C10.7547 11.3371 10.8419 11.3197 10.9231 11.2858C11.0043 11.252 11.0781 11.2024 11.14 11.1399C11.2025 11.0779 11.2521 11.0042 11.286 10.9229C11.3198 10.8417 11.3372 10.7546 11.3372 10.6665C11.3372 10.5785 11.3198 10.4914 11.286 10.4102C11.2521 10.3289 11.2025 10.2552 11.14 10.1932L6.94004 5.99988Z" fill="#8896AB"></path></svg>
+          </a>
+        </div>
+      </div>
+    </header>
+    <main>
+
+    <!-- ============ 1 · HERO ============ -->
+    <section class="relative bg-gray-700 overflow-hidden">
+      <div class="container px-4 mx-auto py-20 md:py-28">
+        <div class="flex flex-wrap items-center -mx-4">
+          <div class="w-full lg:w-3/5 px-4">
+        <span class="kicker text-blue-400">btc &middot; xmr</span>
+        <h1 class="mt-8 mb-8 max-w-3xl tracking-tighter leading-tight text-4xl md:text-5xl xl:text-6xl font-bold text-white">
+          Bitcoin to Monero atomic swaps.
+        </h1>
+        <p class="mb-10 max-w-2xl text-lg md:text-xl text-coolGray-300 font-medium leading-relaxed">
+          Trade BTC for XMR, or XMR for BTC, and let the two chains settle it between them.
+          No bridge, no wrapped token, and nobody holding the coins while the trade goes through.
+        </p>
+        <p class="mb-10 max-w-2xl text-coolGray-400 font-medium leading-relaxed">
+          You may still read that these swaps only run one way, from Bitcoin into Monero. That was
+          true in the early implementations. BasicSwap has settled them in both directions since
+          2023, so selling XMR for BTC works the same as buying.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a class="inline-flex items-center justify-center py-4 px-6 text-sm leading-5 text-violet-300 border border-violet-400 hover:bg-violet-500 hover:text-white font-bold rounded-md transition duration-200" href="/desktop">Install Desktop <span class="ml-2">&rarr;</span></a>
+          <a class="inline-flex items-center justify-center py-4 px-6 text-sm leading-5 text-white bg-blue-500 hover:bg-blue-600 font-bold rounded-md transition duration-200" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">See the live order book <span class="ml-2">&#8599;</span></a>
+        </div>
+          </div>
+          <div class="w-full lg:w-2/5 px-4 mt-16 lg:mt-0">
+            <div class="bs-bind bg-coolGray-900 border border-coolGray-600 rounded-lg shadow-2xl overflow-hidden">
+              <div class="px-5 py-3 border-b border-coolGray-700">
+                <span class="kicker text-coolGray-400">why nobody can cheat</span>
+              </div>
+              <div class="p-6">
+                <div class="flex items-center">
+                  <img src="images/bitcoin-circle.png" alt="Bitcoin" width="42" height="42" class="w-6 h-6 mr-3">
+                  <div>
+                    <div class="text-white font-bold">You lock Bitcoin, they lock Monero</div>
+                    <div class="mt-1 text-sm text-coolGray-400 font-medium leading-relaxed">Neither of you can take the other's coins alone.</div>
+                  </div>
+                </div>
+                <div class="bs-link">
+                  <span class="kicker text-blue-400">the seller claims your bitcoin</span>
+                </div>
+                <div class="flex items-center">
+                  <img src="images/monero-circle.png" alt="Monero" width="42" height="42" class="w-6 h-6 mr-3">
+                  <div>
+                    <div class="text-white font-bold">Which hands you their Monero</div>
+                    <div class="mt-1 text-sm text-coolGray-400 font-medium leading-relaxed">They cannot take your Bitcoin without publishing the one piece you need to take theirs.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="px-6 py-4 border-t border-coolGray-700">
+                <span class="kicker text-green-400">if either of you stops, both get refunded</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 2 · WHY THIS PAIR WAS HARD ============ -->
+    <section class="bg-white border-t border-gray-200">
+      <div class="container px-4 mx-auto py-24 md:py-32">
+        <div class="flex flex-wrap -mx-4">
+          <div class="w-full lg:w-3/5 px-4">
+            <span class="kicker text-blue-500">the hard part</span>
+            <h2 class="mt-4 mb-8 max-w-2xl tracking-tighter leading-tight text-3xl md:text-4xl xl:text-5xl font-bold text-coolGray-900">The pair that was supposed to be impossible.</h2>
+            <p class="mb-5 max-w-2xl text-lg text-coolGray-500 font-medium leading-relaxed">
+              Bitcoin has a scripting language. Monero does not. Almost every atomic swap design
+              uses script to hold coins under a condition, which is why Monero sat outside
+              cross-chain trading for years while wrapped tokens and custodial swappers filled
+              the gap.
+            </p>
+            <p class="mb-5 max-w-2xl text-lg text-coolGray-500 font-medium leading-relaxed">
+              Adaptor signatures take the script out of one side. The signature that redeems the
+              Bitcoin is encrypted under half of the Monero spend key. Publishing that signature
+              to claim the Bitcoin also publishes the half it was encrypted under, and whoever
+              holds the other half can then open the Monero.
+            </p>
+            <p class="mb-5 max-w-2xl text-lg text-coolGray-500 font-medium leading-relaxed">
+              Monero needs no contract and no condition of its own. The key is simply incomplete
+              until the Bitcoin moves. The Bitcoin side still uses ordinary script and timelocks,
+              which the research calls semi-scriptless.
+            </p>
+            <p class="max-w-2xl text-lg text-coolGray-500 font-medium leading-relaxed">
+              We shipped the first working version of this in 2020, and swaps have run in both
+              directions since 2023.
+            </p>
+          </div>
+
+          <div class="w-full lg:w-2/5 px-4 mt-16 lg:mt-0">
+            <figure class="m-0">
+              <svg viewBox="0 0 400 472" width="100%" role="img"
+                   aria-labelledby="adaptorTitle adaptorDesc" class="bs-diagram">
+                <title id="adaptorTitle">How claiming the Bitcoin hands over the Monero key</title>
+                <desc id="adaptorDesc">Two stacked panels. The upper panel is the Bitcoin, held in a two of two lock, showing the signature you pre-give the seller with one value missing. An arrow points down, labelled to show that the seller claiming the Bitcoin publishes their half of the Monero key. The lower panel is the Monero spend key, made of their newly published half plus the half you have held all along.</desc>
+
+                <text x="0" y="14" class="d-kick" fill="#556987">BITCOIN &#183; LOCKED 2 OF 2</text>
+                <rect x="0" y="26" width="400" height="142" rx="10" fill="#f9fafb" stroke="#e5e7eb"/>
+                <text x="20" y="60" class="d-head" fill="#2a3342">Your signature, pre-given</text>
+                <text x="20" y="86" class="d-body" fill="#556987">Locked to the seller's half of</text>
+                <text x="20" y="104" class="d-body" fill="#556987">the Monero spend key.</text>
+                <rect x="20" y="118" width="124" height="32" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
+                <text x="38" y="139" class="d-mono" fill="#2a3342">sig</text>
+                <text x="78" y="139" class="d-mono" fill="#556987">+</text>
+                <text x="104" y="139" class="d-mono" fill="#3b82f6">?</text>
+                <image href="images/bitcoin-circle.png" x="338" y="104" width="32" height="32"/>
+
+                <path d="M22 180 V 222" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+                <polygon points="22,230 16,220 28,220" fill="#3b82f6"/>
+                <text x="46" y="198" class="d-kick" fill="#3b82f6">THE SELLER CLAIMS IT,</text>
+                <text x="46" y="215" class="d-kick" fill="#3b82f6">PUBLISHING THEIR HALF</text>
+
+                <text x="0" y="256" class="d-kick" fill="#556987">MONERO</text>
+                <rect x="0" y="268" width="400" height="142" rx="10" fill="#f9fafb" stroke="#e5e7eb"/>
+                <text x="20" y="302" class="d-head" fill="#2a3342">Monero spend key</text>
+                <text x="20" y="328" class="d-body" fill="#556987">Their half, now public, plus the</text>
+                <text x="20" y="346" class="d-body" fill="#556987">half you held all along.</text>
+                <rect x="20" y="360" width="80" height="32" rx="6" fill="#ffffff" stroke="#3b82f6"/>
+                <text x="60" y="381" class="d-mono-sm" fill="#3b82f6" text-anchor="middle">theirs</text>
+                <text x="113" y="381" class="d-mono" fill="#556987" text-anchor="middle">+</text>
+                <rect x="128" y="360" width="76" height="32" rx="6" fill="#ffffff" stroke="#e5e7eb"/>
+                <text x="166" y="381" class="d-mono-sm" fill="#2a3342" text-anchor="middle">yours</text>
+                <image href="images/monero-circle.png" x="338" y="346" width="32" height="32"/>
+
+                <line x1="0" y1="434" x2="400" y2="434" stroke="#e5e7eb"/>
+                <text x="0" y="456" class="d-kick" fill="#26bc5e">NO SCRIPT ON THE MONERO SIDE</text>
+              </svg>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3 · HOW IT SETTLES ============ -->
+    <section class="bg-gray-50 border-t border-gray-200">
+      <div class="container px-4 mx-auto py-24 md:py-32">
+        <div class="flex flex-wrap -mx-4">
+          <div class="w-full lg:w-2/5 px-4">
+            <span class="kicker text-blue-500">four moves, in order</span>
+            <h2 class="mt-4 max-w-md tracking-tighter leading-tight text-3xl md:text-4xl xl:text-5xl font-bold text-coolGray-900">How the two chains settle it.</h2>
+            <p class="mt-6 max-w-md text-coolGray-500 font-medium leading-relaxed">
+              If either side stops partway, presigned refunds return the coins once the timelocks
+              expire. Both traders sign those refunds before either of them locks a coin, so the way
+              out never depends on the other one answering.
+            </p>
+          </div>
+          <div class="w-full lg:w-3/5 px-4 mt-12 lg:mt-0">
+            <ol class="bs-steps">
+              <li>
+                <span class="n kicker text-blue-500">01</span>
+                <p class="text-coolGray-900 font-bold">The Monero seller locks their coins under a key split between the two of them.</p>
+                <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Neither half spends on its own.</p>
+              </li>
+              <li>
+                <span class="n kicker text-blue-500">02</span>
+                <p class="text-coolGray-900 font-bold">You lock the Bitcoin in a 2-of-2, and pre-sign the path that pays them.</p>
+                <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Your signature stays incomplete until their key half is applied to it.</p>
+              </li>
+              <li>
+                <span class="n kicker text-blue-500">03</span>
+                <p class="text-coolGray-900 font-bold">They complete that signature to take the Bitcoin.</p>
+                <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">Bitcoin's rules put the finished signature on chain, and their half falls out of it.</p>
+              </li>
+              <li>
+                <span class="n kicker text-blue-500">04</span>
+                <p class="text-coolGray-900 font-bold">You read their half off the chain and add your own.</p>
+                <p class="mt-1 text-coolGray-500 font-medium leading-relaxed">That is the whole Monero spend key, and the coins are yours to move.</p>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 4 · WHAT IT AVOIDS ============ -->
+    <section class="bg-white border-t border-gray-200">
+      <div class="container px-4 mx-auto py-24 md:py-32">
+        <div>
+          <div class="mb-8 lg:mb-0">
+            <span class="kicker text-blue-500">what the swap avoids</span>
+          </div>
+          <div>
+            <h2 class="mb-12 max-w-2xl tracking-tighter leading-tight text-3xl md:text-4xl xl:text-5xl font-bold text-coolGray-900">Four things that never enter the trade.</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+              <div class="border-t-2 border-blue-500 pt-5">
+                <div class="kicker text-blue-500">01</div>
+                <h3 class="mt-2 text-xl font-bold text-coolGray-900">No wrapped coins</h3>
+                  <p class="mt-2 text-coolGray-500 font-medium leading-relaxed">Both sides are the actual coins on their own chains. Nothing is minted, pegged, or held as an IOU against a reserve you cannot inspect, so there is no issuer whose solvency you have to take on trust.</p>
+              </div>
+              <div class="border-t-2 border-green-500 pt-5">
+                <div class="kicker text-green-500">02</div>
+                <h3 class="mt-2 text-xl font-bold text-coolGray-900">No bridge</h3>
+                  <p class="mt-2 text-coolGray-500 font-medium leading-relaxed">There is no intermediary chain sitting in the middle. Bridges are where the largest cross-chain thefts have happened, Ronin and Wormhole among them, and a trade that never touches one leaves no such contract to drain.</p>
+              </div>
+              <div class="border-t-2 border-violet-500 pt-5">
+                <div class="kicker text-violet-500">03</div>
+                <h3 class="mt-2 text-xl font-bold text-coolGray-900">No custodian</h3>
+                  <p class="mt-2 text-coolGray-500 font-medium leading-relaxed">Coins move between the two traders' own wallets. There is no account to open, no deposit to make, and no operator who could freeze the trade partway.</p>
+              </div>
+              <div class="border-t-2 border-yellow-500 pt-5">
+                <div class="kicker text-yellow-500">04</div>
+                <h3 class="mt-2 text-xl font-bold text-coolGray-900">No protocol fee</h3>
+                  <p class="mt-2 text-coolGray-500 font-medium leading-relaxed">BasicSwap takes nothing from either side, whether you posted the offer or took it. What leaves your wallet is the ordinary network fee on each chain.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+    <!-- ============ 5 · TRANSACTION REFERENCE ============ -->
+    <section class="bg-gray-50 border-t border-gray-200">
+      <div class="container px-4 mx-auto py-24 md:py-32">
+        <div>
+          <div class="mb-8 lg:mb-0">
+            <span class="kicker text-blue-500">every transaction in a swap</span>
+          </div>
+          <div>
+            <h2 class="mb-6 max-w-2xl tracking-tighter leading-tight text-3xl md:text-4xl xl:text-5xl font-bold text-coolGray-900">What each transaction does.</h2>
+            <p class="mb-10 max-w-3xl text-lg text-coolGray-500 font-medium leading-relaxed">
+              A completed swap uses four of these. The other four exist so that a swap which stalls
+              still ends with both traders holding their own coins.
+            </p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm border-collapse">
+                <thead>
+                  <tr>
+                    <th scope="col" class="py-3 pr-6 text-left text-coolGray-900 font-bold">Transaction</th>
+                    <th scope="col" class="py-3 pr-6 text-left text-coolGray-900 font-bold">What it does</th>
+                    <th scope="col" class="py-3 text-left text-coolGray-900 font-bold">When it can be mined</th>
+                  </tr>
+                </thead>
+                <tbody>
+                <tr class="border-t border-gray-200"><td class="py-3 pr-6 align-top text-coolGray-900 font-semibold whitespace-nowrap">Chain A lock</td><td class="py-3 pr-6 align-top text-coolGray-500 font-medium">Locks the Bitcoin under the swap contract.</td><td class="py-3 align-top text-coolGray-500 font-medium">Broadcast first, once both sides agree terms.</td></tr>
+                <tr class="border-t border-gray-200"><td class="py-3 pr-6 align-top text-coolGray-900 font-semibold whitespace-nowrap">Chain B lock</td><td class="py-3 pr-6 align-top text-coolGray-500 font-medium">Locks the Monero so that only the two traders together can move it.</td><td class="py-3 align-top text-coolGray-500 font-medium">After the Bitcoin lock confirms.</td></tr>
+                <tr class="border-t border-gray-200"><td class="py-3 pr-6 align-top text-coolGray-900 font-semibold whitespace-nowrap">Chain A lock spend</td><td class="py-3 pr-6 align-top text-coolGray-500 font-medium">Claims the Bitcoin, and in doing so publishes the secret the other side needs.</td><td class="py-3 align-top text-coolGray-500 font-medium">As soon as both locks are confirmed.</td></tr>
+                <tr class="border-t border-gray-200"><td class="py-3 pr-6 align-top text-coolGray-900 font-semibold whitespace-nowrap">Chain B lock spend</td><td class="py-3 pr-6 align-top text-coolGray-500 font-medium">Claims the Monero using the completed key.</td><td class="py-3 align-top text-coolGray-500 font-medium">Once the secret appears on the Bitcoin chain.</td></tr>
+                <tr class="border-t border-gray-200"><td class="py-3 pr-6 align-top text-coolGray-900 font-semibold whitespace-nowrap">Chain A lock refund</td><td class="py-3 pr-6 align-top text-coolGray-500 font-medium">Moves the Bitcoin onto the refund path when a swap stalls.</td><td class="py-3 align-top text-coolGray-500 font-medium">After the first timelock, 48 hours by default.</td></tr>
+                <tr class="border-t border-gray-200"><td class="py-3 pr-6 align-top text-coolGray-900 font-semibold whitespace-nowrap">Chain A lock refund spend</td><td class="py-3 pr-6 align-top text-coolGray-500 font-medium">Returns the Bitcoin to the trader who locked it.</td><td class="py-3 align-top text-coolGray-500 font-medium">Once the refund transaction confirms.</td></tr>
+                <tr class="border-t border-gray-200"><td class="py-3 pr-6 align-top text-coolGray-900 font-semibold whitespace-nowrap">Chain A lock refund swipe</td><td class="py-3 pr-6 align-top text-coolGray-500 font-medium">Lets the counterparty take the refund output if the owner never claims it.</td><td class="py-3 align-top text-coolGray-500 font-medium">After the second timelock, counted from the refund transaction.</td></tr>
+                <tr class="border-t border-gray-200"><td class="py-3 pr-6 align-top text-coolGray-900 font-semibold whitespace-nowrap">Chain B lock refund</td><td class="py-3 pr-6 align-top text-coolGray-500 font-medium">Returns the Monero to the trader who locked it.</td><td class="py-3 align-top text-coolGray-500 font-medium">On the refund path, using the presigned key shares.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="mt-8 max-w-3xl text-coolGray-500 font-medium leading-relaxed">
+              The maker picks the timelock when posting the offer. BasicSwap defaults to 48 hours and
+              accepts anything from 4 to 96, so a trader who wants a longer window to recover from a
+              stalled swap can set one.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 6 · COMPARISON ============ -->
+    <section class="bg-white border-t border-gray-200">
+      <div class="container px-4 mx-auto py-24 md:py-32">
+        <div>
+          <div class="mb-8 lg:mb-0">
+            <span class="kicker text-blue-500">the alternatives</span>
+          </div>
+          <div>
+            <h2 class="mb-6 max-w-2xl tracking-tighter leading-tight text-3xl md:text-4xl xl:text-5xl font-bold text-coolGray-900">How this compares.</h2>
+            <p class="mb-10 max-w-3xl text-lg text-coolGray-500 font-medium leading-relaxed">
+              Several tools will move you from Bitcoin into Monero. They differ mostly in who is
+              holding the coins while it happens, and in who can stop the trade once it starts.
+            </p>
+            <div class="bs-compare-wrap">
+              <table class="bs-compare">
+                <thead>
+                  <tr>
+                    <th scope="col" class="rowhead"></th>
+                    <th scope="col" class="col own">BasicSwap</th>
+                    <th scope="col" class="col">eigenwallet</th>
+                    <th scope="col" class="col">Haveno / RetoSwap</th>
+                    <th scope="col" class="col">Instant swappers</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Who holds the coins mid-trade</th>
+                    <td class="own">Nobody. The chains do.</td>
+                    <td>Nobody. The chains do.</td>
+                    <td>2-of-3 multisig with an arbitrator</td>
+                    <td>The service does</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Account needed</th>
+                    <td class="own">No</td>
+                    <td>No</td>
+                    <td>No</td>
+                    <td>Usually not, but screening applies</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Protocol fee</th>
+                    <td class="own">None</td>
+                    <td>Maker spread only</td>
+                    <td>Maker and taker fees</td>
+                    <td>Built into the quoted rate</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Directions</th>
+                    <td class="own">BTC to XMR and back</td>
+                    <td>BTC to XMR. Selling XMR needs the maker daemon.</td>
+                    <td>XMR against fiat and crypto</td>
+                    <td>Both, quoted per request</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Make and take offers in the app</th>
+                    <td class="own">Both, in the same client</td>
+                    <td>Taking only. Making runs as a server daemon.</td>
+                    <td>Both</td>
+                    <td>Neither. You take their quote.</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">How offers reach you</th>
+                    <td class="own">Gossiped across the peer network</td>
+                    <td>Fetched from each maker you discover</td>
+                    <td>Peer-to-peer offer book</td>
+                    <td>One quote from the operator</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Counterparty history</th>
+                    <td class="own">Kept for both sides, and can decide the next trade</td>
+                    <td>Your own past swaps with that maker, shown only</td>
+                    <td>Arbitrator resolves disputes</td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Third party who can stop it</th>
+                    <td class="own">None</td>
+                    <td>None</td>
+                    <td>Arbitrator on a disputed trade</td>
+                    <td>The operator, at any point</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Pairs beyond BTC and XMR</th>
+                    <td class="own">14 coins</td>
+                    <td>None</td>
+                    <td>Monero-centred</td>
+                    <td>Hundreds</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Run your own node</th>
+                    <td class="own">Optional, or lightweight mode</td>
+                    <td>Optional</td>
+                    <td>Recommended, not required</td>
+                    <td>Not possible</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">How you get it</th>
+                    <td class="own">Build from source</td>
+                    <td>Prebuilt binaries</td>
+                    <td>Prebuilt binaries, Android included</td>
+                    <td>A website. Nothing to install.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="mt-10 max-w-3xl text-coolGray-500 font-medium leading-relaxed">
+              Haveno reaches places an atomic swap cannot, because it settles against cash and bank
+              payments. The trade-off is an arbitrator holding one of the keys.
+            </p>
+            <p class="mt-5 max-w-3xl text-coolGray-500 font-medium leading-relaxed">
+              eigenwallet runs the same cryptography on the same pair. It is a capable Monero
+              wallet, and it routes over Tor by default, where BasicSwap leaves that to you.
+            </p>
+            <p class="mt-5 max-w-3xl text-coolGray-500 font-medium leading-relaxed">
+              What it does not do is let you sell Monero. Its app takes offers rather than posting
+              them. Going the other way means running a maker daemon on a server, quoting a single
+              spread over a market feed.
+            </p>
+            <p class="mt-5 max-w-3xl text-coolGray-500 font-medium leading-relaxed">
+              BasicSwap puts both roles in one client, across 14 chains. Offers can carry a price
+              floor and move in set sizes. And the client remembers how earlier swaps with a
+              counterparty went, which can decide whether it accepts the next one.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 7 · DOING ONE ============ -->
+    <section class="bg-white border-t border-gray-200">
+      <div class="container px-4 mx-auto py-24 md:py-32">
+        <div>
+          <span class="kicker text-blue-500">in practice</span>
+          <h2 class="mt-4 mb-6 max-w-2xl tracking-tighter leading-tight text-3xl md:text-4xl xl:text-5xl font-bold text-coolGray-900">Doing one yourself.</h2>
+          <p class="mb-12 max-w-3xl text-lg text-coolGray-500 font-medium leading-relaxed">
+            Four steps from a fresh install to coins in your own wallet.
+          </p>
+          <div class="bs-track">
+              <div>
+                <div class="w-full bg-blue-500 rounded h-2"></div>
+                <div class="mt-4 kicker text-blue-500">step 1</div>
+                <h3 class="mt-2 text-lg font-bold text-coolGray-900">Install BasicSwap Desktop</h3>
+                <p class="mt-2 text-coolGray-500 font-medium leading-relaxed">Desktop builds the protocol and the Bitcoin and Monero core wallets on your own machine. If running two nodes is more than you want to manage, lightweight mode reads what it needs from public Electrum servers and Monero nodes instead.</p>
+              </div>
+              <div>
+                <div class="w-full bg-blue-500 rounded h-2"></div>
+                <div class="mt-4 kicker text-blue-500">step 2</div>
+                <h3 class="mt-2 text-lg font-bold text-coolGray-900">Fund the wallet you are selling from</h3>
+                <p class="mt-2 text-coolGray-500 font-medium leading-relaxed">BasicSwap generates a deposit address inside the coin wallet it manages for you. Send the Bitcoin or Monero you intend to trade to that address and wait for it to confirm.</p>
+              </div>
+              <div>
+                <div class="w-full bg-blue-500 rounded h-2"></div>
+                <div class="mt-4 kicker text-blue-500">step 3</div>
+                <h3 class="mt-2 text-lg font-bold text-coolGray-900">Find an offer, or post your own</h3>
+                <p class="mt-2 text-coolGray-500 font-medium leading-relaxed">The order book arrives over encrypted peer-to-peer messaging. Filter it to the BTC and XMR pair, take an offer at a price that suits you, or post your own and wait for a taker.</p>
+              </div>
+              <div>
+                <div class="w-full bg-blue-500 rounded h-2"></div>
+                <div class="mt-4 kicker text-blue-500">step 4</div>
+                <h3 class="mt-2 text-lg font-bold text-coolGray-900">Stay online until it settles</h3>
+                <p class="mt-2 text-coolGray-500 font-medium leading-relaxed">Each step hands data to the other side as it happens, so the client has to be running for the swap to progress. Nothing is at risk if you go offline, because the timelocks still return the coins, but the trade will not finish while it is closed.</p>
+              </div>
+          </div>
+          <a class="mt-12 inline-flex items-center py-4 px-6 text-sm leading-5 text-white bg-blue-500 hover:bg-blue-600 font-bold rounded-md transition duration-200" href="/desktop">Install BasicSwap Desktop <span class="ml-2">&rarr;</span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 8 · FAQ ============ -->
+    <section class="bg-white border-t border-gray-200">
+      <div class="container px-4 mx-auto py-24 md:py-32">
+        <div>
+          <div class="mb-8 lg:mb-0">
+            <span class="kicker text-blue-500">btc to xmr, asked and answered</span>
+          </div>
+          <div>
+            <h2 class="mb-10 max-w-2xl tracking-tighter leading-tight text-3xl md:text-4xl xl:text-5xl font-bold text-coolGray-900">Questions about this pair.</h2>
+            <div class="py-7 border-t border-gray-200">
+              <h3 class="mt-2 text-xl font-bold text-coolGray-900">How long does a Bitcoin to Monero swap take?</h3>
+              <p class="mt-3 max-w-3xl text-coolGray-500 font-medium leading-relaxed">Both chains have to confirm, so the wait follows their block times. A default install waits one confirmation on Bitcoin and three on Monero, and a swap makes several of those waits in sequence as each side locks its coins and then claims them. That usually puts the whole thing in the tens of minutes. A custodial service can look quicker because it moves the funds itself instead of waiting on two chains, which is the step BasicSwap does without.</p>
+            </div>
+            <div class="py-7 border-t border-gray-200">
+              <h3 class="mt-2 text-xl font-bold text-coolGray-900">Can I swap Monero back to Bitcoin?</h3>
+              <p class="mt-3 max-w-3xl text-coolGray-500 font-medium leading-relaxed">Yes. Both directions run on the same protocol and have done since 2023. You post an offer to sell XMR for BTC the same way you would post one the other way round.</p>
+            </div>
+            <div class="py-7 border-t border-gray-200">
+              <h3 class="mt-2 text-xl font-bold text-coolGray-900">What happens if the other trader disappears?</h3>
+              <p class="mt-3 max-w-3xl text-coolGray-500 font-medium leading-relaxed">The swap expires and the coins go back to their owners. That escape route is built at the start, before either side commits a coin, which is why it still works if the other trader vanishes for good or BasicSwap stops existing tomorrow.</p>
+            </div>
+            <div class="py-7 border-t border-gray-200">
+              <h3 class="mt-2 text-xl font-bold text-coolGray-900">Do I need to run a Bitcoin node and a Monero node?</h3>
+              <p class="mt-3 max-w-3xl text-coolGray-500 font-medium leading-relaxed">On Desktop you can, and it is the strongest setup, because BasicSwap runs each coin's official core wallet and validates for itself. Lightweight mode is the alternative, leaning on public Electrum servers and Monero nodes for chain state, and mobile wallets that have integrated the protocol work that way too. Whichever you pick, the client has to stay online for the whole swap, because the two sides hand each other data at every step.</p>
+            </div>
+            <div class="py-7 border-t border-gray-200">
+              <h3 class="mt-2 text-xl font-bold text-coolGray-900">What are the fees for converting Bitcoin to Monero?</h3>
+              <p class="mt-3 max-w-3xl text-coolGray-500 font-medium leading-relaxed">The protocol takes nothing, for either side of the trade. You pay the ordinary network fee on each chain, the same as any other transaction, and that is the whole cost.</p>
+            </div>
+            <div class="py-7 border-t border-gray-200">
+              <h3 class="text-xl font-bold text-coolGray-900">Can you send Bitcoin to a Monero wallet?</h3>
+              <p class="mt-3 max-w-3xl text-coolGray-500 font-medium leading-relaxed">No. They are separate chains with different address formats, and a Monero wallet has no way to receive or spend a Bitcoin transaction. Sending BTC to an XMR address will not deliver the funds, and depending on the address it may lose them. Converting is the only route, and that is what a swap does. Your Bitcoin goes to whoever wanted it, their Monero comes to you, and the two payments are bound together so neither can happen alone.</p>
+            </div>
+            <div class="py-7 border-t border-gray-200">
+              <h3 class="text-xl font-bold text-coolGray-900">Do I need a Monero wallet before I swap?</h3>
+              <p class="mt-3 max-w-3xl text-coolGray-500 font-medium leading-relaxed">BasicSwap creates one for you. Desktop runs Monero's own wallet software locally and generates the address the swap pays into, so there is nothing to set up beforehand and no address to paste. If you would rather receive into a wallet you already use, withdraw once the swap finishes.</p>
+            </div>
+            <div class="py-7 border-t border-gray-200">
+              <h3 class="text-xl font-bold text-coolGray-900">Is a Bitcoin to Monero swap traceable?</h3>
+              <p class="mt-3 max-w-3xl text-coolGray-500 font-medium leading-relaxed">The Bitcoin payment is as public as any other Bitcoin transaction, and the Monero payment carries Monero's usual privacy. What a swap avoids is the marker that links them. Adaptor signatures leave nothing on the Bitcoin chain saying a swap took place or which Monero transaction it pairs with, so the trade looks like ordinary spending rather than an obvious conversion into a privacy coin.</p>
+            </div>
+            <div class="py-7 border-t border-gray-200">
+              <h3 class="text-xl font-bold text-coolGray-900">How is this different from an instant swap service?</h3>
+              <p class="mt-3 max-w-3xl text-coolGray-500 font-medium leading-relaxed">An instant swap service takes your Bitcoin, holds it, and sends you Monero from its own reserves, which is quicker and means the service can freeze the funds, ask for identification, or fail while holding them. An atomic swap has no such middle step. The coins move directly between two traders and the chains enforce that both payments happen or neither does.</p>
+            </div>
+          </div>
+        </div>
+        <p class="mt-12 kicker text-coolGray-400">
+          Last updated <time datetime="2026-08-20">20 August 2026</time>
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 9 · ELSEWHERE ============ -->
+    <section class="bg-blue-50 border-t border-gray-200">
+      <div class="container px-4 mx-auto py-24 md:py-32">
+        <div class="max-w-4xl">
+          <h2 class="tracking-tighter leading-tight text-3xl md:text-4xl xl:text-5xl font-bold text-coolGray-900">Monero trades against more than Bitcoin.</h2>
+          <p class="mt-6 mb-10 max-w-2xl text-lg text-coolGray-500 font-medium leading-relaxed">
+            The same adaptor signature protocol carries XMR against Litecoin, Particl, and the rest
+            of the supported coins. The compatibility table on the Desktop page shows which method
+            each pair uses.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <a class="inline-flex items-center justify-center py-4 px-6 text-sm leading-5 text-violet-600 border border-violet-400 hover:bg-violet-500 hover:text-white font-bold rounded-md transition duration-200" href="/desktop">See every pair <span class="ml-2">&rarr;</span></a>
+            <a class="inline-flex items-center justify-center py-4 px-6 text-sm leading-5 text-white bg-blue-500 hover:bg-blue-600 font-bold rounded-md transition duration-200" href="/protocol">Read the protocol <span class="ml-2">&rarr;</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    </main>
+    <footer class="bg-white overflow-hidden border-t border-coolGray-100">
+      <div class="container px-4 mx-auto">
+        <div class="flex flex-wrap pt-16 pb-12 -mx-4">
+          <div class="w-full lg:w-2/5 px-4 mb-12 lg:mb-0">
+            <a class="inline-block mb-6" href="/"><img class="h-8" src="images/basicswap-logo-dark.svg" alt="BasicSwap DEX Logo" width="121" height="32" loading="lazy" decoding="async"></a>
+            <p class="max-w-xs text-coolGray-500 font-medium leading-relaxed">A decentralized protocol for cross-chain atomic swaps. No custodian, no account, no protocol fees.</p>
+            <div class="inline-flex items-center mt-6 py-1 px-3 bg-green-50 rounded-full">
+              <span class="inline-block w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
+              <span class="text-xs text-green-700 font-semibold uppercase tracking-wider">Protocol live on mainnet</span>
+            </div>
+          </div>
+          <div class="w-1/2 md:w-1/4 lg:w-1/5 px-4 mb-8 md:mb-0">
+            <h3 class="mb-4 kicker text-coolGray-400">Product</h3>
+            <ul class="space-y-3">
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/desktop">Desktop</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/mobile">Mobile</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/bitcoin-to-monero">Bitcoin to Monero</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets &#8599;</a></li>
+            </ul>
+          </div>
+          <div class="w-1/2 md:w-1/4 lg:w-1/5 px-4 mb-8 md:mb-0">
+            <h3 class="mb-4 kicker text-coolGray-400">Protocol</h3>
+            <ul class="space-y-3">
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/protocol">Protocol</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/terms">Terms</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://docs.basicswapdex.com/docs/intro" target="_blank" rel="noopener noreferrer">Docs &#8599;</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://github.com/basicswap" target="_blank" rel="noopener noreferrer">Whitepaper &#8599;</a></li>
+            </ul>
+          </div>
+          <div class="w-1/2 md:w-1/4 lg:w-1/5 px-4">
+            <h3 class="mb-4 kicker text-coolGray-400">Community</h3>
+            <ul class="space-y-3">
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/about">About</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/donations">Donations</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/faq">FAQ</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/links">Links</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://github.com/basicswap" target="_blank" rel="noopener noreferrer">GitHub &#8599;</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://matrix.to/#/#basicswap:matrix.org" target="_blank" rel="noopener noreferrer">Matrix &#8599;</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://blog.basicswapdex.com/" target="_blank" rel="noopener noreferrer">Blog &#8599;</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="border-b border-coolGray-100"></div>
+      <div class="container px-4 mx-auto mb-10">
+        <div class="flex flex-wrap items-center pt-12">
+          <div class="w-full md:w-1/2 mb-6 md:mb-0">
+            <div class="flex items-center">
+              <p class="mr-1 text-sm text-gray-900 font-medium">&copy; 2026~ </p>
+              <p class="text-sm text-coolGray-400 font-medium">BasicSwapDEX</p>
+              <a class="ml-4 text-sm text-coolGray-400 hover:text-coolGray-600 font-medium" href="/mediakit/mediakit-basicswap.zip">Mediakit</a>
+            </div>
+          </div>
+          <div class="w-full md:w-1/2">
+            <div class="flex flex-wrap md:justify-end -mx-5">
+              <div class="px-5"><a class="inline-block text-coolGray-300 hover:text-coolGray-400" href="https://x.com/BasicSwapDEX" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></div>
+              <div class="px-5"><a class="inline-block text-coolGray-300 hover:text-coolGray-400" href="https://matrix.to/#/#basicswap:matrix.org" target="_blank" rel="noopener noreferrer" title="Join us on Matrix"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M.632.55v22.9H2.28V24H0V0h2.28v.55zm7.043 7.26v1.157h.033c.309-.443.683-.784 1.117-1.024.433-.245.936-.365 1.507-.365.54 0 1.033.107 1.481.314.448.208.785.582 1.02 1.108.254-.374.6-.706 1.034-.992.434-.287.95-.43 1.546-.43.453 0 .872.056 1.26.167.388.11.716.286.993.53.276.245.489.559.646.951.152.392.23.863.23 1.417v5.728h-2.349V11.52c0-.286-.01-.559-.032-.812a1.755 1.755 0 0 0-.18-.66 1.106 1.106 0 0 0-.438-.448c-.194-.11-.457-.166-.785-.166-.332 0-.6.064-.803.189a1.38 1.38 0 0 0-.48.499 1.946 1.946 0 0 0-.231.696 5.56 5.56 0 0 0-.06.785v4.826h-2.35v-4.206c0-.265-.023-.52-.067-.766a1.589 1.589 0 0 0-.266-.652 1.32 1.32 0 0 0-.531-.46c-.219-.116-.506-.174-.863-.174-.22 0-.440.043-.659.132-.219.088-.417.207-.594.357-.177.149-.318.33-.423.542-.104.212-.157.452-.157.72v4.507H7.675V7.81zm15.693 16.64V.55h-1.648V0H24v24h-2.28v-.55z"/></svg></a></div>
+              <div class="px-5"><a class="inline-block text-coolGray-300 hover:text-coolGray-400" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer" title="View on GitHub"><svg width="18" height="18" viewbox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 0C4.0275 0 0 4.13211 0 9.22838C0 13.3065 2.5785 16.7648 6.15375 17.9841C6.60375 18.0709 6.76875 17.7853 6.76875 17.5403C6.76875 17.3212 6.76125 16.7405 6.7575 15.9712C4.254 16.5277 3.726 14.7332 3.726 14.7332C3.3165 13.6681 2.72475 13.3832 2.72475 13.3832C1.9095 12.8111 2.78775 12.8229 2.78775 12.8229C3.6915 12.887 4.16625 13.7737 4.16625 13.7737C4.96875 15.1847 6.273 14.777 6.7875 14.5414C6.8685 13.9443 7.10025 13.5381 7.3575 13.3073C5.35875 13.0764 3.258 12.2829 3.258 8.74709C3.258 7.73988 3.60675 6.91659 4.18425 6.27095C4.083 6.03774 3.77925 5.0994 4.263 3.82846C4.263 3.82846 5.01675 3.58116 6.738 4.77462C7.458 4.56958 8.223 4.46785 8.988 4.46315C9.753 4.46785 10.518 4.56958 11.238 4.77462C12.948 3.58116 13.7017 3.82846 13.7017 3.82846C14.1855 5.0994 13.8818 6.03774 13.7917 6.27095C14.3655 6.91659 14.7142 7.73988 14.7142 8.74709C14.7142 12.2923 12.6105 13.0725 10.608 13.2995C10.923 13.5765 11.2155 14.1423 11.2155 15.0071C11.2155 16.242 11.2043 17.2344 11.2043 17.5341C11.2043 17.7759 11.3617 18.0647 11.823 17.9723C15.4237 16.7609 18 13.3002 18 9.22838C18 4.13211 13.9703 0 9 0Z" fill="currentColor"></path></svg></a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
