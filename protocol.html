@@ -181,7 +181,7 @@
             <h2 class="mt-4 text-3xl md:text-4xl font-bold text-coolGray-900 tracking-tighter leading-tight">Adaptor signatures.<br>Atomicity without a Monero script.</h2>
             <p class="mt-5 text-lg text-coolGray-500 font-medium leading-relaxed">The Bitcoin side of a BTC&#8596;XMR swap has script. The Monero side does not. That asymmetry is what blocked cross-chain atomic swaps for years. One-Time Verifiably Encrypted Signatures (OtVES) fix it.</p>
             <p class="mt-4 text-lg text-coolGray-500 font-medium leading-relaxed">The signature that redeems the Bitcoin is encrypted under one party's half of the Monero spend key. Broadcasting that spend reveals the half on-chain; combined with the other half, it unlocks the Monero. On Monero, atomicity is pure cryptography. The Bitcoin side still uses ordinary script and timelocks, which the paper calls semi-scriptless.</p>
-            <p class="mt-4 text-lg text-coolGray-500 font-medium leading-relaxed">BasicSwap was the first DEX to implement OtVES for XMR atomic swaps, working since 2020.</p>
+            <p class="mt-4 text-lg text-coolGray-500 font-medium leading-relaxed">BasicSwap was the first DEX to implement OtVES for XMR atomic swaps, working since 2020. The <a class="text-blue-500 hover:text-blue-600" href="/bitcoin-to-monero">Bitcoin to Monero page</a> walks through a single swap in full.</p>
             <a class="mt-6 inline-flex items-center text-green-600 hover:text-green-500 font-bold" href="https://eprint.iacr.org/2020/1126" target="_blank" rel="noopener noreferrer">Read the BTC&#8596;XMR atomic-swap paper <span class="ml-2">&#8599;</span></a>
           </div>
           <div class="w-full lg:w-2/5 px-4">
@@ -449,6 +449,7 @@ confs = tip.height - hist.height + 1
             <ul class="space-y-3">
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/desktop">Desktop</a></li>
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/mobile">Mobile</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/bitcoin-to-monero">Bitcoin to Monero</a></li>
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets &#8599;</a></li>
             </ul>
           </div>

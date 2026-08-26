@@ -116,7 +116,7 @@
           "name": "Does BasicSwap require a native coin or token to use?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "No. BasicSwap has no native coin, no token, and no monetization layer, so nothing sits between you and a swap. That also makes it a clean base layer for other apps and services to build on."
+            "text": "No. BasicSwap has no native coin, no token, and no monetization layer, so nothing sits between you and a swap. That also makes it a simple base for other apps and services to build on."
           }
         },
         {
@@ -132,7 +132,7 @@
           "name": "Can I swap Bitcoin for Monero?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, in both directions, and it settles on-chain as an atomic swap. BasicSwap implements h4sh3d's Bitcoin to Monero protocol using adaptor signatures, so there are no wrapped tokens, no bridge, and no intermediary chain. Monero also swaps against Litecoin and several other supported coins."
+            "text": "Yes, in both directions, and it settles on-chain as an atomic swap. See the Bitcoin to Monero page for how it works step by step. BasicSwap implements h4sh3d's Bitcoin to Monero protocol using adaptor signatures, so there are no wrapped tokens, no bridge, and no intermediary chain. Monero also swaps against Litecoin and several other supported coins."
           }
         },
         {
@@ -148,7 +148,7 @@
           "name": "How long does it take to set up BasicSwap?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Setup has two parts: building the application, and getting the coins you enable ready to use. The build usually takes 10 to 30 minutes, depending on your machine and how closely you follow the steps. There is also a community Linux script here. How long the coins take depends on whether you run them as full nodes or in lightweight mode. In lightweight mode there is almost nothing to wait for: the script coins (Bitcoin, Litecoin, and so on) read chain state from public Electrum servers, and Monero and Wownero use remote nodes, so you can swap without syncing a chain yourself. See the lightweight modes guide for the details. If you prefer to run full nodes, you sync each chain locally, which takes longer and depends on your connection. For Bitcoin, the fast-sync option loads a pruned chain snapshot and cuts sync time by more than 90%. For Monero, you can start swapping before the chain finishes syncing, because it temporarily connects to a public node while it catches up."
+            "text": "Setup has two parts, building the application and getting the coins you enable ready to use. The build usually takes 10 to 30 minutes, depending on your machine and how closely you follow the steps. There is also a community Linux script here. How long the coins take depends on whether you run them as full nodes or in lightweight mode. Lightweight mode has almost nothing to wait for. The script coins like Bitcoin and Litecoin read chain state from public Electrum servers, and Monero and Wownero use remote nodes, so you can swap without syncing a chain yourself. See the lightweight modes guide for the details. Running full nodes means syncing each chain locally, which takes longer and depends on your connection. Bitcoin has a fast-sync option that loads a pruned chain snapshot and skips most of the history. Monero lets you start swapping before the chain finishes, because it connects to a public node while it catches up."
           }
         },
         {
@@ -156,7 +156,7 @@
           "name": "How long does it take to complete a swap?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "It depends on the coins involved. BasicSwap uses atomic swaps, so every swap settles on-chain and waits for confirmations on both chains. That ties swap time to each chain's block time. For a rough estimate, take the block time of the coin being swapped and multiply by 6, or by 10 for Monero, which is about the number of confirmations a swap needs to finish."
+            "text": "It depends on the coins involved. BasicSwap uses atomic swaps, so a swap settles on-chain and waits for confirmations on both chains, which ties the time to each chain's block time. The defaults are low. Bitcoin waits one confirmation and Monero waits three, with every other supported coin between one and three. A swap makes several of those waits in sequence as each side locks its coins and then claims them, so a finished swap usually takes tens of minutes rather than seconds."
           }
         },
         {
@@ -172,7 +172,7 @@
           "name": "What happens if a swap fails?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "If something goes wrong mid-swap, both sides are refunded automatically, at no extra cost, because the swap is atomic. An atomic swap only moves to the next step when its exact conditions are met. If they are not, the swap times out and the coins, held in the swap's time-locked addresses, return to their original owners."
+            "text": "If something goes wrong mid-swap, both sides get their coins back, because the swap is atomic. An atomic swap only moves to the next step when its conditions are met. If they are not, it times out and the coins, held in the swap's time-locked addresses, return to their original owners."
           }
         },
         {
@@ -196,7 +196,7 @@
           "name": "Can I run my node on a cloud server or VPS?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. Running BasicSwap on a VPS is a practical way to keep it online 24/7, and a cloud instance is a good idea if you plan to run the automated market making script. One caveat: BasicSwap runs the official core wallet of every coin you enable, so a third-party server carries real risk. Encrypt your instance if you go this route."
+            "text": "Yes. Running BasicSwap on a VPS is a practical way to keep it online around the clock, and a cloud instance is worth considering if you plan to run the automated market making script. One caveat. BasicSwap runs the official core wallet of every coin you enable, so a third-party server carries real risk. Encrypt your instance if you go this route."
           }
         },
         {
@@ -212,7 +212,7 @@
           "name": "Are atomic swaps traceable?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "On-chain, a BasicSwap trade looks like an ordinary transaction. Adaptor signatures leave no marker identifying it as a swap and nothing linking its two legs across chains, so the trade does not announce itself to a chain analyst. Orders travel over encrypted peer-to-peer messaging and can be routed through Tor, and with no operator in the middle there are no logs to keep."
+            "text": "On-chain, a BasicSwap trade looks like an ordinary transaction. Adaptor signatures leave no marker identifying it as a swap and nothing linking the two payments across chains, so the trade does not announce itself to a chain analyst. Orders travel over encrypted peer-to-peer messaging and can be routed through Tor, and with no operator in the middle there are no logs to keep."
           }
         },
         {
@@ -220,7 +220,7 @@
           "name": "Is BasicSwap ready to use today?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. BasicSwap is live on mainnet and runs reliably for everyday swaps. It is also under active development: some features are still being refined or added, and the long-term goal reaches well beyond what ships today. Opening it up to more users now is how that gets built, through real feedback and real-world testing."
+            "text": "Yes. BasicSwap is live on mainnet and handles everyday swaps. Development continues, and some features are still being refined or added. Opening it to more people is how the rest gets built, through real feedback and real trades."
           }
         },
         {
@@ -228,7 +228,7 @@
           "name": "What are the core components of the BasicSwap DEX?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "BasicSwap is best understood as a decentralized version of the SWIFT messaging network. All it does is pass messages between two peers over the decentralized SMSG network so they can run a coin swap together, with no central party involved. BasicSwap does not do the swap itself. The swap runs as an on-chain atomic swap on the blockchains of the coins being traded. BasicSwap's job is to let the two sides talk: to exchange the data an atomic swap needs, and to broadcast offers publicly without an intermediary. It rests on three components: the atomic swap protocol layer, the SecureMessaging network (SMSG), and the official coin cores of the coins you swap. A user-friendly GUI wraps all of it. Atomic swaps: the mechanism that lets two parties swap directly, with no intermediary. Coins are held in time-locked addresses under a condition-based process until every condition is met. If any step fails, the swap is voided and the coins return to their owners after a set time. Read more about atomic swaps here, and about Monero atomic swaps here. SecureMessaging: a peer-to-peer, decentralized messaging network (a mixnet) that lets two peers who want to swap reach each other and share the data, such as transaction hashes and proofs, that satisfies the atomic swap's conditions. It gives blockchain interoperability with no central control, and it also powers other DEX functions like BasicSwap's decentralized order book. Read more about SMSG here. Coin cores: BasicSwap has no wallet of its own. It uses the official coin cores of the coins you swap. When you set it up, you install the cores (Bitcoin Core, Litecoin Core, and so on) that hold your coins and run the atomic swaps. You can also point BasicSwap at existing nodes, local or remote."
+            "text": "Think of BasicSwap as a decentralized version of the SWIFT messaging network. It carries messages between two traders over the SMSG network so they can run a coin swap together, with no central party involved. BasicSwap does not perform the swap. That happens on the blockchains of the coins being traded. Its job is to let the two sides exchange the data an atomic swap needs, and to publish offers without an intermediary. Three components sit underneath, wrapped in a GUI. The atomic swap protocol lets two traders exchange coins directly. Funds wait in time-locked addresses until every condition is met, and if a step fails the swap is voided and the coins go back once the timelock expires. Read more about atomic swaps here, and about Monero atomic swaps here. SecureMessaging is a peer-to-peer mixnet that lets two traders reach each other and pass the data an atomic swap needs, such as transaction hashes and proofs. It works across chains with no central control, and it also carries the order book. Read more about SMSG here. Coin cores hold the funds, because BasicSwap has no wallet of its own. Setup installs the official core for each coin you enable, Bitcoin Core, Litecoin Core and the rest, and those run the swaps. You can point BasicSwap at nodes you already run instead, local or remote."
           }
         },
         {
@@ -236,7 +236,7 @@
           "name": "Is the order book really entirely decentralized?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. BasicSwap's order book is fully decentralized, with no central point of failure and no centralized parts. It runs on the SecureMessaging (SMSG) network, so it is fully distributed. For how SMSG makes that work, read more here."
+            "text": "Yes. The order book runs on the SecureMessaging network, so it is distributed across the nodes rather than served from one place. There is no central point to take down. For how SMSG makes that work, read more here."
           }
         },
         {
@@ -252,7 +252,7 @@
           "name": "Does BasicSwap connect to a third-party service?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "BasicSwap's core functions do not rely on any third-party service; the protocol is fully decentralized, with no central point of failure. Some convenience features in the interface, like historical price charts, may pull data from external APIs."
+            "text": "Settling a swap does not. That runs between the two traders and their own coin nodes, with no outside service taking part. Parts of the interface do reach out. Price displays call CoinGecko, the client checks GitHub for new releases, and Particl and Litecoin can query public block explorers. Lightweight mode is the other case, since it reads chain state from public Electrum servers and Monero nodes rather than from a node you run."
           }
         },
         {
@@ -260,7 +260,7 @@
           "name": "Are there premade builds of BasicSwap?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Not yet. BasicSwap is compiled from source for now, but the steps are straightforward and documented here. There is also a community Linux install script."
+            "text": "Not yet. BasicSwap is compiled from source, and the steps are documented here. There is also a community Linux install script."
           }
         },
         {
@@ -268,7 +268,7 @@
           "name": "Is BasicSwap dependent on a team or organization to operate and function?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "No. BasicSwap is fully open-source and decentralized, so it does not depend on any team or central organization. If all community development stopped today, BasicSwap would keep working exactly as it does now."
+            "text": "No. BasicSwap is open-source and decentralized, so it does not depend on a team or a central organization. If community development stopped today, the software would keep working as it does now."
           }
         },
         {
@@ -284,7 +284,7 @@
           "name": "Are Monero swaps truly decentralized? What’s the catch?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "It is a fair question, and there is no catch. BasicSwap uses h4sh3d's Monero atomic swap protocol; everything else runs on the SecureMessaging (SMSG) network and scriptless scripts. There are no wrapped Monero tokens, no intermediary chains, and no workarounds."
+            "text": "It is a fair question, and there is no catch. BasicSwap uses h4sh3d's Monero atomic swap protocol, and the rest runs on the SecureMessaging network and scriptless scripts. There are no wrapped Monero tokens, no intermediary chains, and no workarounds."
           }
         },
         {
@@ -292,7 +292,7 @@
           "name": "How can I verify and audit BasicSwap’s code?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "All of it is open-source. To audit or just read the code, visit the GitHub. You can check every line yourself and confirm BasicSwap does exactly what it says."
+            "text": "The code is open-source. To audit it, or just read it, visit the GitHub. You can check any line yourself rather than take our word for it."
           }
         },
         {
@@ -300,7 +300,7 @@
           "name": "How can I learn more about BasicSwap?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "This FAQ is a good start. For more depth, head to the documentation."
+            "text": "This FAQ covers the common questions. For more depth, head to the documentation."
           }
         },
         {
@@ -316,7 +316,7 @@
           "name": "How can I get involved or help the BasicSwap project?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "There are many ways to help, including contributing code. You do not have to be a developer, though. The two most useful things you can do are spread the word about BasicSwap and provide liquidity. More users and deeper liquidity are what make the DEX more usable and a real alternative to centralized exchanges. Every bit helps, whatever its size."
+            "text": "There are many ways to help, including contributing code. You do not have to be a developer, though. The two most useful things you can do are spread the word about BasicSwap and provide liquidity. More users and deeper liquidity are what make the DEX usable as an alternative to centralized exchanges."
           }
         },
         {
@@ -324,7 +324,7 @@
           "name": "How can I provide liquidity on the order book?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Adding liquidity, and earning from arbitrage along the way, is straightforward with the automated market making script. For step-by-step instructions, see the market making guide, or watch the video tutorials."
+            "text": "Adding liquidity, and earning from arbitrage along the way, is handled by the automated market making script. For step-by-step instructions, see the market making guide, or watch the video tutorials."
           }
         }
       ]
@@ -588,7 +588,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>No. BasicSwap has no native coin, no token, and no monetization layer, so nothing sits between you and a swap. That also makes it a clean base layer for other apps and services to build on.</p>
+                <p>No. BasicSwap has no native coin, no token, and no monetization layer, so nothing sits between you and a swap. That also makes it a simple base for other apps and services to build on.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -610,7 +610,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>Yes, in both directions, and it settles on-chain as an atomic swap. BasicSwap implements h4sh3d's Bitcoin to Monero protocol using adaptor signatures, so there are no wrapped tokens, no bridge, and no intermediary chain. Monero also swaps against Litecoin and several other supported coins.</p>
+                <p>Yes, in both directions, and it settles on-chain as an atomic swap. See the <a class="text-blue-500 hover:text-blue-600" href="/bitcoin-to-monero">Bitcoin to Monero page</a> for how it works step by step. BasicSwap implements h4sh3d's Bitcoin to Monero protocol using adaptor signatures, so there are no wrapped tokens, no bridge, and no intermediary chain. Monero also swaps against Litecoin and several other supported coins.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -632,7 +632,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>Setup has two parts: building the application, and getting the coins you enable ready to use. The build usually takes 10 to 30 minutes, depending on your machine and how closely you follow the steps. There is also a community Linux script <a class="text-blue-500" href="https://github.com/nahuhh/basicswap-bash/releases/latest" target="_blank" rel="noopener noreferrer">here</a>.<br><br> How long the coins take depends on whether you run them as full nodes or in lightweight mode. In lightweight mode there is almost nothing to wait for: the script coins (Bitcoin, Litecoin, and so on) read chain state from public Electrum servers, and Monero and Wownero use remote nodes, so you can swap without syncing a chain yourself. See the <a class="text-blue-500" href="https://docs.basicswapdex.com/docs/user-guides/lightweight-modes" target="_blank" rel="noopener noreferrer">lightweight modes</a> guide for the details.<br><br> If you prefer to run full nodes, you sync each chain locally, which takes longer and depends on your connection. For Bitcoin, the fast-sync option loads a pruned chain snapshot and cuts sync time by more than 90%. For Monero, you can start swapping before the chain finishes syncing, because it temporarily connects to a public node while it catches up.</p>
+                <p>Setup has two parts, building the application and getting the coins you enable ready to use. The build usually takes 10 to 30 minutes, depending on your machine and how closely you follow the steps. There is also a community Linux script <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://github.com/nahuhh/basicswap-bash/releases/latest">here</a>.<br><br> How long the coins take depends on whether you run them as full nodes or in lightweight mode. Lightweight mode has almost nothing to wait for. The script coins like Bitcoin and Litecoin read chain state from public Electrum servers, and Monero and Wownero use remote nodes, so you can swap without syncing a chain yourself. See the <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://docs.basicswapdex.com/docs/user-guides/lightweight-modes">lightweight modes</a> guide for the details.<br><br> Running full nodes means syncing each chain locally, which takes longer and depends on your connection. Bitcoin has a fast-sync option that loads a pruned chain snapshot and skips most of the history. Monero lets you start swapping before the chain finishes, because it connects to a public node while it catches up.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -643,7 +643,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>It depends on the coins involved. BasicSwap uses atomic swaps, so every swap settles on-chain and waits for confirmations on both chains. That ties swap time to each chain's block time.<br><br> For a rough estimate, take the block time of the coin being swapped and multiply by 6, or by 10 for Monero, which is about the number of confirmations a swap needs to finish.</p>
+                <p>It depends on the coins involved. BasicSwap uses atomic swaps, so a swap settles on-chain and waits for confirmations on both chains, which ties the time to each chain's block time.<br><br> The defaults are low. Bitcoin waits one confirmation and Monero waits three, with every other supported coin between one and three. A swap makes several of those waits in sequence as each side locks its coins and then claims them, so a finished swap usually takes tens of minutes rather than seconds.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -665,7 +665,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>If something goes wrong mid-swap, both sides are refunded automatically, at no extra cost, because the swap is atomic.<br><br> An atomic swap only moves to the next step when its exact conditions are met. If they are not, the swap times out and the coins, held in the swap's time-locked addresses, return to their original owners.</p>
+                <p>If something goes wrong mid-swap, both sides get their coins back, because the swap is atomic. An atomic swap only moves to the next step when its conditions are met. If they are not, it times out and the coins, held in the swap's time-locked addresses, return to their original owners.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -698,7 +698,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>Yes. Running BasicSwap on a VPS is a practical way to keep it online 24/7, and a cloud instance is a good idea if you plan to run the automated market making script. One caveat: BasicSwap runs the official core wallet of every coin you enable, so a third-party server carries real risk. Encrypt your instance if you go this route.</p>
+                <p>Yes. Running BasicSwap on a VPS is a practical way to keep it online around the clock, and a cloud instance is worth considering if you plan to run the automated market making script. One caveat. BasicSwap runs the official core wallet of every coin you enable, so a third-party server carries real risk. Encrypt your instance if you go this route.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -720,7 +720,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>On-chain, a BasicSwap trade looks like an ordinary transaction. Adaptor signatures leave no marker identifying it as a swap and nothing linking its two legs across chains, so the trade does not announce itself to a chain analyst. Orders travel over encrypted peer-to-peer messaging and can be routed through Tor, and with no operator in the middle there are no logs to keep.</p>
+                <p>On-chain, a BasicSwap trade looks like an ordinary transaction. Adaptor signatures leave no marker identifying it as a swap and nothing linking the two payments across chains, so the trade does not announce itself to a chain analyst. Orders travel over encrypted peer-to-peer messaging and can be routed through Tor, and with no operator in the middle there are no logs to keep.</p>
               </div>
             </div>
           </div>
@@ -745,7 +745,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>Yes. BasicSwap is live on mainnet and runs reliably for everyday swaps. It is also under active development: some features are still being refined or added, and the long-term goal reaches well beyond what ships today. Opening it up to more users now is how that gets built, through real feedback and real-world testing.</p>
+                <p>Yes. BasicSwap is live on mainnet and handles everyday swaps. Development continues, and some features are still being refined or added. Opening it to more people is how the rest gets built, through real feedback and real trades.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -756,7 +756,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>BasicSwap is best understood as a decentralized version of the SWIFT messaging network. All it does is pass messages between two peers over the decentralized SMSG network so they can run a coin swap together, with no central party involved.<br><br> BasicSwap does not do the swap itself. The swap runs as an on-chain atomic swap on the blockchains of the coins being traded. BasicSwap's job is to let the two sides talk: to exchange the data an atomic swap needs, and to broadcast offers publicly without an intermediary.<br><br> It rests on three components: the atomic swap protocol layer, the SecureMessaging network (SMSG), and the official coin cores of the coins you swap. A user-friendly GUI wraps all of it.<br><br> Atomic swaps: the mechanism that lets two parties swap directly, with no intermediary. Coins are held in time-locked addresses under a condition-based process until every condition is met. If any step fails, the swap is voided and the coins return to their owners after a set time. Read more about atomic swaps <a class="text-blue-500" href="https://github.com/decred/atomicswap" target="_blank" rel="noopener noreferrer">here</a>, and about Monero atomic swaps <a class="text-blue-500" href="https://github.com/h4sh3d/xmr-btc-atomic-swap" target="_blank" rel="noopener noreferrer">here</a>.<br><br> SecureMessaging: a peer-to-peer, decentralized messaging network (a mixnet) that lets two peers who want to swap reach each other and share the data, such as transaction hashes and proofs, that satisfies the atomic swap's conditions. It gives blockchain interoperability with no central control, and it also powers other DEX functions like BasicSwap's decentralized order book. Read more about SMSG <a class="text-blue-500" href="https://particl.news/the-smsg-network-enabling-dapps-with-true-privacy/" target="_blank" rel="noopener noreferrer">here</a>.<br><br> Coin cores: BasicSwap has no wallet of its own. It uses the official coin cores of the coins you swap. When you set it up, you install the cores (Bitcoin Core, Litecoin Core, and so on) that hold your coins and run the atomic swaps. You can also point BasicSwap at existing nodes, local or remote.</p>
+                <p>Think of BasicSwap as a decentralized version of the SWIFT messaging network. It carries messages between two traders over the SMSG network so they can run a coin swap together, with no central party involved.<br><br> BasicSwap does not perform the swap. That happens on the blockchains of the coins being traded. Its job is to let the two sides exchange the data an atomic swap needs, and to publish offers without an intermediary.<br><br> Three components sit underneath, wrapped in a GUI.<br><br> The atomic swap protocol lets two traders exchange coins directly. Funds wait in time-locked addresses until every condition is met, and if a step fails the swap is voided and the coins go back once the timelock expires. Read more about atomic swaps <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://github.com/decred/atomicswap">here</a>, and about Monero atomic swaps <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://github.com/h4sh3d/xmr-btc-atomic-swap">here</a>.<br><br> SecureMessaging is a peer-to-peer mixnet that lets two traders reach each other and pass the data an atomic swap needs, such as transaction hashes and proofs. It works across chains with no central control, and it also carries the order book. Read more about SMSG <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://particl.news/the-smsg-network-enabling-dapps-with-true-privacy/">here</a>.<br><br> Coin cores hold the funds, because BasicSwap has no wallet of its own. Setup installs the official core for each coin you enable, Bitcoin Core, Litecoin Core and the rest, and those run the swaps. You can point BasicSwap at nodes you already run instead, local or remote.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -767,7 +767,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>Yes. BasicSwap's order book is fully decentralized, with no central point of failure and no centralized parts. It runs on the SecureMessaging (SMSG) network, so it is fully distributed. For how SMSG makes that work, read more <a class="text-blue-500" href="https://particl.news/the-smsg-network-enabling-dapps-with-true-privacy/" target="_blank" rel="noopener noreferrer">here</a>.</p>
+                <p>Yes. The order book runs on the SecureMessaging network, so it is distributed across the nodes rather than served from one place. There is no central point to take down. For how SMSG makes that work, read more <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://particl.news/the-smsg-network-enabling-dapps-with-true-privacy/">here</a>.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -789,7 +789,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>BasicSwap's core functions do not rely on any third-party service; the protocol is fully decentralized, with no central point of failure. Some convenience features in the interface, like historical price charts, may pull data from external APIs.</p>
+                <p>Settling a swap does not. That runs between the two traders and their own coin nodes, with no outside service taking part. Parts of the interface do reach out. Price displays call CoinGecko, the client checks GitHub for new releases, and Particl and Litecoin can query public block explorers. Lightweight mode is the other case, since it reads chain state from public Electrum servers and Monero nodes rather than from a node you run.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -800,7 +800,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>Not yet. BasicSwap is compiled from source for now, but the steps are straightforward and documented <a class="text-blue-500" href="https://docs.basicswapdex.com/docs/user-guides/install" target="_blank" rel="noopener noreferrer">here</a>. There is also a community Linux install <a class="text-blue-500" href="https://github.com/nahuhh/basicswap-bash/releases/latest" target="_blank" rel="noopener noreferrer">script</a>.</p>
+                <p>Not yet. BasicSwap is compiled from source, and the steps are documented <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://docs.basicswapdex.com/docs/user-guides/install">here</a>. There is also a community Linux install <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://github.com/nahuhh/basicswap-bash/releases/latest">script</a>.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -811,7 +811,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>No. BasicSwap is fully open-source and decentralized, so it does not depend on any team or central organization. If all community development stopped today, BasicSwap would keep working exactly as it does now.</p>
+                <p>No. BasicSwap is open-source and decentralized, so it does not depend on a team or a central organization. If community development stopped today, the software would keep working as it does now.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -833,7 +833,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>It is a fair question, and there is no catch. BasicSwap uses h4sh3d's <a class="text-blue-500" href="https://github.com/h4sh3d/xmr-btc-atomic-swap" target="_blank" rel="noopener noreferrer">Monero atomic swap protocol</a>; everything else runs on the SecureMessaging (SMSG) network and scriptless scripts. There are no wrapped Monero tokens, no intermediary chains, and no workarounds.</p>
+                <p>It is a fair question, and there is no catch. BasicSwap uses h4sh3d's <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://github.com/h4sh3d/xmr-btc-atomic-swap">Monero atomic swap protocol</a>, and the rest runs on the SecureMessaging network and scriptless scripts. There are no wrapped Monero tokens, no intermediary chains, and no workarounds.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -844,7 +844,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>All of it is open-source. To audit or just read the code, visit the <a class="text-blue-500" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">GitHub</a>. You can check every line yourself and confirm BasicSwap does exactly what it says.</p>
+                <p>The code is open-source. To audit it, or just read it, visit the <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://github.com/basicswap/basicswap">GitHub</a>. You can check any line yourself rather than take our word for it.</p>
               </div>
             </div>
           </div>
@@ -869,7 +869,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>This FAQ is a good start. For more depth, head to the <a class="text-blue-500" href="https://docs.basicswapdex.com/docs/intro" target="_blank" rel="noopener noreferrer">documentation</a>.</p>
+                <p>This FAQ covers the common questions. For more depth, head to the <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://docs.basicswapdex.com/docs/intro">documentation</a>.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -891,7 +891,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>There are many ways to help, including contributing <a class="text-blue-500" href="https://github.com/basicswap/basicswap" target="_blank" rel="noopener noreferrer">code</a>. You do not have to be a developer, though. The two most useful things you can do are spread the word about BasicSwap and provide liquidity. More users and deeper liquidity are what make the DEX more usable and a real alternative to centralized exchanges. Every bit helps, whatever its size.</p>
+                <p>There are many ways to help, including contributing <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://github.com/basicswap/basicswap">code</a>. You do not have to be a developer, though. The two most useful things you can do are spread the word about BasicSwap and provide liquidity. More users and deeper liquidity are what make the DEX usable as an alternative to centralized exchanges.</p>
               </div>
             </div>
             <div class="item mb-10" x-data="{isOpen : false}">
@@ -902,7 +902,7 @@
                 </svg>
               </a>
               <div x-show="isOpen" @click.away="isOpen = false" class="mt-5" :class="{'text-coolGray-500 font-medium' : isOpen == true}">
-                <p>Adding liquidity, and earning from arbitrage along the way, is straightforward with the automated market making script. For step-by-step instructions, see the <a class="text-blue-500" href="https://docs.basicswapdex.com/docs/user-guides/market-making" target="_blank" rel="noopener noreferrer">market making guide</a>, or watch the <a class="text-blue-500" href="https://particl.news/the-ultimate-cloud-basicswap-setup-and-automated-market-making/" target="_blank" rel="noopener noreferrer">video tutorials</a>.</p>
+                <p>Adding liquidity, and earning from arbitrage along the way, is handled by the automated market making script. For step-by-step instructions, see the <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://docs.basicswapdex.com/docs/user-guides/market-making">market making guide</a>, or watch the <a class="text-blue-500" target="_blank" rel="noopener noreferrer" href="https://particl.news/the-ultimate-cloud-basicswap-setup-and-automated-market-making/">video tutorials</a>.</p>
               </div>
             </div>
           </div>
@@ -927,6 +927,7 @@
             <ul class="space-y-3">
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/desktop">Desktop</a></li>
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/mobile">Mobile</a></li>
+              <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="/bitcoin-to-monero">Bitcoin to Monero</a></li>
               <li><a class="text-coolGray-500 hover:text-coolGray-900 font-medium" href="https://markets.basicswapdex.com" target="_blank" rel="noopener noreferrer">Markets &#8599;</a></li>
             </ul>
           </div>
