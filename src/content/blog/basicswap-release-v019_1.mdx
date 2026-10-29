@@ -1,0 +1,243 @@
+---
+title: "BasicSwap v0.19.1: Bitcoin Core 31.1, Verified Electrum Headers, and Monero Max Bids"
+seoTitle: "BasicSwap v0.19.1: Bitcoin Core 31.1"
+date: 2026-10-27
+author: "BasicSwap Team"
+tags: ["News", "Release"]
+description: "BasicSwap v0.19.1 adds Bitcoin Core 31.1 with legacy wallet migration, checks Electrum servers against a verified header chain, makes Monero max bids work, and hardens swaps, messaging and the web UI."
+seoDescription: "BasicSwap v0.19.1 adds Bitcoin Core 31.1 with wallet migration, checks Electrum servers against verified headers, and makes Monero max bids work."
+thumbnail: ./images/Medium_BSX_19_1.jpg
+banner: ./images/Blog_BSX_19_1.jpg
+---
+BasicSwap v0.19.1 is a large follow-up to v0.19.0, with close to 200 commits, and its headline change is Bitcoin Core 31.1. New installations get it right away, while existing installations with a legacy Bitcoin wallet stay on Core 29.4 until you choose to migrate that wallet. Beyond Bitcoin, Electrum wallets now check what servers tell them against a header chain that BasicSwap syncs and verifies itself, and the Max button finally works for Monero bids because the fee is now sized for the outputs the wallet will actually spend.
+
+Much of the remaining work makes swaps harder to stall or misdirect. In adaptor-signature swaps, BasicSwap no longer locks coin B when too little time is left to finish the swap, it refuses accepts that arrive too late, and it refunds the coin A lock to a fresh address for each bid. BasicSwap also rebroadcasts key swap transactions until they confirm, and the release hardens the web UI, the HTTP server, and the way BasicSwap handles messages from other nodes.
+
+Several coins move to newer versions as well, with Monero going to v0.18.5.4, Firo to v0.14.18.2, and Decred to v2.1.7, while SimpleX Chat moves to v7.0.3. Navcoin support, which was already disabled, has been removed entirely, and the database upgrades from schema v40 to v42 the first time you start the new version.
+
+## Most notable updates
+
+### Bitcoin Core 31.1 and legacy wallet migration
+
+Bitcoin Core 30 dropped support for legacy wallets, the older non-descriptor kind, and almost every Bitcoin full-node installation prepared by earlier BasicSwap versions uses one. That is why v0.19.1 treats new and existing installations differently. A new installation gets Bitcoin Core 31.1 with a descriptor wallet, whereas on an existing installation with a legacy wallet, `--upgradecores` stops at Core 29.4 and logs that you can move to 31.1 with `--uselatest=bitcoin` ([commit `ec58067`](https://github.com/basicswap/basicswap/commit/ec58067f)).
+
+When you opt in, `basicswap-prepare` first backs up `basicswap.json`, then starts the Core version you already have and migrates the wallet, and only after that does it download 31.1. Bitcoin Core itself writes a backup of the legacy wallet named `<wallet name>_<time>.legacy.bak` before migrating, and if the migration fails, the installation stays on the old Core. If your Particl wallet is encrypted, prepare reads its password from `WALLET_ENCRYPTION_PWD` or, when that isn't set, asks for it in the terminal ([upgrade guide](https://github.com/basicswap/basicswap/blob/v0.19.1/doc/upgrade.md#legacy-bitcoin-wallets)).
+
+Before migrating, prepare also checks that the Bitcoin wallet was derived from your Particl wallet's default account, and it refuses to continue if it wasn't unless you pass `--noseedcheck`. If you need to retry, `basicswap-prepare --migratewallets` runs only the migration step and skips the seed check. Separately, BasicSwap now reads balances through `getbalances` on Core 30 and later, because those versions removed the balance fields from `getwalletinfo` ([PR #644](https://github.com/basicswap/basicswap/pull/644), contributed by zorp).
+
+<Callout type="warning" title="Don't run Core 31.1 on a legacy wallet">
+If Bitcoin Core 31.1 ends up installed before the wallet has been migrated, BasicSwap stops at startup and logs that the wallet is a legacy wallet. In that case, stop BasicSwap and run `basicswap-prepare --migratewallets` to migrate it. Bitcoin running in Electrum mode has no Core wallet, so it doesn't need this step.
+</Callout>
+
+### Electrum checks servers against a verified header chain
+
+Electrum mode, which is available for Bitcoin and Litecoin, used to trust a server's report of chain height and confirmations, and it checked headers one at a time. BasicSwap now syncs its own header chain, starting from checkpoints shipped with the release, and checks that the headers connect and carry valid proof of work before it verifies heights, confirmation depths, block times and merkle proofs against that chain. Spend watchers verify a merkle proof before they act on a spend, and BasicSwap refuses any transaction whose computed ID doesn't match the one it asked for ([PR #816](https://github.com/basicswap/basicswap/pull/816), [commit `d3ad92d`](https://github.com/basicswap/basicswap/commit/d3ad92dc)).
+
+Because BasicSwap can now hold more than one server connection, it can cross-check chain tips and switch straight to another connected server when the current one lags or misbehaves. When a server fails a proof, sends invalid transaction IDs, or follows a conflicting chain, BasicSwap drops it and blacklists it for five minutes. You can control how many servers stay connected with the new **Kept Connected** field, which appears under **Settings > Coins** in the Electrum Servers section for Bitcoin or Litecoin and defaults to 2. The headers themselves are stored under `electrum_headers` in your data directory ([PR #800](https://github.com/basicswap/basicswap/pull/800), [PR #816](https://github.com/basicswap/basicswap/pull/816)).
+
+Electrum wallets also handle addresses and balances more carefully ([PR #834](https://github.com/basicswap/basicswap/pull/834)):
+
+- Addresses with on-chain history are now marked used, so a restored wallet no longer hands out addresses that were already used and emptied.
+- The address pool extends past history only after it has three confirmations and a verified proof.
+- **New Deposit Address** now creates a new address, whereas before, the Electrum deposit address was always the first one.
+- Change addresses are claimed only when their transaction is kept, so fee previews and abandoned bids no longer use up addresses.
+- Balances update when the server pushes a change, and the total now includes unconfirmed funds.
+- A failed balance lookup now raises an error rather than showing a zero balance.
+- Headers sync on their own thread, and a dead server makes calls fail quickly instead of stalling the update loop. Until the first header sync after startup finishes, height lookups return a temporary error and BasicSwap retries them.
+
+### Monero max bids
+
+In v0.19.0, the Max button on the bid form filled in the offer amount or your whole Monero balance, whichever was smaller, without leaving room for the fee. Since Monero has no option to subtract the fee from the amount, the bid failed whenever the amount plus the fee came to more than your balance. To fix this, BasicSwap now asks the wallet for its unlocked outputs and sizes the lock fee for the worst case, in which the wallet spends its smallest outputs first, and both the offer page and Smart Buy take that fee into account when they work out the Max amount ([PR #821](https://github.com/basicswap/basicswap/pull/821), [PR #822](https://github.com/basicswap/basicswap/pull/822), [PR #829](https://github.com/basicswap/basicswap/pull/829)).
+
+BasicSwap also caps the coin B lock at 100 outputs, so the Max amount shrinks to what 100 outputs can cover. That cap is BasicSwap's own choice, since Monero's stock wallet can spend 146 outputs in one transaction and the consensus limit is about 216. If a bid would need more than 100 outputs, it fails with an error asking you to consolidate the wallet by sending the balance to yourself. Wownero follows the same rules.
+
+The coin B lock also copes better with wallet hiccups. When the wallet answers "tx not possible" or "not enough unlocked money", BasicSwap retries the lock, and it now tracks the lock spend through the daemon and rebuilds the spend if the daemon rejects it. The spend counts as confirmed at the configured `blocks_confirmed`, one block sooner than before, and the bid page no longer shows one confirmation too many for Monero and Wownero. Routine wallet lookups, meanwhile, no longer run a blocking `refresh` ([PR #826](https://github.com/basicswap/basicswap/pull/826), [PR #829](https://github.com/basicswap/basicswap/pull/829), [PR #782](https://github.com/basicswap/basicswap/pull/782), [PR #787](https://github.com/basicswap/basicswap/pull/787), [PR #793](https://github.com/basicswap/basicswap/pull/793), [PR #813](https://github.com/basicswap/basicswap/pull/813)).
+
+### Swap timing and rebroadcasts
+
+For adaptor-signature swaps with time-based sequence locks, BasicSwap no longer sends coin B when the coin A refund is too close. Instead, it requires the remaining time to cover the larger of the configured release and spend margins plus three times coin B's expected confirmation time, which with Monero as coin B and default settings comes to about 78 minutes. If the window is too short, BasicSwap abandons the coin B lock for good and lets the swap move on to the coin A refund. Temporary coin B errors also no longer count towards the swap's retry limits, and an unsynced Monero or Wownero chain now makes BasicSwap wait for sync rather than report the coin B lock as missing ([PR #781](https://github.com/basicswap/basicswap/pull/781), [PR #786](https://github.com/basicswap/basicswap/pull/786), [PR #775](https://github.com/basicswap/basicswap/pull/775), [PR #789](https://github.com/basicswap/basicswap/pull/789)).
+
+BasicSwap no longer accepts a bid with less than 30 seconds left before it expires, and in adaptor-signature swaps the bidder's node also rejects any accept that arrives within 5 seconds of the bid's expiry or later ([PR #788](https://github.com/basicswap/basicswap/pull/788)).
+
+Secret-hash swaps with time-based locks gain a similar check on the participant's side. Before sending the participate transaction, BasicSwap now confirms that the initiate transaction's refund leaves enough time for both chains to confirm, based on each coin's block time, and if it doesn't, the bid moves to Error instead of locking funds. In addition, a seller's bid no longer times out after the initiate transaction has been sent, and because block-time lookups are now retried until they succeed, a single failed lookup can no longer stall the refund checks ([PR #778](https://github.com/basicswap/basicswap/pull/778), [PR #794](https://github.com/basicswap/basicswap/pull/794)).
+
+So that a dropped transaction doesn't hold up a swap, BasicSwap now rebroadcasts secret-hash redeems, adaptor-signature coin A lock spends, and the leader's lock refund spend every 10 minutes by default until each has its required confirmations. The adaptor-signature bid page also shows a Blocks Deep value for the coin B lock spend and the coin A refund transactions ([PR #784](https://github.com/basicswap/basicswap/pull/784), [PR #793](https://github.com/basicswap/basicswap/pull/793)).
+
+### Fresh refund addresses and correct swap destinations
+
+Until now, every bid refunded the coin A lock to the same cached address. With this release, each bid gets its own fresh refund address, and any swap addresses a bid never paid go back to the pool when the bid ends, which keeps unused addresses from piling up beyond a restored wallet's gap limit ([PR #825](https://github.com/basicswap/basicswap/pull/825)).
+
+For scripts that set `destination_address` on `/json/bids`, BasicSwap now pays each address as its own script type, whichever of P2PKH, P2SH, P2WPKH, P2WSH, or taproot the coin supports. Earlier versions paid every destination as the coin's default script type, which sent coins to the wrong script for some address types, and forward and reverse swaps now accept the same destinations as well ([PR #767](https://github.com/basicswap/basicswap/pull/767)).
+
+### Smart Buy fixes
+
+Smart Buy's Max button no longer reserves a fixed 0.1% of your balance. Instead, the backend works out the largest buy whose bids, lock fees, and split fees fit your balance, and spend plans no longer stop one atomic unit short. This release also fixes a bug where checking whether a bid already had a prefunded transaction marked that transaction as used and left its inputs locked in the wallet. On Electrum, a Smart Buy bid can now fund its lock from the split outputs reserved for it, which v0.19.0 rejected as reserved by another operation ([PR #822](https://github.com/basicswap/basicswap/pull/822), [PR #774](https://github.com/basicswap/basicswap/pull/774)).
+
+When you accept a bid on your own reverse adaptor-signature offer, BasicSwap now checks that your wallet can send the bid amount, whereas before it checked the whole offer amount and could refuse a bid you could afford ([PR #765](https://github.com/basicswap/basicswap/pull/765)).
+
+### Security hardening
+
+This release includes a large set of hardening changes. Most of them work in the background, but a few change how BasicSwap behaves:
+
+- **Forms.** Each page load gets a single-use form token, so submitting the same form twice from one page is refused with "Prevented double submit", and you need to reload the page before submitting again. Other sites can also no longer embed BasicSwap's pages in a frame ([PR #802](https://github.com/basicswap/basicswap/pull/802)).
+- **AMM token.** The API token the AMM script uses now works only for the requests that script sends, and anything else returns "Not allowed for the AMM token". Other scripts therefore have to use the UI password, when one is set, rather than the AMM token ([PR #801](https://github.com/basicswap/basicswap/pull/801)).
+- **HTTP server.** Clients get 30 seconds to send request headers, and post bodies are capped at 10 MB, or at 64 KB for requests that would be refused anyway, such as those with a disallowed Host header or those sent before login when a UI password is set. WebSocket handshakes are bounded too ([PR #803](https://github.com/basicswap/basicswap/pull/803)).
+- **Messages.** A revoke that arrives before its offer now only counts if it comes from the offer's sender. On Nostr and SimpleX, BasicSwap also refuses offer replays with a changed TTL and messages dated more than two minutes in the future, so it's worth keeping your system clock synced ([PR #792](https://github.com/basicswap/basicswap/pull/792)).
+- **Proof of funds.** For secret-hash bids, a failed balance lookup now rejects the bid instead of letting it pass, and Firo and Decred proofs count only the signer's unique, unspent outputs ([PR #785](https://github.com/basicswap/basicswap/pull/785)).
+- **Secrets.** BasicSwap now keeps seeds, passwords, and RPC credentials out of the logs. When given without a value, `--particl_mnemonic` and `--client-auth-password` now prompt for one, which keeps secrets out of your shell history and the process list. Passing a password or mnemonic on the command line still works but logs a warning, except for `--particl_mnemonic=auto` or `none`. On top of that, new installations generate random Monero and Wownero wallet RPC passwords, and the Decred wallet password now goes over stdin ([PR #806](https://github.com/basicswap/basicswap/pull/806), [PR #809](https://github.com/basicswap/basicswap/pull/809)).
+
+Beyond those, BasicSwap now escapes untrusted text in more views and caps what other nodes can make it hold, including SimpleX frames, Nostr seen IDs, connect requests, and message portals. The unfinished P2P listener has also been removed, and the `/json/network` endpoint went with it ([PR #804](https://github.com/basicswap/basicswap/pull/804), [PR #799](https://github.com/basicswap/basicswap/pull/799), [PR #796](https://github.com/basicswap/basicswap/pull/796)).
+
+<Callout type="warning" title="Keep the web UI on loopback">
+Anyone who can reach BasicSwap's UI or API controls its wallets, including withdrawals. By default, the UI and WebSocket ports stay on `127.0.0.1`, and the Docker setups' example settings publish them only to the host's loopback, so use an SSH tunnel if you need to reach a node on another machine. If you do bind another interface on a network you fully trust, set a UI password first with `basicswap-prepare --client-auth-password` ([notes](https://github.com/basicswap/basicswap/blob/v0.19.1/doc/notes.md)).
+</Callout>
+
+### Wallets, networks, and cores
+
+Bitcoin and Litecoin withdrawals in Electrum mode now accept bech32m taproot addresses as well as uppercase bech32 addresses. Wallet pages for Bitcoin-style coins announce incoming funds while they are still in the mempool, and wallet pages now refresh once the background update stores the new balance. Changing the wallet password is more reliable too, since a change that fails partway now reverts the coins it already changed, and the next unlock re-encrypts any wallet a failed attempt left without a password ([PR #767](https://github.com/basicswap/basicswap/pull/767), [PR #824](https://github.com/basicswap/basicswap/pull/824), [PR #832](https://github.com/basicswap/basicswap/pull/832), [PR #771](https://github.com/basicswap/basicswap/pull/771)).
+
+Coin daemons' outbound onion connections now go through BasicSwap's Tor SOCKS port even when Tor's control port advertises another one, although an existing installation only picks this up after you run `basicswap-prepare --enabletor` again. In addition, `--disablenetwork` no longer turns on the Tor proxy automatically, and enabling or disabling Tor now keeps the Monero and Wownero `trusted_daemon` setting. SimpleX direct chats are now addressed by contact ID, so a route whose chat has dropped out of the 20 most recent chats can still send and close ([PR #814](https://github.com/basicswap/basicswap/pull/814), [PR #770](https://github.com/basicswap/basicswap/pull/770), [PR #833](https://github.com/basicswap/basicswap/pull/833), [PR #799](https://github.com/basicswap/basicswap/pull/799)).
+
+The release updates Monero from v0.18.5.1 to v0.18.5.4, Firo from v0.14.18.1 to v0.14.18.2, Decred from v2.1.6 to v2.1.7, and SimpleX Chat from v7.0.0 to v7.0.3. On ARM Macs, prepare now downloads native builds for the cores that have them, and Decred's ARM builds now download correctly ([PR #769](https://github.com/basicswap/basicswap/pull/769), [PR #783](https://github.com/basicswap/basicswap/pull/783)).
+
+Navcoin support was already disabled and has now been removed. If `basicswap.json` still lists Navcoin, BasicSwap logs that it is not starting an unknown coin and starts the rest, and it skips Navcoin's cached wallet info instead of failing on it ([PR #808](https://github.com/basicswap/basicswap/pull/808), [commit `3f869f8`](https://github.com/basicswap/basicswap/commit/3f869f83)).
+
+## Install the latest BasicSwap update
+
+To install, [update BasicSwap through the usual process](https://docs.basicswapdex.com/docs/user-guides/update) and relaunch.
+
+<Callout type="info" title="What to expect on upgrade">
+Back up your coindata directory before updating, since the first startup upgrades the database from schema v40 to v42. Running `--upgradecores` updates Monero, Firo, and Decred where BasicSwap manages them, but it leaves a Bitcoin installation with a legacy wallet on Core 29.4, because migrating to Bitcoin Core 31.1 is a separate step described below. SimpleX Chat likewise has its own preparation step.
+</Callout>
+
+### Docker
+
+If you installed BasicSwap with Docker:
+
+1. From your BasicSwap repository's `docker` folder, stop the running container with `docker-compose stop`.
+2. From that same folder, run `git pull`.
+3. Run `docker-compose build --no-cache`.
+4. Run `docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --upgradecores`.
+5. When the core update finishes, launch BasicSwap again with `docker-compose up`.
+
+Depending on your Docker version, the command may be `docker compose` without the dash. This setup now tags its images `i_swapclient_dev` and `i_tor_dev` so that they no longer collide with the production setup's images, which means it no longer uses the old `i_swapclient` and `i_tor` images.
+
+### Non-Docker
+
+If you installed BasicSwap without Docker, use the steps below and replace `$HOME/coinswaps` with your installation directory if it differs:
+
+1. Shut down BasicSwap properly.
+2. Run `export SWAP_DATADIR="$HOME/coinswaps"`.
+3. Run `source "$SWAP_DATADIR/venv/bin/activate"`.
+4. From `$SWAP_DATADIR/basicswap`, run `git pull`.
+5. Run `pip3 install --require-hashes -r requirements.txt`.
+6. Run `pip3 install .`.
+7. Run `basicswap-prepare --datadir="$SWAP_DATADIR" --upgradecores`.
+8. Launch BasicSwap as usual.
+
+### Moving Bitcoin to Core 31.1
+
+Run this with BasicSwap stopped, after the regular update above:
+
+```bash
+basicswap-prepare --datadir="$SWAP_DATADIR" --upgradecores --uselatest=bitcoin
+```
+
+If you use Docker, run `docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --upgradecores --uselatest=bitcoin` from the `docker` folder instead. Because a `--uselatest` run only updates Particl and the coins it names, run the regular `--upgradecores` step first so that the other cores get updated too.
+
+<Callout type="info" title="Before you migrate">
+Make sure you have a current backup of your data directory. If your Particl wallet is encrypted, prepare reads the password from `WALLET_ENCRYPTION_PWD` when it is set and otherwise asks for it in the terminal, so without a terminal you must set `WALLET_ENCRYPTION_PWD`. There's no rush to migrate, though, because BasicSwap keeps working with Core 29.4.
+</Callout>
+
+If you use the production Docker setup in `docker/production`, migrate the wallet before rebuilding the bitcoin container by following "Migrate a legacy Bitcoin wallet" in its [notes](https://github.com/basicswap/basicswap/blob/v0.19.1/docker/production/notes.md). That setup now runs the daemons and Tor as uid 1000 instead of root, and its `example.env` no longer includes RPC passwords. Since `basicswap-prepare` refuses an RPC user with an empty password, you need to set random passwords yourself ([PR #810](https://github.com/basicswap/basicswap/pull/810)).
+
+### Updating the SimpleX client
+
+If you use SimpleX, stop BasicSwap and run `basicswap-prepare --datadir="$SWAP_DATADIR" --addnetwork=simplex` to prepare the v7.0.3 client, or, with Docker, run `docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --addnetwork=simplex` from the `docker` folder. Keep in mind that re-adding SimpleX applies the preparation defaults and any environment overrides, so if you use a custom configuration, set `SIMPLEX_GROUP_LINK`, `SIMPLEX_SERVER_ADDRESS`, and `SIMPLEX_WS_PORT` to your intended values first ([SimpleX guide](https://github.com/basicswap/basicswap/blob/v0.19.1/doc/simplex.md)).
+
+### Install script
+
+If you installed BasicSwap with [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/), run `bsx-update`, and then check the Bitcoin and SimpleX steps above if they apply to you.
+
+## Changelog
+
+The v0.19.1 changelog, grouped by area.
+
+### Bitcoin Core and daemons
+
+* Update to Bitcoin Core 31.1, keep legacy installations on 29.4, and add `--uselatest`, `--migratewallets`, and `--noseedcheck` [[`ec58067`](https://github.com/basicswap/basicswap/commit/ec58067f)] / [PR #777](https://github.com/basicswap/basicswap/pull/777)
+* Read wallet balances through `getbalances` on Core 30 and later [[`c4bf57b`](https://github.com/basicswap/basicswap/commit/c4bf57b0)] / [PR #644](https://github.com/basicswap/basicswap/pull/644)
+* Update Monero to v0.18.5.4, Firo to v0.14.18.2, Decred to v2.1.7, and SimpleX Chat to v7.0.3 [[`726d24a`](https://github.com/basicswap/basicswap/commit/726d24a3)] [[`fa9a551`](https://github.com/basicswap/basicswap/commit/fa9a5518)] [[`7fd5200`](https://github.com/basicswap/basicswap/commit/7fd52000)] [[`f8d3e60`](https://github.com/basicswap/basicswap/commit/f8d3e60d)] / [PR #769](https://github.com/basicswap/basicswap/pull/769)
+* Fix core downloads on ARM Macs and Decred ARM builds [[`d38c95a`](https://github.com/basicswap/basicswap/commit/d38c95aa)] [[`7fb48a8`](https://github.com/basicswap/basicswap/commit/7fb48a84)] / [PR #783](https://github.com/basicswap/basicswap/pull/783)
+* Remove the disabled Navcoin support [[`1640e03`](https://github.com/basicswap/basicswap/commit/1640e037)] / [PR #808](https://github.com/basicswap/basicswap/pull/808)
+* Skip cached wallet info for a coin this version no longer has [[`3f869f8`](https://github.com/basicswap/basicswap/commit/3f869f83)]
+* Log why a daemon fails to start [[`1a0a9b5`](https://github.com/basicswap/basicswap/commit/1a0a9b5a)] / [PR #760](https://github.com/basicswap/basicswap/pull/760)
+
+### Electrum
+
+* Check heights, depths, block times, and merkle proofs against a header chain synced from checkpoints, and add the Kept Connected setting [[`f10dcc9`](https://github.com/basicswap/basicswap/commit/f10dcc94)] [[`ae810b5`](https://github.com/basicswap/basicswap/commit/ae810b51)] [[`b0a3004`](https://github.com/basicswap/basicswap/commit/b0a3004e)] / [PR #816](https://github.com/basicswap/basicswap/pull/816)
+* Verify merkle proofs in spend watchers and refuse transactions with a mismatched ID [[`d3ad92d`](https://github.com/basicswap/basicswap/commit/d3ad92dc)] [[`f3d843b`](https://github.com/basicswap/basicswap/commit/f3d843b7)] / [PR #816](https://github.com/basicswap/basicswap/pull/816)
+* Bound responses and peer discovery, vet peer addresses, and blacklist servers that send invalid txids [[`85f48e9`](https://github.com/basicswap/basicswap/commit/85f48e90)] [[`73e1491`](https://github.com/basicswap/basicswap/commit/73e14914)] [[`fc9f6d3`](https://github.com/basicswap/basicswap/commit/fc9f6d38)] / [PR #800](https://github.com/basicswap/basicswap/pull/800)
+* Track used addresses, issue the lowest unused index, push-driven balances, unconfirmed funds in the total, and a separate header sync thread [[`3b6040a`](https://github.com/basicswap/basicswap/commit/3b6040a8)] [[`643b951`](https://github.com/basicswap/basicswap/commit/643b951e)] [[`8cf2e83`](https://github.com/basicswap/basicswap/commit/8cf2e83c)] [[`d22b398`](https://github.com/basicswap/basicswap/commit/d22b3984)] [[`c1d8d2c`](https://github.com/basicswap/basicswap/commit/c1d8d2ca)] / [PR #834](https://github.com/basicswap/basicswap/pull/834)
+
+### Swaps
+
+* Lock coin B only with enough time left to confirm, and stop re-queueing an abandoned lock [[`6692004`](https://github.com/basicswap/basicswap/commit/66920047)] [[`25f0c43`](https://github.com/basicswap/basicswap/commit/25f0c43e)] [[`4b03b33`](https://github.com/basicswap/basicswap/commit/4b03b336)] / [PR #781](https://github.com/basicswap/basicswap/pull/781), [PR #786](https://github.com/basicswap/basicswap/pull/786)
+* Refuse adaptor-signature accepts that arrive after the bid expires [[`ee50aa5`](https://github.com/basicswap/basicswap/commit/ee50aa5a)] [[`058d7f2`](https://github.com/basicswap/basicswap/commit/058d7f22)] / [PR #788](https://github.com/basicswap/basicswap/pull/788)
+* Wait for coin B sync instead of reporting the lock missing, and don't count transient coin B errors towards the retry caps [[`79259cf`](https://github.com/basicswap/basicswap/commit/79259cf6)] [[`2aa85e8`](https://github.com/basicswap/basicswap/commit/2aa85e88)] [[`21e8f06`](https://github.com/basicswap/basicswap/commit/21e8f064)] / [PR #789](https://github.com/basicswap/basicswap/pull/789), [PR #775](https://github.com/basicswap/basicswap/pull/775)
+* Refuse to participate when the initiate refund unlocks too soon, size the margin from each coin's confirmation time, and keep a seller's bid alive after the initiate transaction is sent [[`1a21795`](https://github.com/basicswap/basicswap/commit/1a217951)] [[`5a487c2`](https://github.com/basicswap/basicswap/commit/5a487c2a)] [[`8b82aab`](https://github.com/basicswap/basicswap/commit/8b82aabd)] / [PR #778](https://github.com/basicswap/basicswap/pull/778), [PR #794](https://github.com/basicswap/basicswap/pull/794)
+* Rebroadcast redeems, lock spends, and the leader's lock refund spend until they confirm [[`5cfa4a1`](https://github.com/basicswap/basicswap/commit/5cfa4a14)] [[`2254060`](https://github.com/basicswap/basicswap/commit/22540603)] [[`94a97e4`](https://github.com/basicswap/basicswap/commit/94a97e45)] / [PR #784](https://github.com/basicswap/basicswap/pull/784), [PR #793](https://github.com/basicswap/basicswap/pull/793)
+* Show more swap transaction depths on the bid page and sign the mercy tx against the swipe key's own hash [[`94d5fb8`](https://github.com/basicswap/basicswap/commit/94d5fb8c)] [[`c117102`](https://github.com/basicswap/basicswap/commit/c1171024)] / [PR #793](https://github.com/basicswap/basicswap/pull/793)
+* Refund the coin A lock to a fresh address per bid and return unpaid swap addresses to the pool [[`edf0031`](https://github.com/basicswap/basicswap/commit/edf00316)] [[`9e9714a`](https://github.com/basicswap/basicswap/commit/9e9714a5)] / [PR #825](https://github.com/basicswap/basicswap/pull/825)
+* Pay swap destinations as their own script type and accept the same destinations forward and reverse [[`4446d34`](https://github.com/basicswap/basicswap/commit/4446d34a)] [[`9eb90fc`](https://github.com/basicswap/basicswap/commit/9eb90fc2)] [[`9885943`](https://github.com/basicswap/basicswap/commit/98859435)] / [PR #767](https://github.com/basicswap/basicswap/pull/767)
+* Check the bid amount instead of the whole offer, and fix reverse adaptor-signature self-bid accepts [[`cdecb03`](https://github.com/basicswap/basicswap/commit/cdecb030)] [[`304f827`](https://github.com/basicswap/basicswap/commit/304f827d)] / [PR #765](https://github.com/basicswap/basicswap/pull/765), [PR #759](https://github.com/basicswap/basicswap/pull/759)
+* Look up Bitcoin Cash wallet transactions through the wallet RPC [[`1c99d44`](https://github.com/basicswap/basicswap/commit/1c99d443)] / [PR #784](https://github.com/basicswap/basicswap/pull/784)
+
+### Monero and Smart Buy
+
+* Enable Monero max bids with fees sized from the wallet's inputs, capped at 100 inputs [[`fd35af8`](https://github.com/basicswap/basicswap/commit/fd35af8a)] [[`1e09119`](https://github.com/basicswap/basicswap/commit/1e091191)] / [PR #821](https://github.com/basicswap/basicswap/pull/821), [PR #829](https://github.com/basicswap/basicswap/pull/829)
+* Retry the coin B lock on "tx not possible" and "not enough unlocked money" [[`8ae6736`](https://github.com/basicswap/basicswap/commit/8ae6736c)] [[`711b42a`](https://github.com/basicswap/basicswap/commit/711b42a9)] / [PR #826](https://github.com/basicswap/basicswap/pull/826), [PR #829](https://github.com/basicswap/basicswap/pull/829)
+* Track the coin B lock spend through the daemon, rebuild it when rejected, and count it confirmed at `blocks_confirmed` [[`6b1e132`](https://github.com/basicswap/basicswap/commit/6b1e1327)] [[`f05a533`](https://github.com/basicswap/basicswap/commit/f05a533b)] [[`482a975`](https://github.com/basicswap/basicswap/commit/482a9750)] / [PR #782](https://github.com/basicswap/basicswap/pull/782), [PR #787](https://github.com/basicswap/basicswap/pull/787), [PR #793](https://github.com/basicswap/basicswap/pull/793)
+* Refund reverse swaps to the main address, close the wallet when locking, lock it after its first password, and drop blocking refreshes [[`845b997`](https://github.com/basicswap/basicswap/commit/845b997b)] [[`69e46ad`](https://github.com/basicswap/basicswap/commit/69e46ad6)] [[`e6428c4`](https://github.com/basicswap/basicswap/commit/e6428c4b)] [[`2446a84`](https://github.com/basicswap/basicswap/commit/2446a847)] / [PR #779](https://github.com/basicswap/basicswap/pull/779), [PR #762](https://github.com/basicswap/basicswap/pull/762), [PR #780](https://github.com/basicswap/basicswap/pull/780), [PR #813](https://github.com/basicswap/basicswap/pull/813)
+* Plan Smart Buy spend-max in the backend, fill spend plans fully, keep prefunded transactions intact, and let Electrum split locks fund their own bids [[`931e1c7`](https://github.com/basicswap/basicswap/commit/931e1c7a)] [[`b964777`](https://github.com/basicswap/basicswap/commit/b964777e)] [[`5c547f9`](https://github.com/basicswap/basicswap/commit/5c547f92)] [[`a77019c`](https://github.com/basicswap/basicswap/commit/a77019cc)] / [PR #822](https://github.com/basicswap/basicswap/pull/822), [PR #774](https://github.com/basicswap/basicswap/pull/774)
+* Preselect Smart Buy inputs from trusted unconfirmed outputs [[`1666857`](https://github.com/basicswap/basicswap/commit/16668570)] / [PR #820](https://github.com/basicswap/basicswap/pull/820)
+
+### Wallets and networks
+
+* Accept bech32m (taproot) and uppercase bech32 withdrawal addresses [[`4db429f`](https://github.com/basicswap/basicswap/commit/4db429f4)] [[`7a8c083`](https://github.com/basicswap/basicswap/commit/7a8c0835)] / [PR #767](https://github.com/basicswap/basicswap/pull/767)
+* Notify balance changes between blocks and refresh wallet pages after background updates [[`af86d1e`](https://github.com/basicswap/basicswap/commit/af86d1eb)] [[`6de7802`](https://github.com/basicswap/basicswap/commit/6de7802e)] / [PR #824](https://github.com/basicswap/basicswap/pull/824), [PR #832](https://github.com/basicswap/basicswap/pull/832)
+* Make setting and changing the wallet password more reliable [[`588d869`](https://github.com/basicswap/basicswap/commit/588d8693)] [[`34eade4`](https://github.com/basicswap/basicswap/commit/34eade43)] [[`292a984`](https://github.com/basicswap/basicswap/commit/292a9846)] / [PR #771](https://github.com/basicswap/basicswap/pull/771)
+* Fix the Particl fee estimate's input size [[`333e293`](https://github.com/basicswap/basicswap/commit/333e2936)] / [PR #819](https://github.com/basicswap/basicswap/pull/819)
+* Fix outbound onion connections, skip Tor on `--disablenetwork`, and keep `trusted_daemon` when toggling Tor [[`385f01b`](https://github.com/basicswap/basicswap/commit/385f01b9)] [[`468cb16`](https://github.com/basicswap/basicswap/commit/468cb16d)] [[`da31243`](https://github.com/basicswap/basicswap/commit/da31243d)] / [PR #814](https://github.com/basicswap/basicswap/pull/814), [PR #770](https://github.com/basicswap/basicswap/pull/770), [PR #833](https://github.com/basicswap/basicswap/pull/833)
+* Address SimpleX direct chats by contact ID [[`268546f`](https://github.com/basicswap/basicswap/commit/268546fa)] / [PR #799](https://github.com/basicswap/basicswap/pull/799)
+* Report an unreadable settings file or core config as a permission error instead of a missing file [[`62cf60f`](https://github.com/basicswap/basicswap/commit/62cf60f8)]
+
+### Security and hardening
+
+* Limit HTTP request time, post sizes, and handlers, and bound WebSocket handshakes [[`d7be4fc`](https://github.com/basicswap/basicswap/commit/d7be4fcc)] [[`73af5a7`](https://github.com/basicswap/basicswap/commit/73af5a7b)] [[`e24a9b4`](https://github.com/basicswap/basicswap/commit/e24a9b44)] / [PR #803](https://github.com/basicswap/basicswap/pull/803)
+* Keep tokens off pre-login pages, require form tokens for AMM controls, refuse double submits, and deny framing [[`09facdd`](https://github.com/basicswap/basicswap/commit/09facdd3)] [[`033bf4d`](https://github.com/basicswap/basicswap/commit/033bf4dc)] [[`7670d17`](https://github.com/basicswap/basicswap/commit/7670d17c)] / [PR #802](https://github.com/basicswap/basicswap/pull/802)
+* Escape untrusted text in the UI and accept only numeric tags in the update check [[`51fc39f`](https://github.com/basicswap/basicswap/commit/51fc39f3)] [[`f578098`](https://github.com/basicswap/basicswap/commit/f5780983)] [[`7b76242`](https://github.com/basicswap/basicswap/commit/7b762426)] / [PR #804](https://github.com/basicswap/basicswap/pull/804)
+* Limit the AMM API token to the AMM script's requests and warn against exposing BasicSwap beyond loopback [[`fdb393e`](https://github.com/basicswap/basicswap/commit/fdb393e7)] [[`328260a`](https://github.com/basicswap/basicswap/commit/328260ad)] / [PR #801](https://github.com/basicswap/basicswap/pull/801)
+* Refuse TTL-changed offer replays, future-dated messages, and spoofed early revokes [[`947ea16`](https://github.com/basicswap/basicswap/commit/947ea164)] [[`ecc42bc`](https://github.com/basicswap/basicswap/commit/ecc42bcb)] / [PR #792](https://github.com/basicswap/basicswap/pull/792)
+* Bound Nostr seen IDs, SimpleX queues and frames, connect requests, portals, and split chunks, and remove the unfinished P2P listener [[`2455d98`](https://github.com/basicswap/basicswap/commit/2455d984)] [[`f74327e`](https://github.com/basicswap/basicswap/commit/f74327e3)] [[`10228b6`](https://github.com/basicswap/basicswap/commit/10228b6a)] [[`47d07f3`](https://github.com/basicswap/basicswap/commit/47d07f30)] / [PR #799](https://github.com/basicswap/basicswap/pull/799), [PR #796](https://github.com/basicswap/basicswap/pull/796)
+* Fail proof of funds closed on lookup errors, cap and validate outpoints, and count only the signer's unique outputs [[`28edfc9`](https://github.com/basicswap/basicswap/commit/28edfc96)] [[`0e5d38b`](https://github.com/basicswap/basicswap/commit/0e5d38be)] [[`99bd468`](https://github.com/basicswap/basicswap/commit/99bd4685)] / [PR #785](https://github.com/basicswap/basicswap/pull/785)
+* Cap URL reads and bound them by the caller's timeout [[`b34658b`](https://github.com/basicswap/basicswap/commit/b34658bc)] [[`a29ff07`](https://github.com/basicswap/basicswap/commit/a29ff079)] [[`d4c2599`](https://github.com/basicswap/basicswap/commit/d4c25998)] / [PR #805](https://github.com/basicswap/basicswap/pull/805)
+* Keep secrets out of the logs, prompt for the Particl mnemonic and UI password, generate Monero and Wownero wallet RPC passwords, and pass the dcrwallet password on stdin [[`3c327e7`](https://github.com/basicswap/basicswap/commit/3c327e75)] [[`29bf892`](https://github.com/basicswap/basicswap/commit/29bf8920)] [[`f608f15`](https://github.com/basicswap/basicswap/commit/f608f15d)] [[`315c6b3`](https://github.com/basicswap/basicswap/commit/315c6b31)] / [PR #806](https://github.com/basicswap/basicswap/pull/806), [PR #809](https://github.com/basicswap/basicswap/pull/809)
+* Disable the unused Electrum fee bump code [[`dc8cf21`](https://github.com/basicswap/basicswap/commit/dc8cf212)] / [PR #830](https://github.com/basicswap/basicswap/pull/830)
+
+### Docker and dependencies
+
+* Pin the production swapclient build, run daemons and Tor as a non-root user, stop shipping RPC passwords, and create BasicSwap's files owner-only on all installs [[`a1857e0`](https://github.com/basicswap/basicswap/commit/a1857e0d)] / [PR #810](https://github.com/basicswap/basicswap/pull/810)
+* Tag the development compose setup's images apart from production's [[`2a0870e`](https://github.com/basicswap/basicswap/commit/2a0870ed)]
+* Bump pycryptodome to 4.0.0 and python-gnupg to 0.5.7 [[`3682304`](https://github.com/basicswap/basicswap/commit/36823043)] [[`baddff5`](https://github.com/basicswap/basicswap/commit/baddff5f)] / [PR #795](https://github.com/basicswap/basicswap/pull/795), [PR #761](https://github.com/basicswap/basicswap/pull/761)
+
+You can inspect every change on the [v0.19.0 to v0.19.1 comparison page](https://github.com/basicswap/basicswap/compare/v0.19.0...v0.19.1).
+
+## Stay connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)
