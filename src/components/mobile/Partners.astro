@@ -1,6 +1,6 @@
 ---
-// The apps with BasicSwap built in, each with its app icon: Nexus, the live
-// one, as a wide feature with a BasicSwap x Nexus lockup (the two app icons
+// The apps building BasicSwap in, each with its app icon: Nexus, the first,
+// as a wide feature with a BasicSwap x Nexus lockup (the two app icons
 // over Nexus's glass button row, Swap lit), and the coming-soon apps in a row
 // beneath it. Edge's logo isn't in the repo yet, so its name stands in.
 import { getImage } from 'astro:assets';
@@ -24,6 +24,7 @@ type Partner = {
   tile: string; // the icon's backing, as on its app icon
   tint: string; // brand colour for glows and edges
   pad?: string; // inset of a mark that isn't full-bleed
+  hidden?: boolean; // kept here, left off the page for now
 };
 
 const partners: Partner[] = [
@@ -31,8 +32,8 @@ const partners: Partner[] = [
     k: 'nexus',
     name: 'Litecoin Nexus Wallet',
     kind: 'Wallet integration',
-    live: true,
-    body: 'The first wallet with BasicSwap built in. Tap Swap on its home screen, next to Send and Receive.',
+    live: false,
+    body: "The first wallet to build BasicSwap in. Once it ships, you'll find it under Swap on the wallet's home screen, next to Send and Receive.",
     href: 'https://nexuswallet.com/',
     site: 'Visit Nexus Wallet',
     logo: nexus.src,
@@ -60,6 +61,7 @@ const partners: Partner[] = [
     body: 'A self-custody wallet for Bitcoin, Monero and more, adding swaps across chains.',
     href: 'https://edge.app',
     site: 'Visit Edge',
+    hidden: true,
     tile: '#0d2b3e',
     tint: '#40c7a0',
   },
@@ -78,14 +80,14 @@ const partners: Partner[] = [
   },
 ];
 
-const [lead, ...soon] = partners;
+const [lead, ...soon] = partners.filter((p) => !p.hidden);
 const status = (p: Partner) => (p.live ? 'live in beta' : 'coming soon');
 ---
 
 <div class="partners">
   <a class="lead" href={lead.href} target="_blank" rel="noopener noreferrer" style={`--tint:${lead.tint}`}>
     <div class="lead-copy">
-      <p class="kind">{lead.kind} <span class="status live" data-parity="new">{status(lead)}</span></p>
+      <p class="kind">{lead.kind} <span class:list={['status', { live: lead.live }]} data-parity="new">{status(lead)}</span></p>
       <h3>{lead.name}</h3>
       <p class="body" data-parity="new">{lead.body}</p>
       <p class="visit" data-parity="new">{lead.site} <Icon name="external" size={13} /></p>
@@ -98,7 +100,7 @@ const status = (p: Partner) => (p.live ? 'live in beta' : 'coming soon');
       </div>
     </div>
   </a>
-  <ul class="soon" role="list">
+  <ul class="soon" role="list" style={`--n:${soon.length}`}>
     {
       soon.map((p) => (
         <li style={`--tint:${p.tint}`} data-parity={p.k === 'particl' ? undefined : 'new'}>
@@ -335,8 +337,9 @@ const status = (p: Partner) => (p.live ? 'live in beta' : 'coming soon');
       align-items: center;
     }
 
+    /* one column per app, so the row stays full as apps come and go */
     .soon {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(var(--n), 1fr);
     }
   }
 

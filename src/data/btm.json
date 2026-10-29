@@ -123,7 +123,7 @@
       "name": "Mobile",
       "icon": "phone",
       "status": "Beta · Monero coming",
-      "body": "BasicSwap Mobile comes built into wallet apps. It is live in the Litecoin Nexus Wallet, and Cake Wallet and Edge, which both hold Monero, are adding it.",
+      "body": "BasicSwap Mobile comes built into wallet apps. The Litecoin Nexus Wallet will be the first, and Cake Wallet, which holds Monero, is adding it too.",
       "steps": [
         "Open a wallet app with BasicSwap built in.",
         "Tap Swap and enter how much you want to trade.",
@@ -214,7 +214,7 @@
     },
     {
       "q": "Can I swap Bitcoin to Monero on my phone?",
-      "a": "Not yet. BasicSwap Mobile is live in the Litecoin Nexus Wallet, which does not hold Monero, and wallets that do, such as Cake Wallet and Edge, are adding it. For now, Bitcoin to Monero swaps run on BasicSwap Desktop."
+      "a": "Not yet. BasicSwap Mobile is coming first to the Litecoin Nexus Wallet, which does not hold Monero, and wallets that do, such as Cake Wallet, are adding it. For now, Bitcoin to Monero swaps run on BasicSwap Desktop."
     }
   ]
 }
