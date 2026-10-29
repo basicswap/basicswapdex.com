@@ -1,0 +1,200 @@
+---
+// "How Mobile compares to Desktop" on the Mobile page: a row per feature, a
+// device tile and one-line summary over each column, and the Desktop column
+// lightly tinted. A cell's text is trusted HTML (it can hold links), and its
+// status sets the mark: good, mid, bad, or info for a plain fact (no mark).
+import Icon from '../Icon.astro';
+
+type Cell = { t: string; s: string };
+interface Props {
+  rows: { label: string; mobile: Cell; desktop: Cell }[];
+}
+const { rows } = Astro.props;
+
+const MARK: Record<string, string> = {
+  good: '<path d="M5 12.5 10 17.5 19 7"/>',
+  mid: '<path d="M7 12h10"/>',
+  bad: '<path d="M7 7l10 10M17 7 7 17"/>',
+};
+const SUB = { mobile: 'A light client inside a wallet app', desktop: 'The whole protocol on your computer' };
+---
+
+<div class="ta">
+  <div class="table-wrap ta-wrap">
+    <table>
+      <thead>
+        <tr>
+          <td></td>
+          {
+            (['mobile', 'desktop'] as const).map((k) => (
+              <th scope="col" class={k}>
+                <span class="tile">
+                  <Icon name={k === 'mobile' ? 'phone' : 'monitor'} size={18} />
+                </span>
+                <span class="h-name">{k === 'mobile' ? 'Mobile' : 'Desktop'}</span>
+                <span class="h-sub">{SUB[k]}</span>
+              </th>
+            ))
+          }
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rows.map(({ label, mobile, desktop }) => (
+            <tr>
+              <th scope="row">{label}</th>
+              {[mobile, desktop].map((c, i) => (
+                <td class:list={[`s-${c.s}`, { desktop: i === 1 }]}>
+                  <span class="cell">
+                    {MARK[c.s] && (
+                      <span class="mark">
+                        <svg viewBox="0 0 24 24" set:html={MARK[c.s]} />
+                      </span>
+                    )}
+                    <span set:html={c.t} />
+                  </span>
+                </td>
+              ))}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  td :global(a) {
+    color: var(--link);
+  }
+
+  /* icons in header cells sit inline with their label */
+  thead th > :global(svg) {
+    display: inline-block;
+    margin-right: 0.35rem;
+  }
+
+  /* shared marks: a small round badge in the status colour */
+  .mark {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.1rem;
+    border-radius: 50%;
+  }
+
+  .mark svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .s-good .mark {
+    background: color-mix(in oklab, var(--success) 16%, transparent);
+    color: var(--success);
+  }
+
+  .s-mid .mark {
+    background: color-mix(in oklab, var(--warning) 16%, transparent);
+    color: var(--warning);
+  }
+
+  .s-bad .mark {
+    background: color-mix(in oklab, var(--destructive) 16%, transparent);
+    color: var(--destructive);
+  }
+
+  .cell {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .tile {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid color-mix(in oklab, var(--brand) 40%, var(--border));
+    border-radius: 0.7rem;
+    background: color-mix(in oklab, var(--brand) 12%, var(--bg));
+    color: var(--link);
+  }
+
+  .h-name {
+    display: block;
+    color: var(--text);
+    font-size: var(--step-1);
+    font-weight: 650;
+  }
+
+  .h-sub {
+    display: block;
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+    font-weight: 400;
+  }
+
+  /* ---- the table ---- */
+  .ta-wrap {
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius-xl) + 0.25rem);
+  }
+
+  .ta table {
+    min-width: 40rem;
+  }
+
+  .ta th,
+  .ta td {
+    padding: var(--space-4) var(--space-5);
+    border-top: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .ta thead th,
+  .ta thead td {
+    border-top: 0;
+    padding-block: var(--space-5);
+  }
+
+  .ta thead th {
+    display: table-cell;
+  }
+
+  .ta thead .tile {
+    margin-bottom: var(--space-3);
+  }
+
+  .ta tbody th {
+    width: 22%;
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  .ta tbody td {
+    color: var(--text);
+  }
+
+  .ta .desktop {
+    background: color-mix(in oklab, var(--brand) 6%, transparent);
+  }
+
+  .ta thead .desktop {
+    box-shadow: inset 0 3px 0 var(--brand);
+  }
+</style>

@@ -1,0 +1,101 @@
+---
+title: "New BasicSwap Release (v0.16.2)"
+seoTitle: "BasicSwap v0.16.2: Balance and Swap Fixes"
+date: 2026-05-11
+author: "BasicSwap Team"
+tags: ["News", "Release"]
+description: "A new version of BasicSwap is now available for download."
+seoDescription: "BasicSwap v0.16.2 fixes live wallet balances over WebSocket and swaps involving PIVX and Firo, with internal clean-ups. Here's what changed and how to update."
+thumbnail: ./images/Medium_BSX_16_2.jpg
+banner: ./images/Blog_BSX_16_2.jpg
+---
+BasicSwap v0.16.2 is now available. It's a small maintenance release that contains a couple of wallet-side bug fixes, a couple of internal refactors, no coin core upgrades.
+
+The two bugs are worth knowing about. Live balance refreshes on the wallet pages could land in the wrong row whenever a coin had more than one balance type, and PIVX and Firo swaps could fail at completion thanks to a `signTxWithKey` signature mismatch with the parent BTC interface. Both are fixed in v0.16.2.
+
+## Most Notable Updates 💡
+
+### WebSocket Wallet Balance Fix 💸
+
+If you held Litecoin with MWEB, Firo with Spark, or Particl with Blind or Anon balances, you may have seen live balance refreshes on the wallet pages land in the wrong cell. A plain-balance update could overwrite the MWEB row (and vice versa), and a fee-estimate refresh could overwrite a balance. Your on-chain funds were never affected, just the display, but it was confusing enough that a page reload was often the easiest way to confirm what you actually had.
+
+Under the hood, every `coinname-value` balance span on the wallet page shared the same `data-coinname` attribute, so the JS had no way to tell which balance type any given cell was supposed to show. A refresh tick on one balance could land in any of the others. v0.16.2 tags each span with an explicit `data-balance-type` (`balance`, `mweb_balance`, `spark_balance`, `blind_balance`, `anon_balance`, plus `est_fee` for the fee-estimate row) and threads the matching fields through the `/json/walletbalances` JSON endpoint, so each WebSocket update writes to the correct cell. The wallets index page also gained a dedicated Litecoin-MWEB branch and now updates MWEB, Spark, Blind, and Anon balances alongside the plain balance instead of skipping them. Source: commit [`9244a9f`](https://github.com/basicswap/basicswap/commit/9244a9f).
+
+### PIVX and Firo Swap Fixes 🪙
+
+Two PIVX-side fixes ship together this cycle.
+
+PIVX's `getBlockWithTxns` was doing the work the hard way: it pulled the raw hex block, parsed it locally using helpers from a bundled test framework, then asked the node to re-decode each transaction individually. v0.16.2 swaps that for a direct `getblock <hash> True` verbose call followed by per-txid `getrawtransaction <txid> True` lookups. The node returns its own decoded structure, no local hex round-tripping, and PIVX block lookups stop relying on framework code keeping pace with PIVX's actual block format.
+
+The second fix is smaller in code footprint but more disruptive when it hit: a signature mismatch that would error out the moment a PIVX or Firo swap tried to complete. The parent `BTCInterface.signTxWithKey` accepts `prev_amount: Optional[int] = None` and the swap-completion path calls it with that keyword, but the PIVX and Firo overrides hadn't been updated, so the call would fail. v0.16.2 adds `prev_amount=None` to both overrides, restoring parent-class signature parity. The same commit also makes `getDestForAddress` tolerant of chains without a bech32 prefix (it now reads `chainparams_network().get("hrp", None)` and skips the bech32 branch when no prefix is set), which is what PIVX and other non-segwit coins needed. Source: commit [`1b86df9`](https://github.com/basicswap/basicswap/commit/1b86df9).
+
+### Internal Refactors 🧹
+
+Two cleanup commits from tecnovert, both invisible to users but worth a quick mention. `BTCInterface.isAddressMine` was simplified by collapsing redundant branches in its `getaddressinfo` RPC handling ([`57a1a65`](https://github.com/basicswap/basicswap/commit/57a1a65)). In `wallet_manager.py`, inline `sqlite3` and `coincurve` imports were hoisted out of seven methods up to module level, and `hashlib.sha256` calls were swapped for the project's `util.crypto.sha256` helper, for a net 38-line reduction ([`c8e7c02`](https://github.com/basicswap/basicswap/commit/c8e7c02)).
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch. No `--upgradecores` step is needed this cycle.
+
+### Docker
+
+If you've installed BasicSwap following the Docker method:
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method:
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+4.  Execute the following command: `pip3 install .`,
+5.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/):
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+### UI Code & Experience
+
+*   Fixed: WebSocket wallet balance updates no longer overwrite the wrong cell (per-balance `data-balance-type` tagging) [[9244a9f]](https://github.com/basicswap/basicswap/commit/9244a9f)
+*   Fixed: wallets index page now updates MWEB / Spark / Blind / Anon balances alongside the plain balance [[9244a9f]](https://github.com/basicswap/basicswap/commit/9244a9f)
+
+### Coin Interfaces
+
+*   Fixed: PIVX `getBlockWithTxns` uses verbose `getblock` + `getrawtransaction` instead of hex re-decoding [[1b86df9]](https://github.com/basicswap/basicswap/commit/1b86df9)
+*   Fixed: `getDestForAddress` tolerates chains without a bech32 HRP [[1b86df9]](https://github.com/basicswap/basicswap/commit/1b86df9)
+*   Fixed: `signTxWithKey` on PIVX and Firo accepts the `prev_amount` keyword (parent-class signature parity) [[1b86df9]](https://github.com/basicswap/basicswap/commit/1b86df9)
+
+### Core Functionality
+
+*   Refactor: simplify `BTCInterface.isAddressMine` (collapse redundant `getaddressinfo` RPC branches) [[57a1a65]](https://github.com/basicswap/basicswap/commit/57a1a65)
+*   Refactor: hoist inline `sqlite3`/`coincurve` imports in `wallet_manager.py` to module-level (net 38 lines removed) [[c8e7c02]](https://github.com/basicswap/basicswap/commit/c8e7c02)
+
+### Tests / Build
+
+*   New: balance check added to `test_swap_direction.py` [[a6b5906]](https://github.com/basicswap/basicswap/commit/a6b5906)
+*   New: show log on failure in CI [[568eab1]](https://github.com/basicswap/basicswap/commit/568eab1)
+*   Build: raise version to 0.16.2 [[3b76ade]](https://github.com/basicswap/basicswap/commit/3b76ade)
+*   Build: update guix packed version [[be1dbae]](https://github.com/basicswap/basicswap/commit/be1dbae)
+
+You can inspect all changes by verifying the [v0.16.1 to v0.16.2 comparison page here](https://github.com/basicswap/basicswap/compare/v0.16.1...v0.16.2).
+
+## Stay Connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

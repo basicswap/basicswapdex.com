@@ -1,0 +1,57 @@
+---
+// A section that opens in place.
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+
+<details class="collapsible">
+  <summary>
+    <span>{title}</span>
+    <span class="chev" aria-hidden="true"></span>
+  </summary>
+  <div class="inner flow"><slot /></div>
+</details>
+
+<style>
+  .collapsible {
+    margin-block: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-5);
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .chev {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: translateY(-25%) rotate(45deg);
+    transition: transform var(--dur) var(--ease);
+  }
+
+  [open] .chev {
+    transform: translateY(25%) rotate(-135deg);
+  }
+
+  .inner {
+    padding: 0 var(--space-5) var(--space-4);
+    color: var(--text-muted);
+  }
+</style>

@@ -1,0 +1,68 @@
+{
+  "404": {
+    "title": "404 - Page Not Found · BasicSwap DEX",
+    "description": "The page you were looking for could not be found. Head back to BasicSwap DEX to swap cryptocurrencies peer-to-peer with atomic swaps.",
+    "path": "/404"
+  },
+  "about": {
+    "title": "About BasicSwap - Ten years of cypherpunk infrastructure",
+    "description": "BasicSwap is a decentralized messaging protocol for cross-chain atomic swaps, built in the open by a community with a decade of cypherpunk work behind it.",
+    "path": "/about",
+    "socialDescription": "A decentralized messaging protocol for cross-chain atomic swaps, built by an open community on cypherpunk foundations a decade in the making."
+  },
+  "bitcoin-to-monero": {
+    "title": "BTC to XMR atomic swap - Bitcoin to Monero, no custodian",
+    "description": "Swap BTC for XMR on chain, in either direction. Adaptor signatures bind the two payments together, so no bridge, wrapped token or custodian holds the coins.",
+    "path": "/bitcoin-to-monero"
+  },
+  "desktop": {
+    "title": "BasicSwap Desktop - Self-hosted atomic swaps, 12 coins",
+    "description": "Run a local node and settle atomic swaps across 12 chains, Bitcoin and Monero included. Post offers, provide liquidity, hold your own keys. Open source.",
+    "path": "/desktop"
+  },
+  "donations": {
+    "title": "Donate to BasicSwap - Fund the Open-Source Atomic Swap DEX",
+    "description": "BasicSwap is funded by its community, with no protocol fees and no investors. If it saved you money or kept your keys in your hands, here's how to give back.",
+    "path": "/donations",
+    "socialDescription": "BasicSwap is community-funded. No protocol fees, no investors. Support the project in the coins it helps you trade."
+  },
+  "faq": {
+    "title": "FAQ - Atomic swaps, supported coins, fees, and security",
+    "description": "How BasicSwap works, which coins you can trade, what a swap costs, how long one takes, and what happens if a swap fails.",
+    "path": "/faq"
+  },
+  "index": {
+    "title": "BasicSwap DEX - Atomic swaps for Bitcoin, Monero and 10 more",
+    "description": "Swap Bitcoin, Monero, and 10 more coins peer-to-peer. You meet other traders and settle atomic swaps directly. No custodian, no account, no protocol fee.",
+    "path": "/",
+    "ogImage": "/images/og-home.png",
+    "ogImageAlt": "BasicSwap Desktop showing the distributed network order book"
+  },
+  "links": {
+    "title": "BasicSwap Links - Website, Markets, Docs, Socials and Chat",
+    "description": "All the official BasicSwap DEX links in one place: website, markets, X, YouTube, documentation, community chat, and ways to support development.",
+    "path": "/links"
+  },
+  "mobile": {
+    "title": "BasicSwap Mobile - Cross-chain atomic swaps from your phone",
+    "description": "Swap crypto across chains from wallet apps you already use. There's no blockchain to sync and no account to create, and your keys stay on your phone throughout.",
+    "path": "/mobile"
+  },
+  "protocol": {
+    "title": "Protocol - How atomic swaps settle without a coordinator",
+    "description": "Adaptor signatures, secure peer messaging, and light node lookups. The three primitives that settle a cross-chain swap atomically, with no central matcher.",
+    "path": "/protocol",
+    "socialDescription": "Adaptor signatures, secure peer messaging, and lightweight Electrum-node lookups. The three primitives behind every BasicSwap atomic swap."
+  },
+  "terms": {
+    "title": "Terms and Conditions - BasicSwap Atomic Swap DEX",
+    "description": "The terms for using BasicSwap, a decentralized messaging protocol for cross-chain atomic swaps that is open source, non-custodial and has no central operator.",
+    "path": "/terms",
+    "socialDescription": "The legal terms governing your use of BasicSwap. Open source, non-custodial, no central operator."
+  },
+  "web": {
+    "title": "BasicSwap Web - Cross-chain atomic swaps in your browser",
+    "description": "Coming soon: swap crypto across chains from a browser tab, in the websites and web wallets you already use, with nothing to install and your keys kept with you.",
+    "path": "/web"
+  }
+}

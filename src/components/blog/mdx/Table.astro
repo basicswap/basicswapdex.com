@@ -1,0 +1,27 @@
+---
+// A table in a post: Markdown tables and <StyledTableWrapper> both render
+// here, scrolling sideways on narrow screens.
+---
+
+<div class="table-wrap post-table">
+  <table class="data-table"><slot /></table>
+</div>
+
+<style>
+  .post-table {
+    margin-block: var(--space-6);
+  }
+
+  .post-table :global(td),
+  .post-table :global(th) {
+    min-width: 7rem;
+  }
+
+  .post-table :global(td) {
+    font-size: 0.95em;
+  }
+
+  .post-table :global(tbody tr:hover) {
+    background: color-mix(in oklab, var(--primary) 5%, transparent);
+  }
+</style>

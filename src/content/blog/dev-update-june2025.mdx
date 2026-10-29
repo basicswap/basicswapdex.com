@@ -1,0 +1,495 @@
+---
+title: "Development Update (June 2025)"
+date: 2025-06-30
+author: "BasicSwap Team"
+tags: ["News", "Report"]
+description: "A summary of the recent developments and progress made by BasicSwap contributors in June 2025."
+seoDescription: "BasicSwap's June 2025 development update recaps May's releases, multi-net support and the AMM, and sets out June's roadmap, fixes and community events."
+thumbnail: ./images/dev_update_thumbnail.jpg
+banner: ./images/dev_update_banner.jpg
+---
+Welcome to the June 2025 BasicSwap DEX progress report! This new progress report format provides a detailed and structured overview of recent developments and progress made by BasicSwap contributors, updated dynamically throughout the month.
+
+It aims to be more informative than previous weekly progress reports, with less frequent but more substantial updates. Each post is scheduled based on release cycles rather than fixed intervals.
+
+## Last Month's Recap: May 2025
+
+Here’s a detailed breakdown of what we’ve accomplished last month.
+
+### Releases
+
+<UrlPreviewCard url="https://particl.news/mandatory-firo-core-update-may2025/" />
+
+Last month saw only a minor release of BasicSwap, though it was mandatory for users running a Firo node. This release enables you to update your Firo Core to the latest version (v0.14.14.1), which is required following their recent hard fork. 
+
+The release also incorporates various minor bug fixes and improvements to BasicSwap, making it recommended for all users, as is standard with all releases. 
+
+The next major iteration of BasicSwap will be released in the coming weeks and will feature more significant additions, including automated market making/advanced order management and multi-network support (MVP). 
+
+### Major Features
+
+#### Multi-net Support
+
+<UrlPreviewCard url="https://github.com/basicswap/basicswap/pull/310" />
+
+* **Consult the 40 related commits on the AMM pull request:** https://github.com/basicswap/basicswap/pull/310/commits
+
+We've deployed the MVP of a significant infrastructure update to BasicSwap's networking architecture. This new feature, called "multi-net," enables BasicSwap to distribute swap, offer, and bid messages across multiple messaging networks beyond SMSG when the primary network experiences high load.
+
+Since all messages will adhere to a unified encryption and formatting standard once fully complete, even non-decentralized networks (such as Telegram or email) could be utilized without compromising user privacy or security.
+
+This new functionality delivers several key benefits:
+
+1. Improved platform scalability and resilience;
+2. Greater flexibility for third-party integrations, allowing partners to use their preferred compatible networks for relaying messages;
+3. Cross-network message compatibility, eliminating the need for users to operate on the same network during swaps.
+
+While the foundation is now in place, further development is still needed before the implementation can be considered complete. The current MVP uses Simplex to broadcast messages, but we intend on adding support for more networks as we progress in time.
+
+The core architecture is designed to extend SMSG functionality across various networks. All messages maintain SMSG encryption and message IDs for consistency, although additional work is required to ensure full compatibility of Python SMSG messages across all networks and to add convenience functions for submitting pre-formed SMSG messages.
+
+Not to be overlooked is the important advantage of this approach in its flexibility regarding network requirements. Since all messages, regardless of which network was used to relay them, will be fully valid SMSG entities, they can be transmitted over plaintext networks like Telegram, Delta, or even IRC. Email systems supporting POP3/IMAP protocols are particularly well-suited for more decentralization-focused users. It's worth noting that centralized options, including Simplex, may still expose some information pseudonymously about which accounts are communicating with each other.
+
+<Callout type="info" title="MVP Status">
+  Note that this new feature is at the MVP stage, meaning it does not possess all the bells and whistles we have planned for its official V1 version. Namely, it is currently not included in the GUI, it must be manually configured outside the user interface by editing a config file, and it doesn't yet allow swaps to happen when two participants are on a different network.
+
+  The latter will require modifications to Particl Core via a hardfork, which we are likely to bundle with a potential coming hardfork to tweak the network emission rate and disable treasury (more news about this treasury community CCS proposal to be published next week), should its ccs proposal be voted in favor.
+</Callout>
+
+#### Automated Market Making and Advanced Order Management
+
+<UrlPreviewCard url="https://github.com/basicswap/basicswap/pull/311" />
+
+* **Consult the 11 related commits on the AMM pull request:** https://github.com/basicswap/basicswap/pull/311/commits
+
+Although BasicSwap has featured two companion scripts for market making and advanced order management for some time, they have operated separately from the main application and required independent execution via terminal commands.
+
+Last month, we developed and successfully deployed, on the `dev` branch, a new page that will integrate these functionalities directly into the user interface. This enables users to perform market making and advanced trading operations directly from the main interface without running additional scripts.
+
+These features are now available on a dedicated AMM page to ensure a smooth integration, but in a second phase, we plan to incorporate some of these capabilities directly into the regular new offer workflow.
+
+As it stands at this moment, the initial implementation is now ready and live on the `dev` branch, and a new BasicSwap page connects directly with the automated market making companion script, allowing you to interact with it directly from the user interface. This means you can deploy it, edit its configuration, and post offers using advanced trading options — such as automatic republishing, automatic fiat spread adjustment, price pegging, and more — straight from the user interface. 
+
+The initial AMM implementation is thus expected to go live on the next production build.
+
+<Gallery images={[
+  { src: './images/amm_one.png', alt: 'Feature 1 Screenshot' },
+  { src: './images/amm_two.jpeg', alt: 'Feature 1 Another View' }
+]} />
+
+### Bugs Fixed
+
+We've resolved several bugs to improve stability and performance. Here are the most notable fixes:
+
+<StyledTableWrapper>
+  <thead>
+    <tr>
+      <th>Bug Description</th>
+      <th>Impact</th>
+      <th>Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Price Tiles volume / btc display</td>
+      <td>Better display of volume and BTC values in price tiles</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/d57a148ff4dba6ceebda596bb746cf165260ad33)</td>
+    </tr>
+    <tr>
+      <td>Better memory clean / tooltip manager</td>
+      <td>More efficient memory and tooltip management</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/868b2475c130446498019c0c22b5c6ed27da0aed), [2](https://github.com/basicswap/basicswap/commit/d57a148ff4dba6ceebda596bb746cf165260ad33)</td>
+    </tr>
+    <tr>
+      <td>Bids export</td>
+      <td>Fixes a bug with the bids export function (to .csv)</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/e7b47486f5e17f84e99867dbe1bd448a278d4b6d)</td>
+    </tr>
+    <tr>
+      <td>Deduplicate `getP2SHScriptForHash`</td>
+      <td>Removes a redundant function that was used to get the P2SH script for a given hash</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/80915d9865dfeeb24eff4fed8ccf3e695b20f173)</td>
+    </tr>
+    <tr>
+      <td>Tests: Fix LTC wallet creation</td>
+      <td>Fixes a bug in the LTC wallet creation test</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/3ea7a219d1dba34fbeab3250972b3dd3a554a258)</td>
+    </tr>
+    <tr>
+      <td>Tests: Fix prefunded ITX</td>
+      <td>Fixes a bug in the Monero prefunded ITX test</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/2a8ac051fc9cbe5ce7334e1b7be9ad7aa8d2bccc)</td>
+    </tr>
+    <tr>
+      <td>Tests: Disable `test_13_locked_xmr`</td>
+      <td>Disable `test_13_locked_xmr` when xmr version >= 0.18.4</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/f6914d7c305156997bd61a317d176c548c0709f6)</td>
+    </tr>
+    <tr>
+      <td>Fix adaptor sig swaps for certain pairs</td>
+      <td>Fixes a bug in the adaptor sig swaps to Firo, PART blind, and other pairs</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/13847e129b8df7265f0916a3f06362cd7a9fd71b)</td>
+    </tr>
+    <tr>
+      <td>`js_active` for reverse bids</td>
+      <td>Fixes a bug in the `js_active` field for reverse bids</td>
+      <td>[1](https://github.com/basicswap/basicswap/pull/306/commits/48bfdb746256f8ab28ed700defd02977c6e59042)</td>
+    </tr>
+    <tr>
+      <td>Swap send / receive</td>
+      <td>Swaps the placement of send/receive indicators for sent bids in active.html</td>
+      <td>[1](https://github.com/basicswap/basicswap/pull/306/commits/2818afc93350b57d990b46b6ff7a983b55ca06f7)</td>
+    </tr>
+  </tbody>
+</StyledTableWrapper>
+
+### Minor Improvements
+
+We've also made several smaller improvements to the platform:
+
+<StyledTableWrapper>
+  <thead>
+    <tr>
+      <th>Bug Description</th>
+      <th>Impact</th>
+      <th>Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Removed repeating console.log(s)</td>
+      <td>Cleaner console debuggging log outputs</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/ece9d7fb4bfdc3f8f10ba7bea34bb52930fa58ec)</td>
+    </tr>
+    <tr>
+      <td>Clickable bid counters</td>
+      <td>Add clickable bid counters in the header that navigate to the sent/received tabs</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/b3c0ad7e9cc28468fcd074ca14f35400a7459f2b)</td>
+    </tr>
+    <tr>
+      <td>ALL tab / table on bids page</td>
+      <td>Adds a new tab that aggregates all bids in a single table</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/e7b47486f5e17f84e99867dbe1bd448a278d4b6d)</td>
+    </tr>
+    <tr>
+      <td>Add check for minimum sqlite version</td>
+      <td>Adds a check that verifies if the minimum required sqlite version is installed</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/7df2f1b29080e4c95fe36d173551c57c7abd5e50)</td>
+    </tr>
+    <tr>
+      <td>Improve swaps in progress</td>
+      <td>Various improvements to the Swaps in Progress page (UI)</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/aa898a9601a8d02010e7db4ef69fee77b204f7dc)</td>
+    </tr>
+    <tr>
+      <td>Cosmetic Bids page improvements</td>
+      <td>Adds some cosmetic improvements to the Bids page</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/ec5ea4ca3cb22a237b15f070307e25bd3897da26)</td>
+    </tr>
+    <tr>
+      <td>Additions to `test_swap_direction.py`</td>
+      <td>Add bid and active pages to test_swap_direction.py</td>
+      <td>[1](https://github.com/basicswap/basicswap/pull/306/commits/058270ec7af3a21f447e9981bd93d7227e39840d)</td>
+    </tr>
+  </tbody>
+</StyledTableWrapper>
+
+---
+
+## This Month's Focus: June 2025
+
+### Summary
+
+Coming into June with momentum from our successful presence at the 2025 Litecoin Summit, BasicSwap contributors are focusing on larger features and improvements than usual.
+
+As we progress through BasicSwap's Monero CCS proposal, we've successfully rolled out several releases that addressed the initial proposal points, which primarily aimed at improving BasicSwap's core functionalities before moving to more ambitious and user-facing features.
+
+With the core codebase now satisfyingly solid and stable, we've begun focusing on more advanced and user-facing improvements with specific attention to accessibility and usability — a bid to make atomic swap technology ubiquitous and as accessible as other types of crypto exchanges, including centralized exchanges.
+
+<Callout type="info" title="This Month — A Bird's Eye View">
+  <ul>
+    <li>
+      <strong>Major Features:</strong>
+      <ul>
+        <li>Multi-net support</li>
+        <li>Automated market making and advanced order management</li>
+        <li>Light Wallet Support (SPV)</li>
+        <li>Pre-signed Swap Transactions</li> 
+      </ul>
+    </li>
+    <li>
+      <strong>Key Improvements:</strong>
+      <ul>
+        <li>Networking performance and resilience</li>
+        <li>More adapted user experience for makers</li>
+        <li>Better accessibility</li>
+        <li>Integrability with external platforms</li>
+      </ul>
+    </li>
+    <li>
+      <strong>Community Shoutout:</strong>
+      <ul>
+        <li>Thanks to the <strong>Particl Community</strong> for their continued support and understanding of the project's mission and practical application in the Particl eCommerce ecosystem</li>
+        <li>Thanks to the <strong>Litecoin Foundation</strong> for their support of the project and invitation to the 2025 Litecoin Summit</li>
+        <li>Thanks to the <strong>Monero community</strong> for their continued funding via CCS</li>
+        <li>Thanks to one-of-kind community contributor <strong>Ofrnxmr</strong> for their various contributions</li>
+      </ul>
+    </li>
+  </ul>
+</Callout>
+
+### Upcoming Milestones (Short-term Roadmap)
+Here's an updated look at our short-term roadmap, representing the next major milestones in approximate order of development. As BasicSwap DEX is a complex project with multiple moving parts, we may adjust the roadmap to better reflect the platform's evolving priorities.
+
+<Timeline items={[
+  { status: 'Live on Dev', title: 'Multi-Net Functionality', description: 'Enables BasicSwap to distribute swap, offer, and bid messages across multiple messaging networks beyond SMSG when the primary network experiences high load.', long_description: 'Currently live on the dev branch, but it does not possess all the bells and whistles we have planned for its official V1 version.\n\nNamely, it is currently not included in the GUI, it must be manually configured outside the user interface by editing a config file, and it doesn\'t yet allow swaps to happen when two participants are on a different network.\n\nThe latter will require modifications to Particl Core via a hardfork, which we are likely to bundle with a potential coming hardfork to tweak the network emission rate and disable treasury (more news about this treasury community CCS proposal to be published next week), should its ccs proposal be voted in favor.' },
+  { status: 'In Production', title: 'AMM and Advanced Order/Bid Management', description: 'Enables advanced trading operations like automated market making and advanced order/bid placement.', long_description: 'As it stands at this moment, the initial implementation is now ready and live on the dev branch, and a new BasicSwap page connects directly with the automated market making companion script, allowing you to interact with it directly from the user interface.\n\nThis means you can deploy it, edit its configuration, and post offers using advanced trading options — such as automatic republishing, automatic fiat spread adjustment, price pegging, and more — straight from the user interface.' },
+  { status: 'In Progress', title: 'Light Wallet Support (SPV)', description: 'Enables users to use light wallets instead of full nodes for faster setup time and reduced storage requirements.', long_description: '' },
+  { status: 'Planned', title: 'Pre-signed Swap Transactions', description: 'Enables users to safely go offline once a swap is initiated without disrupting the swap process.', long_description: '' },
+]} />
+
+### Bug Fixes
+
+We've resolved the following bugs to improve stability and performance. These fixes are either live on the [`dev` branch (experimental)](https://github.com/basicswap/basicswap/commits/dev/) or pending in [pull requests](https://github.com/basicswap/basicswap/pulls). What is listed here will likely be merged into the production build in the next BasicSwap release.
+
+<StyledTableWrapper>
+  <thead>
+    <tr>
+      <th>Bug Description</th>
+      <th>Impact</th>
+      <th>Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Workaround for Simplex Chat</td> 
+      <td>Workaround error specifying server to simplex-chat twice</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/1a42e5e123201d7733b1496d92294b3f5cc833f5)</td>
+    </tr>
+    <tr>
+      <td>Price API fixes</td>
+      <td>Fix USD prices via API</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/b3c946d056d14d076ef7db6af70c1829aebe7072)</td>
+    </tr>
+    <tr>
+      <td>Chart and price API fixes</td>
+      <td>Add fallback mechanisms for price charts and price calculations</td> 
+      <td>[1](https://github.com/basicswap/basicswap/pull/317)</td>
+    </tr>
+    <tr>
+      <td>Fix auto-refresh</td>
+      <td>Fix the auto-refresh's enable/disable logic</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/d1fb11e92a5150de68f691b27efe44d2e5e64732)</td>
+    </tr>
+    <tr>
+      <td>Missing wallets</td>
+      <td>Try and load missing wallets</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/b19edd6771fd898434ca27ae639a87eeab285e99)</td>
+    </tr>
+    <tr>
+      <td>Bid modal fixes</td>
+      <td>Fix for bid modal showing no value when amounts are empty</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/0e19f4139c201c569aa53edc8c146f8de43eb01c)</td>
+    </tr>
+    <tr>
+      <td>Fix changetypes</td>
+      <td>Fix the changetypes for Bitcoin and Litecoin in `prepare.py`</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/f031d41a3897a72f1567127a08cb42fcc8b96d5b)</td>
+    </tr>
+    <tr>
+      <td>Fix BCH filter</td>
+      <td>Fix a bug with BCH in the filters</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/6e5b8fb0ad18e753cc7107836b1132e7f71d9896)</td>
+    </tr>
+    <tr>
+      <td>Persistent filtering</td>
+      <td>Ensure filters remain applied when tables update</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/2b945f3e3ab59b68492041eadd99e7cf57efe7cb)</td>
+    </tr>
+    <tr>
+      <td>GUI fixes</td>
+      <td>Various GUI fixes</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/6ad9cb24fe8bc303977e749be3c32e6222da26bf), [2](https://github.com/basicswap/basicswap/commit/6e5b8fb0ad18e753cc7107836b1132e7f71d9896)</td>
+    </tr>
+  </tbody>
+</StyledTableWrapper>
+
+### Improvements
+
+We've also made several improvements, which are also live on the [`dev` branch (experimental)](https://github.com/basicswap/basicswap/commits/dev/) or pending in [pull requests](https://github.com/basicswap/basicswap/pulls). What is listed here will likely be merged into the production build in the next BasicSwap release.
+
+<StyledTableWrapper>
+  <thead>
+    <tr>
+      <th>Bug Description</th>
+      <th>Impact</th>
+      <th>Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Swap type reset logic</td>
+      <td>Don't reset the swap type in the GUI if it's a valid option</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/df4a6af6a0648410177a12379d5f0754336fd375)</td>
+    </tr>
+    <tr>
+      <td>Simplex direct chats</td>
+      <td>Use Simplex direct chats instead of groups for swaps</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/f3adc17bb8162fd8780aa60d122d491b8cacf3c9), [2](https://github.com/basicswap/basicswap/commit/fea19c00f26a186faeb80c1b7904ac0cd28d0bd2)</td>
+    </tr>
+    <tr>
+      <td>Add socks-proxy support for Simplex</td>
+      <td>Add socks-proxy option for simplex-chat</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/69acf00e0dc1e9d5266fabc74f1afc90bea37a82)</td>
+    </tr>
+    <tr>
+      <td>SimpleX responses update</td> 
+      <td>Update response format for SimpleX Chat v6.3.4</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/bc20fecc82c43305f09f74ba272cccc89b40c32d)</td>
+    </tr>
+    <tr>
+      <td>DB update</td>
+      <td>Sync DB schema to table definitions</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/3faf947588051f1f47fa36fa3f5daab5084b4a30)</td>
+    </tr>
+    <tr>
+      <td>Settings: `max_transient_errors`</td>
+      <td>Add setting for `max_transient_errors`</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/4f47267598deff6af8ed5f82d3bf1732214df0c8)</td>
+    </tr>
+    <tr>
+      <td>Set `dleag_size` per bid</td>
+      <td>Allow to set specific `dleag_size` per bid</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/c6f8e5e2bac719dda3476c45de5c6308ef45d544)</td>
+    </tr>
+    <tr>
+      <td>Start Simplex client in run.py</td>
+      <td>Start Simplex client in run.py script</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/f269881990e6b2c825d3c327a97f545f123d51ae)</td>
+    </tr>
+    <tr>
+      <td>Add Simplex to prepare.py</td>
+      <td>Add Simplex to the prepare.py script</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/ff149e988c4c761e623f868c795a670c33875383)</td>
+    </tr>
+    <tr>
+      <td>Log process ending</td>
+      <td>Detect and log if processes end unexpectedly</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/7f6077815afe7c3630b24c1d435229b339619968)</td>
+    </tr>
+    <tr>
+      <td>Better web client pages</td>
+      <td>Better web client unlock and Change Password pages</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/4055b7d6c85b8597a1eaaea6760e6a94e59128d5), [2](https://github.com/basicswap/basicswap/commit/45b4ac8ca0f1400c2348974b28e0f0fb9eb1bf53)</td>
+    </tr>
+    <tr>
+      <td>AMM bidding</td>
+      <td>Add `use_balance_bidding` to the AMM</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/b3c946d056d14d076ef7db6af70c1829aebe7072)</td>
+    </tr>
+    <tr>
+      <td>`python-gnupg` priority</td>
+      <td>Install `python-gnupg` before other dependencies</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/f918652b6ca4d188fcc8f9f9698471f7169bd029)</td>
+    </tr>
+    <tr>
+      <td>Settings page update</td>
+      <td>Add improvements to the Settings page</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/125fbb43db426e9fedebc5ed918c98f50b387780)</td>
+    </tr>
+    <tr>
+      <td>Round `inputAmount`</td>
+      <td>Utility that rounds `inputAmount` to avoid a mantissa error</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/740924632e04f1718a8b0c08d13f4997757dd2f9)</td>
+    </tr>
+    <tr>
+      <td>Swap type management for AMM</td>
+      <td>Add restrictions, sorting, and better swap type selection logic for the AMM based on selected pair</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/1c11767d1e29b108739ed3b751e9cb4cb4879b5b)</td>
+    </tr>
+    <tr>
+      <td>Update `test_swap_direction.py`</td>
+      <td>Additional changes made to `test_swap_direction.py`</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/dd53c8e76da71d6e77fd0cbd0bac70f0019ba9ab)</td>
+    </tr>
+    <tr>
+      <td>Multi-select coin filtering</td>
+      <td>Add the ability to select multiple coins for filtering</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/6e5b8fb0ad18e753cc7107836b1132e7f71d9896)</td>
+    </tr>
+    <tr>
+      <td>Hide Abandon Bid</td>
+      <td>Move the ability to abandon a bid to debug_ui</td> 
+      <td>[1](https://github.com/basicswap/basicswap/commit/6e5b8fb0ad18e753cc7107836b1132e7f71d9896)</td>
+    </tr>
+  </tbody>
+</StyledTableWrapper>
+
+## Community & Events
+
+### Events
+
+#### 2025 Litecoin Summit
+
+The 2025 Litecoin Summit in Las Vegas was a tremendous success. We were honored to be invited to speak at the event, and BasicSwap advisor Dr. Kap did an excellent job explaining our focus on making atomic swap technology as accessible as possible, with the ultimate goal of matching or even surpassing the user experience of centralized exchanges.
+
+Part of our strategy involves making BasicSwap stable and reliable enough as a protocol for integration into user-friendly third-party platforms, such as Litecoin's new Nexus wallet or Cake Wallet.
+
+While we're still working on solidifying the base protocol and delivering on the milestones set in Monero's CCS proposal, we're excited to start planning the next phase. We're thrilled to have met great partners and community members at the Litecoin Summit who are willing to integrate BasicSwap and/or provide much-needed liquidity to the order book.
+
+Be sure to check out Dr. Kap's presentation, available on YouTube:
+
+<YouTube videoId="yP-cXP7aUnQ" />
+
+Additionally, Dr. Kap participated in the "Panel on Privacy" with industry leaders including David Burkett (MWEB Developer at Litecoin Foundation), Justin Berman (Developer at Monero), and Joël Valenzuela (Business Development and Marketing at Dash).
+
+<YouTube videoId="hy4bPyRO6no" />
+
+### Community Spotlight
+
+We'd like to thank everyone who has contributed to the community through code, testing, or any other form of contribution that may sometimes be overlooked or harder to recognize externally.
+
+We'd particularly like to acknowledge the following individuals and organizations for their exceptional contributions:
+
+#### Particl Community
+<UrlPreviewCard url="https://particl.io" />
+At the foundation of BasicSwap DEX is the Particl community, who funded and supported the project in its earliest stages through generous PART donations. We're incredibly grateful for their continued support and their understanding of how BasicSwap, once fully matured and ubiquitous, can serve as the cornerstone platform for multi-currency payments in Particl's decentralized eCommerce ecosystem.
+
+None of what we're building with BasicSwap today would be possible without the initial contributions of the Particl community, and we thank every single member for their continued support.
+
+#### Litecoin Foundation
+<UrlPreviewCard url="https://litecoin.com/projects/basicswap" />
+We're proud to receive the unwavering support and confidence of the Litecoin Foundation. We're continually building Litecoin's future together through BasicSwap's integration into their new Nexus wallet and upcoming MWEB-enabled swaps on BasicSwap.
+
+The Litecoin Foundation has been an excellent ideological partner and supporter of privacy-first, open-source, and non-custodial cryptocurrency solutions. We're excited that they've opened a donation pool for the upcoming BasicSwap integration into the Nexus wallet.
+
+If you'd like to support our efforts in bringing atomic swaps to the world in an easy-to-use, straightforward way, please consider donating to the Litecoin Foundation's donation pool: https://litecoin.com/projects/basicswap
+
+#### Monero Community
+<UrlPreviewCard url="https://ccs.getmonero.org/proposals/ofrnxmr_basicswap.html" />
+The Monero community has been one of our biggest and earliest supporters since we started the BasicSwap mission. We're proud to work with one of the most dedicated privacy and open-source cryptocurrency projects in the world.
+
+We're proud to advance privacy by making atomic swaps not only possible with Monero, but incredibly accessible to anyone seeking more privacy in their cryptocurrency holdings. We're also incredibly thankful for the many Monero community members who test, report bugs, contribute to the codebase, and spread the word about this project.
+
+For more information on BasicSwap's Monero CCS proposal, visit: https://ccs.getmonero.org/proposals/ofrnxmr_basicswap.html
+
+#### Community Contributor Ofrnxmr
+<UrlPreviewCard url="https://github.com/nahuhh" />
+An undeniable pioneer and dedicated contributor to privacy-first and open-source projects, Ofrnxmr is an important member of the Monero community and a champion of our efforts at BasicSwap.
+
+We're grateful for their tireless spirit and incredible dedication to the project, from initiating our Monero CCS proposal to helping with testing, feature design, code reviews, community onboarding, troubleshooting, and much more.
+
+They've undoubtedly helped the project in countless ways and serve as a prime example of the benefits that come from community members taking initiative and contributing to the open-source community.
+
+<Callout type="pro-tip" title="Get Involved!">
+  We're always looking for feedback, contributions, and any form of support from the community. If you have ideas or want to get involved, please join our [Matrix channel](https://matrix.to/#/#basicswap:matrix.org) or contribute directly to [BasicSwap's Github repositories](https://github.com/basicswap).
+</Callout>
+
+## Stay Connected
+
+Stay connected with us on our social media channels for real-time updates, news, and more.
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

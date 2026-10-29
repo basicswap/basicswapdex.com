@@ -1,0 +1,35 @@
+---
+title: "Smart Buy"
+seoTitle: "Smart Buy: Fill a Trade Across Offers"
+description: "Smart Buy splits a purchase across BasicSwap's open offers: enter an amount, cap the price and the number of bids, then review the plan before placing it."
+published: 2026-10-15
+---
+Smart Buy fills an amount you choose from several offers at once. You say how much you want to pay or receive, and BasicSwap searches the order book for the cheapest combination of offers, shows you the plan, and places one bid on each offer when you confirm. It's useful when no single offer is big enough, or when splitting an order gets a better average rate. Smart Buy arrived in BasicSwap 0.19.0 and is still marked beta.
+
+<Img src="./images/docs-smart-buy.webp" alt="The Smart Buy page paying 0.30 Bitcoin for Monero: the plan on the right fills it from three offers at an average rate of 0.00674191, 0.26% below the market rate" />
+
+## Plan a Smart Buy
+
+1. Open **Smart Buy** from the menu at the top of BasicSwap.
+2. Under **You pay**, choose the coin you'll spend, and under **You receive**, the coin you want, with each wallet's balance shown beside it.
+3. Enter an amount in either box, filling in what you pay to spend a set amount or what you receive to buy one, and BasicSwap works out the other side.
+4. Then set the limits on the fill:
+   - **Don't pay more than** caps the price, as a percentage above either the **market rate** or the **best offer**. It starts at the market rate plus 5%, and Smart Buy leaves out any offer above the cap.
+   - **Split over at most** limits how many bids, and so how many separate swaps, the plan may use, 15 by default.
+   - **Max wait time for legs** is how many minutes a bid that's ready to lock its coins waits for the plan's other bids, so that they can share one lock transaction. After that it goes ahead alone, and the default wait is 10 minutes.
+   - **Pick the offers myself** lets you choose which offers to use instead of letting BasicSwap pick.
+5. Click **Find the cheapest fill**, which plans the fill without sending anything yet.
+
+The plan appears on the right, showing the average rate, how it compares with the market, the total cost, the number of bids, and a row for every offer it uses. "Best of a partial search" next to the title means the order book had too many combinations to try them all, so the plan is the best one found rather than a proven best. **Show skipped offers** lists the offers it left out.
+
+## Place the bids
+
+Click **Place bids**, check the summary, including the approximate redeem fees and what you'll receive after them, and confirm. BasicSwap then sends one bid for each row of the plan. Each bid is an ordinary swap with its own offerer, so each one completes, or fails and refunds, on its own.
+
+Each bid locks coins from its own wallet outputs, so the bids don't wait on each other's change. Bids that are ready together send their locks in one transaction, and secret-hash bids that share a secret also settle in one, which saves fees.
+
+## Follow progress
+
+The **History** tab lists your Smart Buys with live progress for each. If some bids fail or nobody accepts them, you can retry the unfilled amount from there, and the **Bids** page groups each Smart Buy's bids together.
+
+[Take an offer](/docs/user-guides/take-offer#follow-the-swap) shows how to follow a single bid through its steps, and the [API reference](/docs/api#smart-buy) covers planning and placing Smart Buys from a script.

@@ -1,0 +1,208 @@
+---
+title: "BasicSwap v0.17.0 & GUI 4.0.0: Redesigned Offers, Live Updates, and Web-UI Hardening"
+seoTitle: "BasicSwap v0.17.0 and GUI 4.0.0"
+date: 2026-07-09
+author: "BasicSwap Team"
+tags: ["News", "Release", "Security"]
+description: "BasicSwap v0.17.0 lands GUI 4.0.0 with a redesigned Create Offer flow, live-updating tables, safer offer modes, AMM v0.5.0, and a web-UI security hardening pass. No coin cores changed this cycle. Update to v0.17.0."
+seoDescription: "BasicSwap v0.17.0 ships GUI 4.0.0 with a redesigned Create Offer flow, live-updating tables, safer offer modes, AMM v0.5.0 and a web UI security hardening pass."
+thumbnail: ./images/Medium_BSX_17.jpg
+banner: ./images/Blog_BSX_17.jpg
+---
+BasicSwap v0.17.0 is now available. The main change is **GUI 4.0.0**, a redesigned Create Offer experience with live-updating tables, a clearer review step, and new offer "modes" that give you more control over how long an offer stays on the book. Alongside the interface work, v0.17.0 **hardens web-UI security**, AMM v0.5.0 with per-offer budgets, and a round of wallet and startup robustness fixes.
+
+It is not a coin update, though. No wallet cores changed this cycle, so there are no daemons to re-download. The largest change under the surface is an internal refactor that moves each coin into its own module, invisible to users but worth knowing about if you follow the commit history.
+
+None of this changes the fundamentals of how atomic swaps work on BasicSwap. It makes the day-to-day experience of creating and managing offers clearer, and it tightens the local web interface.
+
+<Callout type="success" title="Update to v0.17.0">
+v0.17.0 rolls up every change below. We recommend everyone update. Installation steps are at the bottom of this post.
+</Callout>
+
+## Most Notable Updates 💡
+
+### The New GUI: BasicSwap 4.0.0 🎨
+
+The interface jumps from v3.5.0 to **4.0.0**, and the version is now a constant in the code rather than a hardcoded string in the footer. The work is a focused redesign of the two flows people spend the most time in: **Create Offer** and the **AMM**. The overall look and feel carries over, since the styling framework and dark mode were already in place, so this is a redesign of those two flows and not a new look across the whole app. The shared header navigation, footer, and in-page alert banners were also refreshed.
+
+Creating an offer now walks you through a redesigned three-step wizard (Trade, then Terms, then Review), followed by a dedicated success page once the offer is published. The review step now does more: a **market-rate comparison** that tells you whether your price sits above, below, or at market, an **estimated network fee**, and a short **table of competing offers** for the same pair so you can see where your offer lands before you commit. If a publish fails, your entries are kept so you can go straight back to the review step and correct the offer instead of starting over.
+
+The offer and AMM tables now **update live**. The WebSocket layer that already powered live balances and counters was extended so the tables react in real time to new offers, revocations, expiries, swaps, and bids. Rounding out the redesign: status **badges** (offer mode, running offers and bids, exhausted, fixed-total progress, stale, revoked, expired), redesigned success and error **alert banners**, and a clearer green/red enable/disable toggle that saves through the API. All of this landed together in [PR #538](https://github.com/basicswap/basicswap/pull/538) (commit [`10f8051`](https://github.com/basicswap/basicswap/commit/10f8051)).
+
+<Gallery images={[
+  { src: "./images/gui-400.png", alt: "GUI 4.0.0 - New offers flow" },
+  { src: "./images/amm_050.png", alt: "Improved AMM GUI" }
+]} />
+
+### Safer Offer Modes: One-time, Fixed-total, Standing 🔁
+
+Offers now carry a **mode** that decides how they behave over their lifetime. There are three you can choose from:
+
+*   **One-time** fills once, then closes automatically. This is the **new default for offers you create in the web interface**.
+*   **Fixed-total** repeats until a cumulative `total_to_sell` amount has been reached, then closes.
+*   **Standing** repeats continuously, and for AMM templates it respects a reserve floor (`min_coin_from_amt`) so it stops before your wallet would drop below the amount you set aside. Standing is the default for AMM templates.
+
+<Callout type="info" title="A change worth knowing about">
+Offers you create through the web interface now default to **One-time**, so an offer closes after a single swap instead of staying on the book for repeat buyers. If you want an offer to keep filling, pick **Fixed-total** or **Standing** when you create it. Offers created before v0.17.0 are untouched by the update: they keep their previous behaviour and are never auto-closed.
+</Callout>
+
+The modes are there for control. Offers created in one of the new modes carry a per-offer budget so they cannot be filled more times than you intended, which stops a variable-amount or auto-accepting offer from being taken repeatedly. Behind that, an offer-tracking record counts fills, accounts for in-flight bids, and auto-revokes the offer once it is exhausted (commit [`10f8051`](https://github.com/basicswap/basicswap/commit/10f8051)). This budgeting applies to offers created in the new modes; older offers, and offers created directly through the JSON API without a mode, keep the previous unbounded behaviour.
+
+### AMM v0.5.0: Budgets and Persistent Fills 🤖
+
+The automated market maker gets its own version number, **0.5.0**, and a more careful accounting model. Each offer template now tracks its budget and fill progress, and that progress is **persisted across restarts**, so a template picks up where it left off rather than losing count. Two new JSON endpoints, `POST /json/amm/config` and `GET /json/amm/state`, expose the runtime configuration and live state (commit [`10f8051`](https://github.com/basicswap/basicswap/commit/10f8051)).
+
+The AMM also became more resilient: it now skips templates whose coins are inactive instead of stopping the whole market maker (commit [`e832787`](https://github.com/basicswap/basicswap/commit/e832787)), it will not autostart while the system is locked (commit [`0d751b4`](https://github.com/basicswap/basicswap/commit/0d751b4)), and the contract lock time is now surfaced in both the GUI and the script (commit [`d98be8f`](https://github.com/basicswap/basicswap/commit/d98be8f)). Budget enforcement aggregates live fills across reposts rather than acting as a hard on-chain cap.
+
+### Web-UI Security Hardening 🔒
+
+v0.17.0 hardens the local web interface against a malicious page in your browser and against untrusted callers. These are small, targeted fixes rather than a large rewrite. Taken as a group, they add output encoding (template autoescape), a real CSRF token on forms, cross-origin POST blocking, a requirement that state-changing JSON endpoints use POST, tighter URL-scheme handling on the fetch helper, path-traversal prevention when serving static files, and hardened handling of the shutdown token, debug indicator, and session cookie. Wallet seed export is now restricted to local or authenticated callers.
+
+<Callout type="warning" title="Please update, and check your bind">
+We recommend **everyone update promptly**. Some of these protections guard against a malicious web page reaching the interface even on a normal localhost setup. If you have deliberately exposed the BasicSwap web interface beyond `127.0.0.1` (for example on a LAN) **without** setting up client authentication, please **update right away and enable client authentication**.
+</Callout>
+
+<Callout type="warning" title="Using the JSON API? State-changing calls now require POST">
+If you run BasicSwap from a script or integration over its JSON API, this release contains a breaking change. Any endpoint that changes something now requires a **POST** request. Before v0.17.0 these could also be called with a **GET**, and a GET to one of them now returns a `405`. Read-only endpoints are unaffected, and any endpoint the client does not treat as read-only requires POST. Update your integrations to send POST for anything that creates, accepts, revokes, or configures.
+</Callout>
+
+Separately, imported private keys in Electrum (light-client) mode are now stored with authenticated encryption (ChaCha20-Poly1305), and old-format decryption stays supported so nothing breaks. This applies to keys imported **after** updating. If you imported keys in Electrum mode on an earlier version, re-import them after updating to move them to the stronger format (commit [`39dccbf`](https://github.com/basicswap/basicswap/commit/39dccbf)).
+
+### Reversed-Swap Destinations and BCH Fund-Safety 🔄
+
+You can now set a **destination address for reversed (adaptor-signature) swaps**, directing the proceeds to an address you choose instead of always using a pool-generated one. A new `isValidTxoDest` helper broadens the destination types the client accepts to support it (commits [`5c9264c`](https://github.com/basicswap/basicswap/commit/5c9264c), [`b2e58cc`](https://github.com/basicswap/basicswap/commit/b2e58cc)).
+
+Two separate Bitcoin Cash fixes also ship this cycle. The first is a fund-safety improvement: the timelock embedded in a counterparty's BCH covenant is now checked against the offer's agreed lock times, so the on-chain refund timing has to match what was negotiated (commit [`3d616b2`](https://github.com/basicswap/basicswap/commit/3d616b2)). This closes a timelock-mismatch surface as defense in depth. The second is a correctness fix: the lock-refund transaction input now uses `lock_time_1` for its sequence number, which fixes a case where a BCH swap with non-default timelocks could fail to start (commit [`66946c3`](https://github.com/basicswap/basicswap/commit/66946c3), [PR #528](https://github.com/basicswap/basicswap/pull/528)).
+
+### Startup and Unlock Robustness 🧰
+
+A few changes make BasicSwap steadier when it starts up and when you unlock it. The system now requires **all** wallets to unlock before it considers itself unlocked, rather than proceeding once one wallet is ready (commit [`97dca26`](https://github.com/basicswap/basicswap/commit/97dca26)). More importantly, a transient RPC timeout during unlock is no longer misread as a missing wallet seed: the client now retries reading the seed ID with backoff and raises on persistent failure, instead of risking a seed or encryption operation against an existing, still-locked wallet (commit [`097d624`](https://github.com/basicswap/basicswap/commit/097d624)). Balance-change notifications are skipped while the system is locked, and a slow daemon gets more time to answer during startup so it cannot stall the client (commits [`4cb0948`](https://github.com/basicswap/basicswap/commit/4cb0948), [`c87723c`](https://github.com/basicswap/basicswap/commit/c87723c)).
+
+### Under the Hood 🧹
+
+The largest change in v0.17.0 by size is one you will not notice as a user: a big internal refactor that untangles `bin/prepare.py` and moves each coin into its own `interface/<coin>/` package, with chainparams and bundled helpers relocated alongside it (commits [`3b3c665`](https://github.com/basicswap/basicswap/commit/3b3c665), [`2a6f22c`](https://github.com/basicswap/basicswap/commit/2a6f22c), [`9143406`](https://github.com/basicswap/basicswap/commit/9143406)). It changes no behaviour and no coin versions. It is simply why the release diff is so large.
+
+BasicSwap also **upgrades its internal database to schema v37** on the first launch after updating. The migration is automatic and additive (it adds the new offer-tracking table and a reversed-swap destination column) and requires nothing from you. Finally, continuous integration was split into a concurrent matrix for faster runs, and the test suite gained broad new coverage including a general `test_coins.py`, a Selenium `test_offer.py`, and AMM configuration and offer-tracking tests (commits [`f73edd2`](https://github.com/basicswap/basicswap/commit/f73edd2), and others in the changelog below).
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch.
+
+<Callout type="info" title="No coin cores changed, but the database upgrades itself">
+No coin daemons changed in v0.17.0, so running the `--upgradecores` step downloads and replaces nothing this cycle. It stays part of the normal update flow (it simply reports there is nothing to do), so you can follow the standard steps as usual. On the first launch after updating, BasicSwap automatically upgrades its internal database to schema v37. This is automatic and additive, and you do not run anything. As always, back up your coindata directory before updating.
+</Callout>
+
+### Docker
+
+If you've installed BasicSwap following the Docker method:
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method:
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3. Execute the following command: `source ~/coinswaps/venv/bin/activate`
+4.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+5.  Execute the following command: `pip3 install .`,
+6.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/):
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+The full v0.17.0 changelog, grouped by area.
+
+### Web-UI Security Hardening
+
+*   Enable template autoescape (output encoding) [[d8bf7bc]](https://github.com/basicswap/basicswap/commit/d8bf7bc)
+*   Add a CSRF token to forms [[c986f7c]](https://github.com/basicswap/basicswap/commit/c986f7c)
+*   Block cross-origin POST requests [[e032280]](https://github.com/basicswap/basicswap/commit/e032280)
+*   Require POST for state-changing JSON endpoints [[33e0ae8]](https://github.com/basicswap/basicswap/commit/33e0ae8)
+*   Restrict the URL scheme allowed for the fetch helper [[328a56e]](https://github.com/basicswap/basicswap/commit/328a56e)
+*   Prevent path traversal in static file serving [[3434d4b]](https://github.com/basicswap/basicswap/commit/3434d4b)
+*   Harden the shutdown token, debug indicator, and session cookie [[65f51c4]](https://github.com/basicswap/basicswap/commit/65f51c4)
+*   Restrict wallet seed export to local or authenticated callers [[982f63e]](https://github.com/basicswap/basicswap/commit/982f63e)
+*   Encrypt newly imported Electrum-mode private keys with AEAD (ChaCha20-Poly1305) [[39dccbf]](https://github.com/basicswap/basicswap/commit/39dccbf)
+
+### GUI (v4.0.0)
+
+*   Create Offer redesign, live tables, offer modes, badges, and AMM updates [[10f8051]](https://github.com/basicswap/basicswap/commit/10f8051) / [PR #538](https://github.com/basicswap/basicswap/pull/538)
+*   Merge redesign and fixes [[0c9463f]](https://github.com/basicswap/basicswap/commit/0c9463f)
+
+### Offers & AMM
+
+*   Set a destination address for reversed (adaptor-sig) swaps [[5c9264c]](https://github.com/basicswap/basicswap/commit/5c9264c)
+*   Add `isValidTxoDest` destination validation helper [[b2e58cc]](https://github.com/basicswap/basicswap/commit/b2e58cc)
+*   Fix a regression validating blinded Particl destinations [[8d73aad]](https://github.com/basicswap/basicswap/commit/8d73aad)
+*   Count reverse bids in offer fill tracking [[760efe3]](https://github.com/basicswap/basicswap/commit/760efe3)
+*   AMM: skip templates with inactive coins instead of stopping [[e832787]](https://github.com/basicswap/basicswap/commit/e832787)
+*   AMM: do not autostart while the system is locked [[0d751b4]](https://github.com/basicswap/basicswap/commit/0d751b4)
+*   AMM: add the contract lock time to the GUI and script [[d98be8f]](https://github.com/basicswap/basicswap/commit/d98be8f)
+*   AMM: remove a stray lock time option [[6737ac2]](https://github.com/basicswap/basicswap/commit/6737ac2)
+
+### Coin / Swap Fund-Safety (BCH)
+
+*   Bind BCH covenant timelocks to the offer [[3d616b2]](https://github.com/basicswap/basicswap/commit/3d616b2)
+*   Use `lock_time_1` for the BCH lock-refund input sequence [[66946c3]](https://github.com/basicswap/basicswap/commit/66946c3) / [PR #528](https://github.com/basicswap/basicswap/pull/528)
+
+### Fees & Bids
+
+*   Ensure `bid_rate` is positive [[e3bc9be]](https://github.com/basicswap/basicswap/commit/e3bc9be)
+*   Lock prefunded bid transaction inputs [[591d10a]](https://github.com/basicswap/basicswap/commit/591d10a)
+*   Clamp the Electrum fee estimate for withdrawals [[e14e5c7]](https://github.com/basicswap/basicswap/commit/e14e5c7)
+*   Add `lock_unspent` to `_fundTxElectrum` [[e290688]](https://github.com/basicswap/basicswap/commit/e290688)
+
+### Wallet & Startup
+
+*   Use the bip44 path for the wallet seed id in descriptor mode [[c1106b0]](https://github.com/basicswap/basicswap/commit/c1106b0)
+*   Reset the XMR wallet open latch after encryptwallet [[b2f97d4]](https://github.com/basicswap/basicswap/commit/b2f97d4)
+*   Do not treat an RPC timeout as a missing seed during unlock (retry with backoff) [[097d624]](https://github.com/basicswap/basicswap/commit/097d624)
+*   Require all wallets to unlock before unlocking the system [[97dca26]](https://github.com/basicswap/basicswap/commit/97dca26)
+*   Skip balance-change checks while the system is locked [[4cb0948]](https://github.com/basicswap/basicswap/commit/4cb0948)
+*   Extend the `getnetworkinfo` timeout for slow daemons [[c87723c]](https://github.com/basicswap/basicswap/commit/c87723c)
+*   XMR: only open the wallet when a change is expected [[740360d]](https://github.com/basicswap/basicswap/commit/740360d) and guard wrong-wallet reads [[10ee084]](https://github.com/basicswap/basicswap/commit/10ee084)
+
+### API
+
+*   Use the correct `application/json` header [[d30040e]](https://github.com/basicswap/basicswap/commit/d30040e)
+
+### Tests
+
+*   Add dash and pivx to `test_xmr_persistent.py` [[ddece2f]](https://github.com/basicswap/basicswap/commit/ddece2f)
+*   Add a wallet-encryption option to `test_coins.py` [[2f7c583]](https://github.com/basicswap/basicswap/commit/2f7c583)
+*   Add a test for reverse-swap offer tracking [[6e16fe5]](https://github.com/basicswap/basicswap/commit/6e16fe5)
+*   Add a test for set-destination [[b317e3e]](https://github.com/basicswap/basicswap/commit/b317e3e)
+*   Run prepare in a subprocess to avoid reloading the module [[5e3488f]](https://github.com/basicswap/basicswap/commit/5e3488f)
+
+### Build / Tooling / Refactors
+
+*   Raise version to 0.17.0 [[9f5d4f3]](https://github.com/basicswap/basicswap/commit/9f5d4f3) and update the guix packed version [[a53c8c7]](https://github.com/basicswap/basicswap/commit/a53c8c7)
+*   Split CI into a concurrent matrix [[f73edd2]](https://github.com/basicswap/basicswap/commit/f73edd2)
+*   Bump `actions/cache` and `actions/checkout` [[bc9b610]](https://github.com/basicswap/basicswap/commit/bc9b610) [[259df5a]](https://github.com/basicswap/basicswap/commit/259df5a)
+*   Consolidate linter config and remove unused code [[8aefa28]](https://github.com/basicswap/basicswap/commit/8aefa28) [[d2a5742]](https://github.com/basicswap/basicswap/commit/d2a5742)
+*   Untangle `bin/prepare.py` into per-coin modules [[3b3c665]](https://github.com/basicswap/basicswap/commit/3b3c665)
+*   Migrate `interface/contrib` and chainparams into the coin folders [[9143406]](https://github.com/basicswap/basicswap/commit/9143406) [[2a6f22c]](https://github.com/basicswap/basicswap/commit/2a6f22c)
+*   Add an `xmr_based_coins` list and a `constructUrl` helper [[0bbe34b]](https://github.com/basicswap/basicswap/commit/0bbe34b) [[5637b8f]](https://github.com/basicswap/basicswap/commit/5637b8f)
+
+You can inspect all changes by verifying the [v0.16.6 to v0.17.0 comparison page here](https://github.com/basicswap/basicswap/compare/v0.16.6...v0.17.0).
+
+## Stay Connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

@@ -1,0 +1,132 @@
+---
+// "What you get back" as a bento grid: four compact cards and two wide ones
+// with artwork for the two ideas that set BasicSwap apart (your keys never
+// leave your device; a swap is indistinguishable on-chain). Artwork is
+// decorative and text-free; text comes from the page, unchanged.
+import Icon, { type IconName } from '../Icon.astro';
+import KeysArt from './bento/KeysArt.astro';
+import CipherArt from './bento/CipherArt.astro';
+
+export interface Benefit {
+  n: string;
+  title: string;
+  body: string;
+}
+interface Props {
+  items: Benefit[];
+}
+const { items } = Astro.props;
+const icons: IconName[] = ['key', 'blocks', 'percent', 'userOff', 'eyeOff', 'nodes'];
+const wide = new Set([0, 4]);
+---
+
+<ul class="bento" role="list">
+  {
+    items.map(({ title, body }, i) => (
+      <li class:list={['card', { wide: wide.has(i) }]}>
+        <div class="copy">
+          <span class="icon">
+            <Icon name={icons[i]} size={20} />
+          </span>
+          <h3>{title}</h3>
+          <p set:html={body} />
+        </div>
+        {i === 0 && <div class="art" aria-hidden="true"><KeysArt /></div>}
+        {i === 4 && <div class="art" aria-hidden="true"><CipherArt /></div>}
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .bento {
+    display: grid;
+    gap: var(--space-4);
+    padding: 0;
+    list-style: none;
+  }
+
+  .card {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(120% 80% at 0% 0%, color-mix(in oklab, var(--brand) 7%, transparent), transparent 60%),
+      var(--surface);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .card:hover {
+    border-color: color-mix(in oklab, var(--primary) 60%, var(--border));
+  }
+
+  .copy {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+  }
+
+  .icon {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: var(--space-2);
+    border: 1px solid color-mix(in oklab, var(--brand) 35%, var(--border));
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--brand) 10%, var(--bg));
+    color: var(--link);
+  }
+
+  h3 {
+    font-size: var(--step-1);
+  }
+
+  p {
+    color: var(--text-muted);
+  }
+
+  /* The art sits on the card, not in a panel: it bleeds to the card's sides
+     and bottom and fades in from the copy above it. */
+  .art {
+    position: relative;
+    height: 15rem;
+    margin: 0 calc(-1 * var(--space-6)) calc(-1 * var(--space-6));
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 28%);
+    mask-image: linear-gradient(to bottom, transparent, black 28%);
+  }
+
+  @media (min-width: 40rem) {
+    .bento {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .wide {
+      grid-column: span 2;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: center;
+    }
+
+    /* Wide: the art fills the card's right half, edge to edge, fading in
+       from the copy side. */
+    .wide .art {
+      align-self: stretch;
+      height: auto;
+      min-height: 15rem;
+      margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-6)) calc(-1 * var(--space-6)) 0;
+      -webkit-mask-image: linear-gradient(to right, transparent, black 32%);
+      mask-image: linear-gradient(to right, transparent, black 32%);
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .bento {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,0 +1,458 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { Image, getImage } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/blog/PostCard.astro';
+import AuthorBio from '../../components/blog/AuthorBio.astro';
+import ShareLinks from '../../components/blog/ShareLinks.astro';
+import Icon from '../../components/Icon.astro';
+import { postComponents } from '../../components/blog/mdx';
+import { BLOG_TITLE, type Post, formatDate, getPosts, isoDate, postPath, postUrl, readingTime, relatedPosts, tagPath } from '../../lib/blog';
+import { author as findAuthor } from '../../lib/authors';
+import { SITE_NAME, SITE_URL } from '../../config/site';
+import '../../styles/prose.css';
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}) satisfies GetStaticPaths;
+
+const { post } = Astro.props as { post: Post };
+const { title, description, seoTitle, seoDescription, date, author, tags, thumbnail, banner } = post.data;
+const metaDescription = seoDescription ?? description;
+const { Content, headings } = await render(post);
+const toc = headings.filter((h) => h.depth === 2);
+const writer = findAuthor(author);
+const related = relatedPosts(post, await getPosts());
+const url = postUrl(post);
+
+// Share image: the 1000 x 560 thumbnail, as a JPEG for every platform.
+const share = await getImage({ src: thumbnail, format: 'jpg', width: thumbnail.width });
+const cover = banner ?? thumbnail;
+
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description: metaDescription,
+  datePublished: isoDate(date),
+  dateModified: isoDate(date),
+  url,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+  image: `${SITE_URL}${share.src}`,
+  keywords: tags.join(', '),
+  author: writer.organization ? { '@type': 'Organization', name: author, url: SITE_URL } : { '@type': 'Person', name: author },
+  publisher: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL, logo: { '@type': 'ImageObject', url: `${SITE_URL}/images/basicswap-logo.svg` } },
+};
+const crumbsLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+    { '@type': 'ListItem', position: 3, name: title, item: url },
+  ],
+};
+---
+
+<BaseLayout
+  title={`${seoTitle ?? title} | ${BLOG_TITLE}`}
+  description={metaDescription}
+  path={postPath(post)}
+  ogType="article"
+  ogImage={share.src}
+  ogImageAlt={title}
+  ogImageSize={{ width: thumbnail.width, height: thumbnail.height }}
+  article={{ published: isoDate(date), tags, author }}
+  jsonLd={[articleLd, crumbsLd]}
+>
+  <link slot="head" rel="alternate" type="application/rss+xml" title={BLOG_TITLE} href="/blog/rss.xml" />
+
+  <article class="post">
+    <header class="post-head">
+      <div class="container head-inner">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="/blog"><Icon name="arrowLeft" size={15} />Blog</a>
+          <span aria-hidden="true">/</span>
+          <ul role="list" class="head-tags">
+            {tags.map((tag) => <li><a href={tagPath(tag)}>{tag}</a></li>)}
+          </ul>
+        </nav>
+        <h1>{title}</h1>
+        <p class="lead">{description}</p>
+        <div class="byline">
+          <Image src={writer.avatar} alt="" width={40} height={40} densities={[1, 2]} class="avatar" />
+          <p>
+            <span class="by">By {author}</span>
+            <span class="when">
+              <time datetime={isoDate(date)}>{formatDate(date)}</time>
+              <span aria-hidden="true">·</span>
+              {readingTime(post.body)} min read
+            </span>
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <figure class="cover">
+        <Image src={cover} alt={title} widths={[800, 1280, 1600, 1920].filter((w) => w <= cover.width)} sizes="(min-width: 76rem) 72rem, 100vw" loading="eager" fetchpriority="high" />
+      </figure>
+    </div>
+
+    <div class:list={['container', 'post-layout', { 'has-toc': toc.length > 2 }]}>
+      <div class="prose">
+        <Content components={postComponents} />
+      </div>
+
+      {
+        toc.length > 2 && (
+          <aside class="toc" aria-labelledby="toc-title">
+            <details open data-toc>
+              <summary id="toc-title">On this page</summary>
+              <ol role="list">
+                {toc.map((h) => (
+                  <li>
+                    <a href={`#${h.slug}`}>{h.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </details>
+          </aside>
+        )
+      }
+    </div>
+
+    <footer class="container post-foot">
+      <div class="foot-inner">
+        <div class="share-row">
+          <p class="share-label" data-parity="new">Share this post</p>
+          <ShareLinks url={url} title={title} author={author} description={description} />
+        </div>
+        <AuthorBio name={author} />
+      </div>
+    </footer>
+  </article>
+
+  {
+    related.length > 0 && (
+      <section class="related band" aria-labelledby="related-title">
+        <div class="container">
+          <h2 id="related-title">Related Posts</h2>
+          <div class="related-grid">
+            {related.map((p) => (
+              <PostCard post={p} level={3} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>
+
+<style>
+  /* ---- Header ---- */
+  .post-head {
+    position: relative;
+    padding-block: clamp(2.5rem, 2rem + 3vw, 4.5rem) var(--space-7);
+    overflow: hidden;
+  }
+
+  .post-head::before {
+    content: '';
+    position: absolute;
+    inset: -40% -10% auto 35%;
+    height: 140%;
+    background:
+      radial-gradient(closest-side, color-mix(in oklab, var(--brand) 18%, transparent), transparent),
+      radial-gradient(closest-side at 70% 40%, color-mix(in oklab, var(--accent) 12%, transparent), transparent);
+    pointer-events: none;
+  }
+
+  .head-inner {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .head-inner > * {
+    max-width: 52rem;
+  }
+
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    font-size: var(--step--1);
+  }
+
+  .crumbs > a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--text-muted);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .crumbs > a:hover {
+    color: var(--text);
+  }
+
+  .crumbs > span {
+    color: var(--text-subtle);
+  }
+
+  .head-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .head-tags a {
+    padding: 0.1rem 0.6rem;
+    border: 1px solid color-mix(in oklab, var(--primary) 40%, transparent);
+    border-radius: var(--radius-full);
+    background: color-mix(in oklab, var(--primary) 10%, transparent);
+    color: var(--link);
+    font-size: var(--step--2);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .head-tags a:hover {
+    background: color-mix(in oklab, var(--primary) 20%, transparent);
+  }
+
+  h1 {
+    font-size: var(--step-5);
+    font-weight: 700;
+  }
+
+  .lead {
+    color: var(--text-muted);
+    font-size: var(--step-1);
+    line-height: 1.5;
+  }
+
+  .byline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .byline :global(.avatar) {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    object-fit: cover;
+  }
+
+  .byline p {
+    display: grid;
+    line-height: 1.35;
+  }
+
+  .by {
+    font-weight: 600;
+  }
+
+  .when {
+    display: flex;
+    gap: var(--space-2);
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  /* ---- Cover ---- */
+  .cover {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    box-shadow: 0 30px 80px -40px hsl(var(--shadow-color) / 0.7);
+  }
+
+  .cover :global(img) {
+    width: 100%;
+  }
+
+  /* ---- Body and contents ---- */
+  .post-layout {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-8) var(--space-7);
+  }
+
+  .toc {
+    order: -1;
+  }
+
+  .toc details {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  .toc summary {
+    padding: var(--space-3) var(--space-4);
+    color: var(--text);
+    font-size: var(--step--1);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .toc ol {
+    display: grid;
+    gap: 0.1rem;
+    margin: 0;
+    padding: 0 var(--space-2) var(--space-3);
+    list-style: none;
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.3rem var(--space-3);
+    border-left: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.4;
+    text-decoration: none;
+    transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+
+  .toc a:hover {
+    color: var(--text);
+  }
+
+  .toc a[aria-current='true'] {
+    border-left-color: var(--primary);
+    color: var(--text);
+  }
+
+  @media (min-width: 72rem) {
+    .post-layout.has-toc {
+      grid-template-columns: minmax(0, 46rem) 15rem;
+      justify-content: space-between;
+      gap: var(--space-8);
+    }
+
+    .toc {
+      order: 0;
+    }
+
+    .toc details {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-6));
+      max-height: calc(100dvh - var(--header-h) - var(--space-8));
+      overflow-y: auto;
+      border: 0;
+      background: none;
+    }
+
+    .toc summary {
+      padding: 0 var(--space-3) var(--space-3);
+      color: var(--text-subtle);
+      pointer-events: none;
+      list-style: none;
+    }
+
+    .toc summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .toc ol {
+      padding: 0;
+      border-left: 1px solid var(--border);
+    }
+
+    .toc a {
+      margin-left: -1px;
+    }
+  }
+
+  .post-layout:not(.has-toc) .prose {
+    max-width: 46rem;
+  }
+
+  /* ---- Footer ---- */
+  .post-foot {
+    padding-bottom: var(--section);
+  }
+
+  .foot-inner {
+    display: grid;
+    gap: var(--space-6);
+    max-width: 46rem;
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border);
+  }
+
+  .share-row {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .share-label {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  /* ---- Related ---- */
+  .related {
+    padding-block: var(--space-8) var(--section);
+    background: var(--surface);
+  }
+
+  .related h2 {
+    margin-bottom: var(--space-6);
+    font-size: var(--step-3);
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: var(--space-5);
+  }
+
+  .related-grid :global(.post-card) {
+    background: var(--bg);
+  }
+</style>
+
+<script>
+  // Mark the section being read in "On this page".
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.toc a')];
+  const toc = document.querySelector<HTMLDetailsElement>('[data-toc]');
+  if (toc && matchMedia('(max-width: 71.99rem)').matches) toc.open = false;
+  if (links.length) {
+    const targets = links.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1)))).filter(Boolean) as HTMLElement[];
+    const mark = () => {
+      const y = window.scrollY + window.innerHeight * 0.25;
+      let current = targets[0];
+      for (const t of targets) if (t.offsetTop <= y) current = t;
+      links.forEach((a) => a.setAttribute('aria-current', String(a.hash === `#${current?.id}`)));
+    };
+    let ticking = false;
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          mark();
+          ticking = false;
+        });
+      },
+      { passive: true },
+    );
+    mark();
+  }
+</script>

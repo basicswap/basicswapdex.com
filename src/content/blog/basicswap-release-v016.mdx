@@ -1,0 +1,250 @@
+---
+title: "New BasicSwap Release (v0.16)"
+seoTitle: "BasicSwap v0.16: Electrum Light Wallets"
+date: 2026-04-28
+author: "BasicSwap Team"
+tags: ["News", "Release"]
+description: "A new version of BasicSwap is now available for download."
+seoDescription: "BasicSwap v0.16 brings Electrum light wallets for Bitcoin and Litecoin, Firo Spark addresses, the BCH May 2026 hard fork update and mandatory core upgrades."
+thumbnail: ./images/Medium_BSX_16.jpg
+banner: ./images/Blog_BSX_16.jpg
+---
+BasicSwap v0.16.0 is now available. This post covers changes since v0.15.1, spanning the v0.15.2, v0.15.3, and v0.16.0 updates: Electrum light-wallet support for Bitcoin and Litecoin, Firo Spark address integration, mandatory coin core upgrades, and a range of stability, swap-reliability, and wallet-safety fixes.
+
+<Callout type="warning" title="IMPORTANT: This update is MANDATORY.">
+  This update is **MANDATORY** for two reasons. First, **Litecoin Core must be upgraded to v0.21.5.4**: it includes critical security patches and corrects MWEB input/output accounting. All node operators, miners, and wallet users should upgrade immediately. Second, **Firo Core must be upgraded to v0.14.15.3**, a critical release for all Firo users. Both upgrades are handled automatically by BasicSwap's prepare script.
+</Callout>
+
+Over 130 commits went into these three releases, most of them backend and infrastructure work. The standout addition is Electrum light wallet support for BTC and LTC, previewed in the v0.15.0 release notes, but the UI performance gains are also hard to miss.
+
+## Most Notable Updates 💡
+
+<Callout type="info" title="Noteworthy Updates">
+  This release spans three version tags since v0.15.1. The highlights below cover the most impactful changes across all three.
+</Callout>
+
+### Electrum Light Wallet Support for BTC & LTC ⚡
+
+Bitcoin and Litecoin can now run in BasicSwap without a local full node, as previewed in the v0.15.0 release notes. In Electrum mode, BasicSwap connects to public Electrum servers rather than maintaining a locally synced blockchain, cutting hardware requirements, disk usage, and initial setup time.
+
+<Callout type="info" title="Electrum mode is opt-in">
+  Users who already have synced full nodes can continue using RPC mode exactly as before. Electrum mode is an opt-in setting and does not affect existing installations.
+</Callout>
+
+The electrum implementation is a new module (see `electrumx.py`) implementing the Electrum JSON-RPC protocol with SSL/TLS and Tor support. It handles connection pooling, automatic failover, and all wallet operations BasicSwap requires: balance queries, transaction broadcasting, address derivation, and UTXO management. Multiple public servers are bundled for both coins. For Bitcoin: Blockstream, Emzy, Bitaroo, ACINQ, and StackWallet. For Litecoin: electrum-ltc.bysh.me, xurious, backup.electrum-ltc.org, StackWallet, petrkr, and Jochen Hoenicke.
+
+The integration is Tor-aware. When Tor is enabled, connections route through the proxy automatically, with local and LAN addresses bypassing it to avoid double-encrypting traffic that stays on your network. BIP87 HD derivation is supported, gap-limit enforcement keeps deposit addresses correct, and extended private key support means keys stay portable. Wallets shut down cleanly when BasicSwap exits.
+
+Mode switching is handled in Settings, provided no swaps are active for that coin. Both modes derive from the same seed, so standard BIP84 funds are accessible either way without moving them. The full-node-to-Electrum path consolidates any funds on non-BIP84 addresses to a BIP84 address and shows the extended private key for backup into an external wallet. The Electrum-to-full-node path offers two options: sweep the lite wallet balance across, or leave funds in place and let the full node rescan.
+
+**MWEB addresses are not supported in Electrum mode.** LTC in Electrum mode uses standard Litecoin addresses only.
+
+Fresh installations auto-configure Electrum mode correctly for BTC and LTC. For full setup instructions, configuration options, and custom server setup, see the [Lightweight Modes guide](/docs/user-guides/lightweight-modes).
+
+### Firo Spark Address Support 🔥
+
+Firo's Spark protocol, built on the Lelantus Spark cryptographic scheme, is now integrated into BasicSwap's wallet interface. Spark provides confidential transaction amounts and fully private addresses, going further than Firo's earlier Lelantus protocol.
+
+The Firo wallet page now shows your Spark balance alongside the transparent balance, generates and caches your Spark address automatically, and lets you withdraw directly to a Spark address from the UI, without leaving BasicSwap.
+
+### Mandatory Coin Core Upgrades 🪙
+
+Several coin cores received mandatory or strongly recommended upgrades across this release cycle.
+
+The most critical is **Litecoin Core v0.21.5.4**, introduced in v0.16.0. The upgrade addresses a MWEB input validation bug that was exploited in March 2026, when an attacker used a malformed MWEB input to peg out 85,034 LTC. The funds were recovered through miner coordination and actor cooperation, but a second exploit attempt in April triggered a 13-block invalid chain reorg that affected third-party services including THORChain and NEAR Intents before upgraded miners coordinated to restore the valid chain. The Litecoin project published a [full postmortem covering both incidents](https://litecoin.com/news/litecoin-mweb-security-incident-postmortem). All node operators, miners, and wallet users should upgrade immediately. **Firo Core v0.14.15.3** is equally mandatory; preceded by v0.14.15.2 earlier in the cycle, it is a required update for all Firo users.
+
+Other coin cores were also updated: Bitcoin to v29.3, Monero to v0.18.4.5, Decred to v2.1.3, Dash to v23.1.2 (via incremental bumps from v23.0.2), and Particl to v27.2.3.0. See the [update guide](/docs/user-guides/update) for instructions.
+
+### BCH May 2026 Hard Fork Update 🔀
+
+Bitcoin Cash was upgraded to v29.0.0 ahead of the May 2026 scheduled hard fork. BCH nodes that haven't upgraded before the fork activates will end up on an incompatible chain, breaking BasicSwap's ability to perform BCH swaps. See the [update guide](/docs/user-guides/update) for instructions.
+
+### Wallet Safety & Standardised Naming 🔐
+
+Fresh BasicSwap installations now use `bsx_wallet` as the standard wallet name for Bitcoin-family coins, replacing the legacy `wallet.dat` default. This applies to all BTC-family coins except NAV, FIRO, and DCR, which keep their existing names for compatibility. The change avoids conflicts with other wallet software that uses the same default filename.
+
+BasicSwap also no longer silently creates a new wallet on startup when other wallets already exist on disk. Previously, a name mismatch or unexpected configuration state could cause BasicSwap to generate a fresh HD seed with no user-visible warning. That path is now blocked: if wallets exist on disk, BasicSwap won't create additional ones automatically, and any name mismatch surfaces as an explicit error.
+
+### Swap Reliability Fixes 🔄
+
+Bids stuck in the "Request Accepted" state now time out correctly instead of staying open indefinitely. A gap in the timeout logic had prevented these bids from ever being cleaned up automatically. The fix includes a database migration (data version 8) that runs on startup to bring existing bids in line.
+
+Transaction size estimation for Electrum-based funding was also corrected: fee calculations now use witness-aware vsize rather than raw byte count (the right metric for SegWit), and the change output is factored into the size estimate before it's calculated rather than after. Both fixes prevent fee miscalculations that could result in rejected transactions or overpayment. A separate fix in v0.15.2 addressed a variable name typo in the expiry checking loop that had quietly stopped expired bids and offers from being processed correctly.
+
+### GUI v3.5.0 & UX Polish 🎨
+
+This release brings GUI version 3.5.0. The interface feels faster and more responsive. Better connection management, fewer blocking operations, leaner database queries from the new wallet schema, and less log spam have cut the I/O overhead that was slowing things down, with the biggest gains on pages that load wallet data or track active swaps.
+
+Several UX fixes also shipped. The refresh button is now hidden on completed and inactive swaps, where it served no purpose. Bid page tooltips were corrected to use consistent "adaptor signature" language, and misleading text was removed from states that didn't need tooltips. The MWEB address copy button was fixed: an HTML element ID mismatch had silently broken clipboard copy, so clicking it produced nothing. The price chart now correctly tracks the selected coin in all cases, replacing a hardcoded WOW exception that caused stale data when switching coins. Electrum server connection messages were demoted from INFO to DEBUG, and watched outputs that were never broadcast no longer generate log noise at startup.
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch.
+
+### Docker
+
+If you've installed BasicSwap following the Docker method:
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method:
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+4.  Execute the following command: `pip3 install .`,
+5.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/):
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+### Coin(s)
+
+*   Monero: Upgraded to v0.18.4.4 [[v0.15.2]](https://github.com/basicswap/basicswap/commit/529402c)
+*   Decred: Upgraded to v2.1.2, fix wallet creation [[v0.15.2]](https://github.com/basicswap/basicswap/commit/dc289a1)
+*   Particl: Updated to v27.2.3.0 [[v0.15.2]](https://github.com/basicswap/basicswap/commit/0af7e79)
+*   Bitcoin: Upgraded to v29.2 [[v0.15.3]](https://github.com/basicswap/basicswap/commit/ed6ad63)
+*   Bitcoin: Upgraded to v29.3 [[v0.15.3]](https://github.com/basicswap/basicswap/commit/c41ab51)
+*   Monero: Upgraded to v0.18.4.5 [[v0.15.3]](https://github.com/basicswap/basicswap/commit/985df85)
+*   Decred: Upgraded to v2.1.3 [[v0.15.3]](https://github.com/basicswap/basicswap/commit/2c42629)
+*   Dash: Upgraded to v23.0.2 → v23.1.0 → v23.1.2 [[v0.15.3]](https://github.com/basicswap/basicswap/commit/f668c38)
+*   Firo: Upgraded to v0.14.15.2 [[v0.15.3]](https://github.com/basicswap/basicswap/commit/f52b100)
+*   Firo: Upgraded to v0.14.15.3 **[mandatory]** [[v0.15.3]](https://github.com/basicswap/basicswap/commit/486619c)
+*   Bitcoin Cash: Upgraded to v29.0.0 for May 2026 hard fork [[v0.15.3]](https://github.com/basicswap/basicswap/commit/1687d82)
+*   Litecoin: Upgraded to v0.21.5.4 **[required]** (security updates + MWEB accounting fix) [[v0.16.0]](https://github.com/basicswap/basicswap/commit/dfd4bb5)
+*   Monero: Added "input stream error" to corrupt wallet error detection [[v0.16.0]](https://github.com/basicswap/basicswap/commit/b8f41b2)
+
+### Firo Spark
+
+*   Spark balance display on Firo wallet page [[v0.15.3]](https://github.com/basicswap/basicswap/commit/7ee1cea)
+*   Spark address generation and caching [[v0.15.3]](https://github.com/basicswap/basicswap/commit/caaad81)
+*   Spark address handling and wallet info retrieval [[v0.15.3]](https://github.com/basicswap/basicswap/commit/caaad81)
+*   Spark withdrawal option in wallet UI [[v0.15.3]](https://github.com/basicswap/basicswap/commit/0bf4af1)
+*   Fixed: add `createUTXO` for Firo, fix related tests [[v0.15.3]](https://github.com/basicswap/basicswap/commit/8d150f0)
+
+### Lite Wallets (Electrum)
+
+*   New Electrum interface module (`electrumx.py`) for BTC and LTC [[v0.16.0]](https://github.com/basicswap/basicswap/commit/afae62a)
+*   BIP87 HD derivation support [[v0.16.0]](https://github.com/basicswap/basicswap/commit/7b0925d)
+*   Gap-limit enforcement for deposit addresses [[v0.16.0]](https://github.com/basicswap/basicswap/commit/ff6d1ad)
+*   Extended private key support [[v0.16.0]](https://github.com/basicswap/basicswap/commit/a3e6d0c)
+*   Tor support with private/LAN address detection (bypasses proxy for local servers) [[v0.16.0]](https://github.com/basicswap/basicswap/commit/e67e37b)
+*   Graceful shutdown for Electrum connections [[v0.16.0]](https://github.com/basicswap/basicswap/commit/162254c)
+*   Reduced CLI noise for Electrum server connections (INFO → DEBUG) [[v0.16.0]](https://github.com/basicswap/basicswap/commit/8a86c49)
+*   Added LTC/BTC StackWallet Electrum nodes as defaults [[v0.16.0]](https://github.com/basicswap/basicswap/commit/75f058d)
+*   Fixed: wallet creation (LTC) when switching from Electrum to RPC mode [[v0.16.0]](https://github.com/basicswap/basicswap/commit/eee4585)
+*   Fixed: Electrum broadcast spam [[v0.16.0]](https://github.com/basicswap/basicswap/commit/3fcd700)
+*   Fixed: pre-fund state handling [[v0.16.0]](https://github.com/basicswap/basicswap/commit/f84c463)
+*   Fixed: deposit address gap limit [[v0.16.0]](https://github.com/basicswap/basicswap/commit/f2fff72)
+*   Fixed: waiting on Electrum server and re-checking seed after error [[v0.16.0]](https://github.com/basicswap/basicswap/commit/0dc5284)
+*   Fixed: warning when wallet is locked in Electrum mode [[v0.16.0]](https://github.com/basicswap/basicswap/commit/aeff117)
+*   Fixed: extended private key derivation for Electrum [[v0.16.0]](https://github.com/basicswap/basicswap/commit/a3e6d0c)
+*   Fixed: host:port:ssl string format for Electrum server config in prepare script [[v0.16.0]](https://github.com/basicswap/basicswap/commit/a2c37a1)
+
+### AMM (Automated Market Maker)
+
+*   Fixed: auto-revoke and repost offers after partial fills [[v0.15.3]](https://github.com/basicswap/basicswap/commit/d4d781b)
+*   Removed duplicate `minrate` check [[v0.15.3]](https://github.com/basicswap/basicswap/commit/2e5b8ec)
+
+### Wallet Management
+
+*   Standardised wallet name to `bsx_wallet` for new installs (BTC-family coins, excluding NAV/FIRO/DCR) [[v0.16.0]](https://github.com/basicswap/basicswap/commit/da24823)
+*   Prevented silent wallet creation on startup if wallets already exist on disk [[v0.16.0]](https://github.com/basicswap/basicswap/commit/3c76454)
+*   Fixed: BCH multi-wallet support re-enabled [[v0.16.0]](https://github.com/basicswap/basicswap/commit/3ff67f0)
+*   Wallet tables now use their own database schema (`db_wallet.py`) [[v0.16.0]](https://github.com/basicswap/basicswap/commit/614d29c)
+*   Fixed: remove workaround for blank wallet name [[v0.16.0]](https://github.com/basicswap/basicswap/commit/0061b34)
+
+### UI Code & Experience
+
+*   GUI version 3.5.0 [[v0.16.0]](https://github.com/basicswap/basicswap/commit/c5e703d)
+*   Hide refresh button for completed/inactive swaps [[v0.16.0]](https://github.com/basicswap/basicswap/commit/d155271)
+*   Fixed bid tooltips (adaptor signature / secret hash) and progress bar [[v0.16.0]](https://github.com/basicswap/basicswap/commit/39e134c)
+*   Fixed copyable MWEB address (HTML ID mismatch) [[v0.16.0]](https://github.com/basicswap/basicswap/commit/d8d457e)
+*   Fixed: `currentCoin` always set to `coinSymbol` in price chart (removes hardcoded WOW exception) [[v0.16.0]](https://github.com/basicswap/basicswap/commit/a8d953d)
+*   Fixed bid page various bugs [[v0.16.0]](https://github.com/basicswap/basicswap/commit/38c03a3)
+*   Fixed duplicate bid ID in coin B lock tx submit message [[v0.15.3]](https://github.com/basicswap/basicswap/commit/d1d20e8)
+*   Fixed: coin config file f-strings in Docker build helper [[v0.15.3]](https://github.com/basicswap/basicswap/commit/6ea5261)
+
+### Core Functionality
+
+*   Fixed: bids in "Request Accepted" state now timeout correctly (DB data version → 8) [[v0.16.0]](https://github.com/basicswap/basicswap/commit/8fa0668)
+*   Fixed: witness-aware vsize calculation in `_fundTxElectrum` [[v0.16.0]](https://github.com/basicswap/basicswap/commit/d5a6d63)
+*   Fixed: `getTxVSize` called after change output is added [[v0.16.0]](https://github.com/basicswap/basicswap/commit/bbc5e64)
+*   Fixed: segfault and log spam [[v0.16.0]](https://github.com/basicswap/basicswap/commit/0c0fb83)
+*   Reduced log noise for watched outputs that were never broadcast [[v0.16.0]](https://github.com/basicswap/basicswap/commit/e719ba3)
+*   Fixed: delay checking for expired bids and offers (variable name typo) [[v0.15.2]](https://github.com/basicswap/basicswap/commit/b6af5ee)
+*   Refactor: split watched classes into new file [[v0.15.2]](https://github.com/basicswap/basicswap/commit/6fd324e)
+*   Backports from upstream [[v0.15.2]](https://github.com/basicswap/basicswap/commit/e1bca8e)
+*   Estimate witness stack size correctly for multiple inputs [[v0.15.3]](https://github.com/basicswap/basicswap/commit/ab1f6ea)
+*   DB: enable partial retrievals and updates [[v0.15.3]](https://github.com/basicswap/basicswap/commit/462ac25)
+*   Refactor: use coincurve for `sumKeys` [[v0.15.3]](https://github.com/basicswap/basicswap/commit/a6b5661)
+*   Refactor: simplify `setBidError` [[v0.15.3]](https://github.com/basicswap/basicswap/commit/78b018c)
+*   Refactor: improve shutdown error messages [[v0.15.3]](https://github.com/basicswap/basicswap/commit/f577f84)
+*   Backports from upstream [[v0.15.3]](https://github.com/basicswap/basicswap/compare/v0.15.2...v0.15.3)
+*   Backports from upstream [[v0.16.0]](https://github.com/basicswap/basicswap/commit/360d356)
+
+### Dependencies
+
+*   Bumped `pyzmq` from 26.2.1 to 27.1.0 [[v0.15.2]](https://github.com/basicswap/basicswap/commit/9a863a0)
+*   Updated `coincurve` to rebased version [[v0.15.2]](https://github.com/basicswap/basicswap/commit/bcec90f)
+*   Bumped `python-gnupg` from 0.5.5 to 0.5.6 [[v0.15.3]](https://github.com/basicswap/basicswap/commit/e6dca30)
+
+### Tests
+
+*   Added base for Electrum functional tests [[v0.16.0]](https://github.com/basicswap/basicswap/commit/604171c)
+*   Added ElectrumX server setup per coin in test helpers [[v0.16.0]](https://github.com/basicswap/basicswap/commit/8078805)
+*   Added `wait_for_bid_state` helper function [[v0.16.0]](https://github.com/basicswap/basicswap/commit/1ca454b)
+*   Fixed `countEvents` [[v0.15.3]](https://github.com/basicswap/basicswap/commit/52da86b)
+*   Various test updates for wallet naming and multiprocess spawn [[v0.16.0]](https://github.com/basicswap/basicswap/commit/19d7d0a)
+
+### Build
+
+*   Raise version to 0.15.2 / 0.15.3 / 0.16.0
+*   Updated guix packed versions
+
+You can inspect all changes by verifying the [v0.15.1 comparison page here](https://github.com/basicswap/basicswap/compare/v0.15.1...v0.16.0).
+
+## Contributors 🙏
+
+<Callout type="success" title="Community-Driven Development">
+  BasicSwap v0.16.0 was built by a distributed group of open-source contributors. Thanks to everyone who shipped code, reported bugs, and tested throughout this cycle.
+</Callout>
+
+🏗️ **Tecnovert**: Core infrastructure improvements, wallet naming standardisation, coincurve refactoring, database partial retrieval support, witness stack estimation, Decred wallet creation fixes, and upstream backports throughout the cycle.
+
+🎨 **Crz** ([@gerlof](https://twitter.com/gerlof)): Primary author of the Electrum light wallet integration: the full `electrumx.py` module, Tor-aware connection management, Electrum stability improvements, wallet safety hardening, AMM partial fill fixes, and GUI v3.5.0 polish.
+
+🪙 **nahuhh**: Litecoin v0.21.5.4 mandatory upgrade, BCH May 2026 hard fork preparation, Monero daemon bumps, Dash upgrades, MWEB copy button fix, and XMR corrupt wallet detection improvements.
+
+⚡ **dhvll (Dhaval Chaudhari)**: Firo Spark integration: balance display, address generation, caching, and withdrawal functionality in the wallet UI.
+
+📈 **muscleman**: Price chart `currentCoin` fix, making the chart reflect the selected coin correctly for all coins instead of relying on a hardcoded exception.
+
+🐳 **ashley-logan**: Fixed the Docker config helper f-string bug that was preventing correct YAML generation for Monero and Wownero.
+
+---
+
+**Thank you to all contributors, testers, and community members for your continued support.** 🚀
+
+---
+
+## Stay Connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

@@ -1,0 +1,335 @@
+---
+// "How this compares" on the Bitcoin to Monero page: three questions first
+// (who holds the coins, who can stop the trade, what data you give up), each
+// a line from "nobody" to "a company" with the tools placed along it. Tools
+// at the same spot share one dot and one label, and the labels alternate
+// above and below the line. Then the rest of the comparison as a table, a
+// status mark in every cell. The data is btm-tables.json; a cell's text is
+// our own trusted HTML, so it can hold links.
+interface Cell {
+  text: string;
+  s: string;
+}
+interface Props {
+  tools: { name: string; kind: string }[];
+  rows: { label: string; cells: Cell[] }[];
+}
+const { tools, rows } = Astro.props;
+
+// Where each tool sits from 0 (nobody) to 100 (a company), in the tools' order.
+const TRACKS = [
+  { label: 'Who holds the coins', from: 'Nobody', to: 'A company', at: [4, 4, 36, 74, 96] },
+  { label: 'Who can stop the trade', from: 'Nobody', to: 'A company, any time', at: [4, 4, 40, 74, 96] },
+  { label: 'What data you give up', from: 'Nothing', to: 'Your identity and history', at: [4, 4, 4, 62, 96] },
+];
+// the tools at each spot, ordered along the line
+const groups = (at: number[]) =>
+  [...new Set(at)]
+    .sort((a, b) => a - b)
+    .map((x) => ({ x, names: tools.map((t, i) => ({ name: t.name, ours: i === 0, at: at[i] })).filter((n) => n.at === x) }));
+// labels near either end line up with it, so they stay inside the line
+const edge = (x: number) => (x < 15 ? 'start' : x > 85 ? 'end' : '');
+
+// the table leaves out the rows the lines already cover
+const ON_LINES = new Set(['Who holds the coins mid-trade', 'Third party who can stop it']);
+const rest = rows.filter((r) => !ON_LINES.has(r.label));
+
+const MARK: Record<string, { icon: string; label: string }> = {
+  good: { icon: '<path d="M5 12.5 10 17.5 19 7"/>', label: 'Yes' },
+  mid: { icon: '<path d="M7 12h10"/>', label: 'Partly' },
+  bad: { icon: '<path d="M7 7l10 10M17 7 7 17"/>', label: 'No' },
+};
+---
+
+<div class="cmp">
+  <div class="lines">
+    {
+      TRACKS.map(({ label, from, to, at }) => (
+        <div class="q">
+          <p class="q-label">{label}</p>
+          <div class="axis" role="img" aria-label={`${label}, from ${from} to ${to}: ${groups(at).map(({ names }) => names.map((n) => n.name).join(' and ')).join(', then ')}.`}>
+            <span class="line" />
+            {groups(at).map(({ x, names }, g) => (
+              <span class:list={['pt', g % 2 ? 'below' : 'above', edge(x)]} style={`--at:${x}`} aria-hidden="true">
+                <span class:list={['dot', { ours: names.some((n) => n.ours) }]} />
+                <span class="tag">
+                  {names.map((n, k) => (
+                    <>
+                      {k > 0 && <span class="sep"> · </span>}
+                      <span class:list={{ ours: n.ours }}>{n.name}</span>
+                    </>
+                  ))}
+                </span>
+              </span>
+            ))}
+          </div>
+          <p class="ends">
+            <span>{from}</span>
+            <span>{to}</span>
+          </p>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="table-wrap rest">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <td></td>
+          {
+            tools.map(({ name, kind }, i) => (
+              <th scope="col" class:list={{ ours: i === 0 }}>
+                <span class="t-name">{name}</span>
+                <span class="t-kind">{kind}</span>
+              </th>
+            ))
+          }
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rest.map(({ label, cells }) => (
+            <tr>
+              <th scope="row">{label}</th>
+              {cells.map(({ text, s }, i) => (
+                <td class:list={[`s-${s}`, { ours: i === 0 }]}>
+                  <span class="cell">
+                    <span class="mark" title={MARK[s].label}>
+                      <svg viewBox="0 0 24 24" set:html={MARK[s].icon} />
+                    </span>
+                    <span set:html={text} />
+                  </span>
+                </td>
+              ))}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .cmp {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  /* ---- the three lines ---- */
+  .lines {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .q {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .q-label {
+    color: var(--text);
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  .axis {
+    position: relative;
+    height: 4.6rem;
+    margin-inline: 0.5rem;
+  }
+
+  /* green where nobody is involved, red where a company is */
+  .line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 3px;
+    translate: 0 -50%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--success), var(--warning) 50%, var(--destructive));
+    opacity: 0.75;
+  }
+
+  .pt {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--at) * 1%);
+    translate: -50% -50%;
+  }
+
+  .dot {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--surface);
+    border-radius: var(--radius-full);
+    background: var(--text-muted);
+  }
+
+  .dot.ours {
+    background: var(--primary);
+    box-shadow: 0 0 10px var(--primary);
+  }
+
+  .tag {
+    position: absolute;
+    left: 50%;
+    translate: -50% 0;
+    color: var(--text-muted);
+    font-size: var(--step--2);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .tag .ours {
+    color: var(--link);
+  }
+
+  .sep {
+    color: var(--text-subtle);
+  }
+
+  .above .tag {
+    bottom: 1.1rem;
+  }
+
+  .below .tag {
+    top: 1.1rem;
+  }
+
+  .start .tag {
+    left: -0.3rem;
+    translate: 0 0;
+  }
+
+  .end .tag {
+    left: auto;
+    right: -0.3rem;
+    translate: 0 0;
+  }
+
+  .ends {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  @media (min-width: 48rem) {
+    .q {
+      grid-template-columns: 12rem minmax(0, 1fr);
+      column-gap: var(--space-5);
+      align-items: center;
+    }
+
+    .ends {
+      grid-column: 2;
+    }
+  }
+
+  /* on phones a shared label wraps, so each line gets room for it */
+  @media (max-width: 47.99rem) {
+    .axis {
+      height: 8rem;
+    }
+
+    .tag {
+      width: max-content;
+      max-width: 10rem;
+      white-space: normal;
+    }
+
+    .end .tag {
+      text-align: right;
+    }
+
+    .above .tag {
+      bottom: 1rem;
+    }
+  }
+
+  /* ---- the table ---- */
+  .s-good {
+    --m: var(--success);
+  }
+
+  .s-mid {
+    --m: var(--warning);
+  }
+
+  .s-bad {
+    --m: var(--destructive);
+  }
+
+  .mark {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: 0.15em;
+    border-radius: var(--radius-full);
+    background: color-mix(in oklab, var(--m) 16%, transparent);
+    color: var(--m);
+  }
+
+  .mark svg {
+    width: 70%;
+    height: 70%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .cell {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+
+  .t-name {
+    display: block;
+    font-weight: 600;
+  }
+
+  .t-kind {
+    display: block;
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    font-weight: 400;
+  }
+
+  .rest .ours {
+    background: color-mix(in oklab, var(--brand) 9%, transparent);
+  }
+
+  .rest thead .ours {
+    color: var(--link);
+    box-shadow: inset 0 3px 0 var(--primary);
+  }
+
+  .rest thead th {
+    vertical-align: bottom;
+  }
+
+  .rest table {
+    min-width: 60rem;
+  }
+
+  /* on narrow screens the table scrolls, and the row labels stay put */
+  .rest tbody th,
+  .rest thead td {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 10rem;
+    background: var(--surface);
+    box-shadow: 1px 0 0 var(--border);
+  }
+</style>

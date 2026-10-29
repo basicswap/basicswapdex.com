@@ -1,0 +1,44 @@
+---
+// A highlighted box in a docs page, for a block that stands apart from the
+// text around it (an install method, a definition).
+interface Props {
+  title?: string;
+}
+const { title } = Astro.props;
+---
+
+<div class="panel flow">
+  {title && <p class="panel-title">{title}</p>}
+  <slot />
+</div>
+
+<style>
+  .panel {
+    --flow: 0.9em;
+    margin-block: var(--space-5);
+    padding: var(--space-5);
+    border: 1px solid color-mix(in oklab, var(--primary) 30%, var(--border));
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(120% 120% at 0% 0%, color-mix(in oklab, var(--brand) 12%, transparent), transparent 60%),
+      radial-gradient(120% 120% at 100% 100%, color-mix(in oklab, var(--accent) 9%, transparent), transparent 60%),
+      var(--surface);
+  }
+
+  .panel > :global(:first-child) {
+    margin-top: 0;
+  }
+
+  .panel :global(h3),
+  .panel :global(h4),
+  .panel-title {
+    margin-top: 0;
+    color: var(--text);
+    font-size: var(--step-1);
+    font-weight: 650;
+  }
+
+  .panel :global(h3::before) {
+    display: none;
+  }
+</style>

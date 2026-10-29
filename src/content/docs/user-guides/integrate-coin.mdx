@@ -1,0 +1,29 @@
+---
+title: "Integrate a coin"
+sidebar: "Integrate a Coin"
+seoTitle: "Integrate a New Coin into BasicSwap"
+description: "What a blockchain needs before BasicSwap can support it, such as script support, timelocks and watch-only wallets, and how earlier coin integrations were built."
+published: 2025-03-14
+---
+BasicSwap adds coins through open-source contributions, so anyone can write an integration and propose it as a pull request on [GitHub](https://github.com/basicswap/basicswap). Once the maintainers merge and release it, every BasicSwap that updates can trade the coin. There's no template that fits every chain, though. Every integration has to fit the coin's own node software, wallet and transaction format, so it helps to know what BasicSwap needs before starting.
+
+## What a coin needs
+
+The usual case is a UTXO coin whose node descends from Bitcoin Core. Such a coin can take part in secret-hash swaps, and with the right features in adaptor-signature swaps too, if it has:
+
+- **UTXO scripts**, so a swap can lock coins under conditions.
+- **A timelock**, either CheckLockTimeVerify (CLTV) or CheckSequenceVerify (CSV), so each side can get its coins back from a failed swap.
+- **Watch-only addresses**, so BasicSwap can follow the other trader's lock transaction without holding its keys.
+- **A wallet that takes its seed from a key**, so the coin's wallet comes from the user's one recovery phrase.
+
+Segwit makes integration simpler, but it isn't required, and Dash, PIVX, Firo and Bitcoin Cash all run without it. Coins without scripts, such as Monero and Wownero, can still swap through adaptor signatures, as long as the other coin in the pair has scripts.
+
+## Supported coins
+
+<CoinTable />
+
+## Earlier integrations
+
+Reading the work behind a similar coin is the best way to start. Dash went in over three commits, [the first](https://github.com/basicswap/basicswap/commit/7298867e18efbaf1a6630769da651084ea8e954c), [the second](https://github.com/basicswap/basicswap/commit/4866ff4db89593472d21261ebbbb6a87e3f1f922) and [the third](https://github.com/basicswap/basicswap/commit/aa14da27af33b5b02845d6c87e32b46e57d741a4), while PIVX arrived in [a single commit](https://github.com/basicswap/basicswap/commit/d74699992be727ea4bb6df0871da5983ef775566). Decred, Wownero and Firo each have a branch of their own, [decred](https://github.com/basicswap/basicswap/commits/decred), [wow](https://github.com/basicswap/basicswap/commits/wow) and [firo](https://github.com/basicswap/basicswap/commits/firo), where you can follow the integration commit by commit.
+
+Each coin's code lives in its own folder under [`basicswap/interface`](https://github.com/basicswap/basicswap/tree/master/basicswap/interface), with a `core.py` that downloads and sets up its node alongside a module for its wallet calls. The repository's [`doc/protocols`](https://github.com/basicswap/basicswap/tree/master/doc/protocols) folder describes the protocols themselves. Before writing code, ask in the [BasicSwap Matrix room](https://matrix.to/#/#basicswap:matrix.org), where the maintainers can say whether a coin is likely to fit and what it would take.

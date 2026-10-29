@@ -1,0 +1,681 @@
+---
+// Which coins swap with which, and by what method. Data from the legacy
+// Desktop page. Cells: A adaptor signature, H secret hash, V one-time VES.
+// Columns are the coin you send, rows the coin you receive.
+//
+// On top, a pair finder: pick what you send and receive, read whether and how
+// it swaps, and see the cell light up below (src/scripts/compat-matrix.ts).
+// The table groups the coins (with scripts, Particl's private balances, the
+// scriptless CryptoNote coins), shows logos and marks (the letters stay as
+// text for screen readers), and draws a crosshair on the hovered cell. Below
+// 48rem it turns into a list, one coin per row. Without JS the table and list
+// still work; only the finder and the crosshair need it.
+import { getImage } from 'astro:assets';
+import bitcoin from '../../assets/coins/bitcoin-circle.png';
+import monero from '../../assets/coins/monero-circle.png';
+import litecoin from '../../assets/coins/litecoin-circle.png';
+import particl from '../../assets/coins/particl-circle.png';
+import bch from '../../assets/coins/bitcoin-cash-circle.png';
+import dash from '../../assets/coins/dash-circle.png';
+import decred from '../../assets/coins/decred-circle.png';
+import firo from '../../assets/coins/firo-circle.png';
+import doge from '../../assets/coins/dogecoin-circle.png';
+import pivx from '../../assets/coins/pivx-circle.png';
+import wownero from '../../assets/coins/wownero-circle.png';
+
+// The legacy order and data: LEGACY[receive][send].
+const LEGACY_COLS = ['BTC', 'BCH', 'DASH', 'DCR', 'DOGE', 'FIRO', 'LTC', 'NMC', 'PART', 'PART anon', 'PART blind', 'PIVX', 'WOW', 'XMR'];
+const LEGACY: Record<string, string[]> = {
+  BTC: ['', 'A', 'AH', 'AH', 'A', 'A', 'AH', 'AH', 'AH', 'A', 'A', 'AH', 'A', 'A'],
+  BCH: ['A', '', '', 'A', '', '', 'A', 'A', 'A', 'V', 'A', '', 'V', 'V'],
+  DASH: ['AH', '', '', 'AH', '', '', 'AH', 'AH', 'AH', '', 'A', 'H', '', ''],
+  DCR: ['AH', 'A', 'AH', '', 'A', 'A', 'AH', 'AH', 'AH', 'A', 'A', 'AH', 'A', 'A'],
+  DOGE: ['A', '', '', 'A', '', '', 'A', 'A', 'A', '', 'A', '', '', ''],
+  FIRO: ['A', '', '', 'A', '', '', 'A', 'A', 'A', '', 'A', '', '', ''],
+  LTC: ['AH', 'A', 'AH', 'AH', 'A', 'A', '', 'AH', 'AH', 'A', 'A', 'AH', 'A', 'A'],
+  NMC: ['AH', 'A', 'AH', 'AH', 'A', 'A', 'AH', '', 'AH', 'A', 'A', 'AH', 'A', 'A'],
+  PART: ['AH', 'A', 'AH', 'AH', 'A', 'A', 'AH', 'AH', '', 'A', 'A', 'AH', 'A', 'A'],
+  'PART anon': ['A', 'V', '', 'A', '', '', 'A', 'A', 'A', '', 'A', '', '', ''],
+  'PART blind': ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', '', '', 'A', 'A'],
+  PIVX: ['AH', '', 'H', 'AH', '', '', 'AH', 'AH', 'AH', '', '', '', '', ''],
+  WOW: ['A', 'V', '', 'A', '', '', 'A', 'A', 'A', '', 'A', '', '', ''],
+  XMR: ['A', 'V', '', 'A', '', '', 'A', 'A', 'A', '', 'A', '', '', ''],
+};
+const method = (send: string, recv: string) => LEGACY[recv][LEGACY_COLS.indexOf(send)];
+
+// Grouped, so the structure shows.
+const GROUPS = [
+  { label: 'Coins with scripts', coins: ['BTC', 'BCH', 'DASH', 'DCR', 'DOGE', 'FIRO', 'LTC', 'NMC', 'PART', 'PIVX'] },
+  { label: 'Particl private balances', coins: ['PART anon', 'PART blind'] },
+  { label: 'Scriptless (CryptoNote)', coins: ['WOW', 'XMR'] },
+];
+const COINS = GROUPS.flatMap((g) => g.coins);
+const groupStart = new Set(GROUPS.slice(1).map((g) => g.coins[0]));
+
+const NAMES: Record<string, string> = {
+  BTC: 'Bitcoin', BCH: 'Bitcoin Cash', DASH: 'Dash', DCR: 'Decred', DOGE: 'Dogecoin', FIRO: 'Firo',
+  LTC: 'Litecoin', NMC: 'Namecoin', PART: 'Particl', 'PART anon': 'Particl (anon)', 'PART blind': 'Particl (blind)',
+  PIVX: 'PIVX', WOW: 'Wownero', XMR: 'Monero',
+};
+const LOGOS: Record<string, ImageMetadata> = {
+  BTC: bitcoin, BCH: bch, DASH: dash, DCR: decred, DOGE: doge, FIRO: firo, LTC: litecoin,
+  PART: particl, 'PART anon': particl, 'PART blind': particl, PIVX: pivx, WOW: wownero, XMR: monero,
+};
+const logo = Object.fromEntries(
+  await Promise.all(Object.entries(LOGOS).map(async ([k, src]) => [k, (await getImage({ src, width: 40, height: 40, format: 'webp' })).src])),
+) as Record<string, string>;
+
+const split = (label: string) => {
+  const [coin, variant] = label.split(' ');
+  return { coin, variant };
+};
+
+// Per coin, for the phone list: what it can be sent for.
+const list = COINS.map((send) => ({
+  send,
+  pairs: COINS.filter((recv) => recv !== send && method(send, recv)).map((recv) => ({ recv, m: method(send, recv) })),
+}));
+
+const finderData = { coins: COINS, names: NAMES, logos: logo, cols: LEGACY_COLS, cells: LEGACY };
+---
+
+<div class="compat">
+  <div class="finder" data-parity="new" hidden data-compat={JSON.stringify(finderData)}>
+    <label class="pick">
+      <span class="pick-label">You send</span>
+      <span class="pick-field">
+        <img class="pick-logo" data-for="send" src={logo.BTC} alt="" width="20" height="20" />
+        <select data-side="send">{COINS.map((c) => <option value={c} selected={c === 'BTC'}>{NAMES[c]} ({c})</option>)}</select>
+      </span>
+    </label>
+    <button class="flip" type="button" aria-label="Swap the two coins">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3" /></svg>
+    </button>
+    <label class="pick">
+      <span class="pick-label">You receive</span>
+      <span class="pick-field">
+        <img class="pick-logo" data-for="recv" src={logo.XMR} alt="" width="20" height="20" />
+        <select data-side="recv">{COINS.map((c) => <option value={c} selected={c === 'XMR'}>{NAMES[c]} ({c})</option>)}</select>
+      </span>
+    </label>
+    <div class="answer" aria-live="polite">
+      <p class="verdict"></p>
+      <p class="how"></p>
+    </div>
+  </div>
+
+  <div class="legend" data-parity="new">
+    <ul role="list">
+      <li><span class="mk mk-a" aria-hidden="true"></span> adaptor signature</li>
+      <li><span class="mk mk-h" aria-hidden="true"></span> secret hash</li>
+      <li><span class="mk mk-v" aria-hidden="true"></span> one-time VES</li>
+      <li><span class="mk mk-none" aria-hidden="true"></span> not compatible</li>
+    </ul>
+    <p class="axis">columns: you send &middot; rows: you receive</p>
+  </div>
+
+  <div class="scroller" tabindex="0" role="region" aria-label="Coin compatibility matrix">
+    <table class="matrix data">
+      <thead>
+        <tr class="groups" data-parity="new">
+          <td></td>
+          {GROUPS.map((g, i) => <th scope="colgroup" colspan={g.coins.length} class:list={{ gs: i > 0 }}>{g.label}</th>)}
+        </tr>
+        <tr>
+          <td class="corner"></td>
+          {
+            COINS.map((c, i) => {
+              const { coin, variant } = split(c);
+              return (
+                <th scope="col" data-c={i} class:list={{ gs: groupStart.has(c) }}>
+                  {logo[c] ? <img src={logo[c]} alt="" width="20" height="20" loading="lazy" /> : <span class="initial" aria-hidden="true">{coin[0]}</span>}
+                  <span class="tk">{coin}</span>
+                  {variant && <span class="variant">{variant}</span>}
+                </th>
+              );
+            })
+          }
+        </tr>
+      </thead>
+      <tbody>
+        {
+          GROUPS.map((g, gi) =>
+            g.coins.map((recv, k) => {
+              const r = COINS.indexOf(recv);
+              const { coin, variant } = split(recv);
+              return (
+                <tr class:list={{ gs: gi > 0 && k === 0 }}>
+                  <th scope="row" data-r={r}>
+                    {logo[recv] ? <img src={logo[recv]} alt="" width="20" height="20" loading="lazy" /> : <span class="initial" aria-hidden="true">{coin[0]}</span>}
+                    {coin}
+                    {variant && <span class="variant"> {variant}</span>}
+                  </th>
+                  {COINS.map((send, c) => {
+                    const m = send === recv ? '' : method(send, recv);
+                    return (
+                      <td data-r={r} data-c={c} class:list={{ self: send === recv, gs: groupStart.has(send) }}>
+                        {m.includes('A') && <span class="m a">A</span>}
+                        {m.includes('A') && m.includes('H') && ' '}
+                        {m.includes('H') && <span class="m h">H</span>}
+                        {m.includes('V') && <span class="m v">V</span>}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            }),
+          )
+        }
+      </tbody>
+    </table>
+  </div>
+
+  {/* phones: one coin per row, its pairs inside */}
+  <ul class="by-coin" role="list" data-parity="new">
+    {
+      list.map(({ send, pairs }) => (
+        <li>
+          <details>
+            <summary>
+              {logo[send] ? <img src={logo[send]} alt="" width="24" height="24" loading="lazy" /> : <span class="initial" aria-hidden="true">{send[0]}</span>}
+              <span class="who">
+                <b>{NAMES[send]}</b>
+                <span>swaps with {pairs.length} coins</span>
+              </span>
+            </summary>
+            <ul role="list">
+              {pairs.map(({ recv, m }) => (
+                <li>
+                  {logo[recv] ? <img src={logo[recv]} alt="" width="18" height="18" loading="lazy" /> : <span class="initial sm" aria-hidden="true">{recv[0]}</span>}
+                  <span class="data">{recv}</span>
+                  <span class="marks">
+                    {m.includes('A') && <span class="mk mk-a" title="adaptor signature" />}
+                    {m.includes('H') && <span class="mk mk-h" title="secret hash" />}
+                    {m.includes('V') && <span class="mk mk-v" title="one-time VES" />}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </li>
+      ))
+    }
+  </ul>
+
+  {/* the legacy legend, kept as text for parity and screen readers */}
+  <ul class="visually-hidden" role="list">
+    <li><span class="data">A</span> adaptor signature</li>
+    <li><span class="data">H</span> secret hash</li>
+    <li><span class="data">V</span> one-time VES</li>
+    <li><span class="data">blank</span> not compatible</li>
+  </ul>
+  <p class="visually-hidden">columns send &middot; rows receive</p>
+</div>
+
+<script>
+  import '../../scripts/compat-matrix';
+</script>
+
+<style>
+  .compat {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  /* ---- the pair finder ---- */
+  .finder {
+    gap: var(--space-4);
+    align-items: end;
+    padding: var(--space-5);
+    border: 1px solid transparent;
+    border-radius: 1.25rem;
+    background:
+      radial-gradient(60% 120% at 100% 0%, color-mix(in oklab, var(--brand) 12%, transparent), transparent 70%) padding-box,
+      linear-gradient(to bottom, color-mix(in oklab, var(--surface) 70%, var(--bg)), var(--bg)) padding-box,
+      linear-gradient(180deg, color-mix(in oklab, var(--brand) 40%, var(--border)), var(--border) 45%) border-box;
+  }
+
+  .finder:not([hidden]) {
+    display: grid;
+  }
+
+  .pick {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .pick-label {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .pick-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .pick-logo {
+    position: absolute;
+    left: 0.75rem;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .pick select {
+    width: 100%;
+    min-height: 2.9rem;
+    padding: 0.55rem 2.25rem 0.55rem 2.6rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 0.75rem center / 1rem no-repeat,
+      var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .pick select:focus-visible,
+  .flip:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  .flip {
+    display: grid;
+    place-items: center;
+    justify-self: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease), rotate var(--dur-slow) var(--ease);
+  }
+
+  .flip:hover {
+    border-color: var(--primary);
+    color: var(--text);
+    rotate: 180deg;
+  }
+
+  .flip svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .answer {
+    display: grid;
+    gap: var(--space-1);
+    align-self: center;
+  }
+
+  .verdict {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text);
+    font-size: var(--step-1);
+    font-weight: 600;
+  }
+
+  .verdict.no {
+    color: var(--text-muted);
+  }
+
+  .how {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  @media (min-width: 56rem) {
+    .finder:not([hidden]) {
+      grid-template-columns: minmax(0, 13rem) auto minmax(0, 13rem) minmax(0, 1fr);
+      gap: var(--space-4) var(--space-5);
+    }
+
+    .flip {
+      margin-bottom: 0.15rem;
+    }
+
+    .answer {
+      padding-left: var(--space-4);
+      border-left: 1px solid var(--border);
+    }
+  }
+
+  /* ---- marks ---- */
+  .compat :global(.mk) {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 0.62rem;
+    height: 0.62rem;
+    vertical-align: middle;
+  }
+
+  .compat :global(.mk-a) {
+    border-radius: 50%;
+    background: var(--link);
+    box-shadow: 0 0 8px color-mix(in oklab, var(--link) 60%, transparent);
+  }
+
+  .compat :global(.mk-h) {
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+  }
+
+  .compat :global(.mk-v) {
+    width: 0.55rem;
+    height: 0.55rem;
+    rotate: 45deg;
+    border-radius: 1px;
+    background: var(--success);
+  }
+
+  .compat :global(.mk-none) {
+    width: 0.9rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--border-strong);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-6);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .legend ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    padding: 0;
+    list-style: none;
+  }
+
+  .legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .axis {
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  /* ---- the table ---- */
+  .scroller {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+  }
+
+  .matrix {
+    width: 100%;
+    min-width: 50rem;
+    border-collapse: collapse;
+    font-size: var(--step--2);
+    text-align: center;
+  }
+
+  th,
+  td {
+    padding: 0.55rem 0.35rem;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+    white-space: nowrap;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+
+  /* a heavier rule between the groups */
+  td.gs,
+  th.gs {
+    border-left: 2px solid var(--border-strong);
+  }
+
+  tr.gs > * {
+    border-top: 2px solid var(--border-strong);
+  }
+
+  .groups th {
+    padding-block: 0.45rem;
+    background: color-mix(in oklab, var(--surface) 60%, var(--bg));
+    color: var(--text-subtle);
+    font-family: var(--font-sans);
+    font-size: var(--step--2);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .groups td,
+  .corner {
+    background: var(--surface);
+  }
+
+  thead th[scope='col'] {
+    color: var(--text);
+    font-weight: 600;
+    background: var(--surface);
+    vertical-align: bottom;
+  }
+
+  thead th[scope='col'] img,
+  thead th[scope='col'] .initial {
+    display: block;
+    margin: 0 auto 0.35rem;
+  }
+
+  img,
+  .initial {
+    border-radius: 50%;
+  }
+
+  .initial {
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    background: #2f6db3;
+    color: #fff;
+    font: 700 0.65rem var(--font-sans);
+  }
+
+  .initial.sm {
+    width: 18px;
+    height: 18px;
+  }
+
+  .tk {
+    display: block;
+  }
+
+  tbody th {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    padding-inline: var(--space-3);
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    text-align: left;
+  }
+
+  tbody th img,
+  tbody th .initial {
+    display: inline-block;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .variant {
+    display: block;
+    color: var(--text-subtle);
+    font-weight: 400;
+  }
+
+  tbody th .variant {
+    display: inline;
+  }
+
+  tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  .self {
+    background: repeating-linear-gradient(135deg, transparent 0 4px, var(--border) 4px 5px);
+  }
+
+  /* the letters stay in the text; the marks replace them on screen */
+  td .m {
+    display: inline-block;
+    width: 0.62rem;
+    height: 0.62rem;
+    margin-inline: 0.12rem;
+    overflow: hidden;
+    color: transparent;
+    font-size: 0;
+    vertical-align: middle;
+  }
+
+  td .a {
+    border-radius: 50%;
+    background: var(--link);
+    box-shadow: 0 0 8px color-mix(in oklab, var(--link) 55%, transparent);
+  }
+
+  td .h {
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+  }
+
+  td .v {
+    width: 0.55rem;
+    height: 0.55rem;
+    rotate: 45deg;
+    border-radius: 1px;
+    background: var(--success);
+  }
+
+  /* the crosshair (set by the script) and the finder's pair */
+  .matrix :global(.x-row:not(.self)),
+  .matrix :global(.x-col:not(.self)) {
+    background: color-mix(in oklab, var(--primary) 9%, transparent);
+  }
+
+  .matrix :global(th.x-row),
+  .matrix :global(th.x-col) {
+    background: color-mix(in oklab, var(--primary) 22%, var(--surface));
+    color: #fff;
+  }
+
+  .matrix :global(td.x-cell) {
+    background: color-mix(in oklab, var(--primary) 26%, transparent);
+    box-shadow: inset 0 0 0 2px var(--primary);
+  }
+
+  /* ---- phones: the list ---- */
+  .by-coin {
+    display: none;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+  }
+
+  .by-coin > li + li {
+    border-top: 1px solid var(--border);
+  }
+
+  .by-coin summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .by-coin summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .by-coin summary::after {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-left: auto;
+    border-right: 2px solid var(--text-subtle);
+    border-bottom: 2px solid var(--text-subtle);
+    rotate: 45deg;
+    transition: rotate var(--dur) var(--ease);
+  }
+
+  .by-coin details[open] summary::after {
+    rotate: 225deg;
+  }
+
+  .who {
+    display: grid;
+  }
+
+  .who b {
+    color: var(--text);
+  }
+
+  .who span {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .by-coin details ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2) var(--space-4);
+    padding: 0 var(--space-4) var(--space-4);
+    margin: 0;
+    list-style: none;
+  }
+
+  .by-coin details li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .marks {
+    display: inline-flex;
+    gap: 0.3rem;
+    margin-left: auto;
+  }
+
+  @media (max-width: 47.99rem) {
+    .scroller,
+    .legend .axis {
+      display: none;
+    }
+
+    .by-coin {
+      display: block;
+    }
+  }
+</style>

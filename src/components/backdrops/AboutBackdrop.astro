@@ -1,0 +1,241 @@
+---
+// The About hero's backdrop, "Strata": a decade of work as layers of line,
+// laid down one over another. The oldest sit packed at the bottom, the newer
+// open out above; each drifts at its own pace, and light runs along a few.
+// On top, the newest layer draws itself in ("the latest layer in over a
+// decade of work"), and faint marks name the years the page mentions. Spans
+// the hero, fading in from the left where the copy sits. Still for reduced
+// motion.
+let seed = 23;
+const rand = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+const r1 = (n: number) => Math.round(n * 10) / 10;
+
+const W = 2000;
+const H = 860;
+
+/** A smooth path through points (Catmull-Rom as cubic Béziers). */
+const smooth = (pts: [number, number][]) => {
+  let d = `M${r1(pts[0][0])} ${r1(pts[0][1])}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+    d += ` C${r1(p1[0] + (p2[0] - p0[0]) / 6)} ${r1(p1[1] + (p2[1] - p0[1]) / 6)} ${r1(p2[0] - (p3[0] - p1[0]) / 6)} ${r1(p2[1] - (p3[1] - p1[1]) / 6)} ${r1(p2[0])} ${r1(p2[1])}`;
+  }
+  return d;
+};
+
+/** A wavy line, periodic over W, drawn two periods wide so it can loop. */
+const wave = (y: number, amp: number, phase: number, cycles: number[]) => {
+  const pts: [number, number][] = [];
+  for (let x = -100; x <= 2 * W + 100; x += 50) {
+    const t = (x / W) * Math.PI * 2;
+    const dy = cycles.reduce((s, c, k) => s + Math.sin(t * c + phase * (k + 1)) * amp / (k + 1), 0);
+    pts.push([x, y + dy]);
+  }
+  return smooth(pts);
+};
+
+// A time scale, 2013 (bottom) to today (top), even per year: a layer for each
+// year and a fainter one between, brighter towards the present. The waves
+// stay small enough that each layer keeps to its year.
+const Y0 = 2013;
+const Y1 = 2026;
+const yOf = (year: number) => 655 - ((year - Y0) / (Y1 - Y0)) * 455;
+const layers = Array.from({ length: (Y1 - Y0) * 2 }, (_, i) => {
+  const year = Y0 + i / 2;
+  const f = (year - Y0) / (Y1 - Y0); // 0 oldest … 1 newest
+  const whole = i % 2 === 0;
+  return {
+    d: wave(yOf(year), 5 + f * 9, rand() * 6, [2, 3, 7]),
+    o: +((whole ? 0.2 : 0.1) + f * (whole ? 0.5 : 0.28)).toFixed(2),
+    w: +((whole ? 0.9 : 0.7) + f * 0.6).toFixed(2),
+    dur: Math.round(220 - f * 120), // the older, the slower
+    glint: i % 7 === 3,
+  };
+});
+const newest = wave(yOf(Y1), 14, 1.7, [2, 3, 7]);
+
+// the scale: a tick per year, labels on the years the page names
+const LABELS: Record<number, string> = { 2013: '2013', 2014: '2014', 2017: '2017', [Y1]: 'today' };
+const years = Array.from({ length: Y1 - Y0 + 1 }, (_, i) => Y0 + i);
+---
+
+<div class="about-bd" aria-hidden="true">
+  <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="st-line" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#0073ff" />
+        <stop offset="0.5" stop-color="#3b82f6" />
+        <stop offset="1" stop-color="#a855f7" />
+      </linearGradient>
+      <linearGradient id="st-new" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#60a5fa" />
+        <stop offset="1" stop-color="#c084fc" />
+      </linearGradient>
+      <radialGradient id="st-glow" cx="0.75" cy="0.3" r="0.65">
+        <stop offset="0" stop-color="#0073ff" stop-opacity="0.2" />
+        <stop offset="0.5" stop-color="#a855f7" stop-opacity="0.06" />
+        <stop offset="1" stop-color="#0073ff" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="st-deep" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0073ff" stop-opacity="0" />
+        <stop offset="1" stop-color="#0073ff" stop-opacity="0.08" />
+      </linearGradient>
+    </defs>
+
+    <rect width={W} height={H} fill="url(#st-glow)" />
+    <rect y={H * 0.55} width={W} height={H * 0.45} fill="url(#st-deep)" />
+
+    {
+      layers.map(({ d, o, w, dur, glint }) => (
+        <g class="drift" style={`animation-duration:${dur}s`}>
+          <path d={d} class="layer" stroke="url(#st-line)" stroke-opacity={o} stroke-width={w} />
+          {glint && <path d={d} class="glint" style={`animation-duration:${Math.round(dur / 9)}s`} />}
+        </g>
+      ))
+    }
+
+    {/* the newest layer, being laid down */}
+    {/* held still: it draws in from the left, and drifting would carry the drawn part away */}
+    <path d={newest} class="newest-bed" />
+    <path d={newest} class="newest" pathLength="1" />
+
+    <g class="scale" transform={`translate(${W - 150} 0)`}>
+      <line x1="-8" y1={yOf(Y0)} x2="-8" y2={yOf(Y1)} class="axis" />
+      {
+        years.map((year) => (
+          <g class:list={['mark', { labelled: LABELS[year], now: year === Y1 }]} transform={`translate(0 ${r1(yOf(year))})`}>
+            <line x1={LABELS[year] ? -46 : -22} y1="0" x2="-8" y2="0" />
+            {LABELS[year] && <text x="0" y="5">{LABELS[year]}</text>}
+          </g>
+        ))
+      }
+    </g>
+  </svg>
+</div>
+
+<style>
+  .about-bd {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    -webkit-mask-image:
+      linear-gradient(to right, rgb(0 0 0 / 0.08) 0%, rgb(0 0 0 / 0.25) 30%, rgb(0 0 0 / 0.65) 55%, black 82%),
+      linear-gradient(to bottom, transparent 0%, black 14%, black 88%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, rgb(0 0 0 / 0.08) 0%, rgb(0 0 0 / 0.25) 30%, rgb(0 0 0 / 0.65) 55%, black 82%),
+      linear-gradient(to bottom, transparent 0%, black 14%, black 88%, transparent 100%);
+    mask-composite: intersect;
+  }
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drift {
+    animation: st-drift linear infinite;
+  }
+
+  .layer {
+    fill: none;
+    stroke-linecap: round;
+  }
+
+  /* a short bright run of light travelling along the line */
+  .glint {
+    fill: none;
+    stroke: #bcd8ff;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-dasharray: 90 3910;
+    opacity: 0.8;
+    filter: drop-shadow(0 0 6px #3b82f6);
+    animation: st-glint linear infinite;
+  }
+
+  /* the newest layer: a faint bed, and the line drawing itself in over it */
+  .newest-bed {
+    fill: none;
+    stroke: url(#st-new);
+    stroke-width: 1;
+    stroke-opacity: 0.18;
+  }
+
+  .newest {
+    fill: none;
+    stroke: url(#st-new);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    filter: drop-shadow(0 0 8px rgb(96 165 250 / 0.7));
+    animation: st-lay 14s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  }
+
+  .axis {
+    stroke: color-mix(in oklab, #60a5fa 22%, transparent);
+    stroke-width: 1;
+  }
+
+  .mark line {
+    stroke: color-mix(in oklab, #60a5fa 28%, transparent);
+    stroke-width: 1;
+  }
+
+  .mark.labelled line {
+    stroke: color-mix(in oklab, #60a5fa 45%, transparent);
+  }
+
+  .mark text {
+    fill: color-mix(in oklab, #60a5fa 55%, transparent);
+    font: 500 15px var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+
+  .mark.now text {
+    fill: #93c5fd;
+  }
+
+  .mark.now line {
+    stroke: #93c5fd;
+  }
+
+  @keyframes st-drift {
+    to { translate: -2000px 0; }
+  }
+
+  @keyframes st-glint {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -4000; }
+  }
+
+  /* the line is two periods wide: drawing the first half covers the view */
+  @keyframes st-lay {
+    0% { stroke-dashoffset: 1; opacity: 1; }
+    55% { stroke-dashoffset: 0.42; opacity: 1; }
+    85% { stroke-dashoffset: 0.42; opacity: 1; }
+    95%, 100% { stroke-dashoffset: 0.42; opacity: 0; }
+  }
+
+  @media (max-width: 40rem) {
+    .about-bd {
+      opacity: 0.5;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .about-bd * {
+      animation: none !important;
+    }
+
+    .newest {
+      stroke-dashoffset: 0;
+    }
+  }
+</style>

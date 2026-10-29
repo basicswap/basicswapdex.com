@@ -1,0 +1,636 @@
+---
+import { NAV, SOCIAL, isExternal, isGroup, linkAttrs } from '../config/site';
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import ThemeToggle from './ThemeToggle.astro';
+
+const current = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
+// A section's pages light its tab too: /blog/<post> is under Blog.
+const isCurrent = (href: string) => href === current || (href !== '/' && current.startsWith(`${href}/`));
+// The Products menu: opens on hover, or on click and keyboard (the script
+// below); without JS, hover and keyboard focus open it.
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="/" aria-label="BasicSwap DEX home">
+      <Logo height={30} />
+    </a>
+
+    <nav class="nav-desktop" aria-label="Main">
+      <ul>
+        {
+          NAV.map((entry) =>
+            isGroup(entry) ? (
+              <li class="menu-item" data-menu>
+                <button
+                  type="button"
+                  class:list={['top-link', 'menu-trigger', { current: entry.items.some((p) => isCurrent(p.href)) }]}
+                  aria-expanded="false"
+                  aria-controls={`menu-${entry.label.toLowerCase()}`}
+                  data-parity="new"
+                >
+                  {entry.label}
+                  <Icon name="chevronDown" size={14} class="chev" />
+                </button>
+                <div class="menu" id={`menu-${entry.label.toLowerCase()}`}>
+                  <ul class="menu-panel">
+                    {entry.items.map(({ label, href, icon, blurb, soon, fresh }) => (
+                      <li data-parity={fresh ? 'new' : undefined}>
+                        <a class="product" href={href} aria-current={isCurrent(href) ? 'page' : undefined}>
+                          <span class="p-glyph">
+                            <Icon name={icon} size={18} />
+                          </span>
+                          <span class="p-text">
+                            <span class="p-name">
+                              {label}
+                              {soon && <span class="soon" data-parity="new">soon</span>}
+                            </span>
+                            <span class="p-blurb" data-parity="new">{blurb}</span>
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
+            ) : (
+              <li>
+                <a
+                  href={entry.href}
+                  class:list={['top-link', { highlight: entry.highlight }]}
+                  aria-current={isCurrent(entry.href) ? 'page' : undefined}
+                  {...linkAttrs(entry.href)}
+                >
+                  {entry.highlight && <Icon name="heartFilled" size={15} class="heart" />}
+                  {entry.label}
+                </a>
+              </li>
+            ),
+          )
+        }
+      </ul>
+    </nav>
+
+    <div class="actions">
+      <a class="icon-link social" href={SOCIAL.x} target="_blank" rel="noopener noreferrer" title="Follow us on X">
+        <Icon name="x" size={16} label="BasicSwap on X" />
+      </a>
+      <a class="icon-link social" href={SOCIAL.matrix} target="_blank" rel="noopener noreferrer" title="Join us on Matrix">
+        <Icon name="matrix" size={18} label="BasicSwap on Matrix" />
+      </a>
+      <ThemeToggle />
+      <a class="btn btn-outline github" href={SOCIAL.github} target="_blank" rel="noopener noreferrer">
+        <Icon name="github" size={16} />
+        BasicSwap Github
+      </a>
+
+      <details class="nav-mobile">
+        <summary class="icon-link" aria-label="Menu">
+          <Icon name="menu" size={22} class="open" />
+          <Icon name="close" size={22} class="shut" />
+        </summary>
+        <nav class="sheet" aria-label="Main">
+          <ul>
+            {
+              NAV.map((entry) =>
+                isGroup(entry) ? (
+                  <li class="sheet-group">
+                    <details open={entry.items.some((p) => isCurrent(p.href))}>
+                      <summary class="sheet-summary" data-parity="new">
+                        {entry.label}
+                        <Icon name="chevronDown" size={18} class="chev" />
+                      </summary>
+                      <ul class="sheet-products">
+                        {entry.items.map(({ label, href, icon, blurb, soon, fresh }) => (
+                          <li data-parity={fresh ? 'new' : undefined}>
+                            <a href={href} class="sheet-product" aria-current={isCurrent(href) ? 'page' : undefined}>
+                              <span class="p-glyph">
+                                <Icon name={icon} size={18} />
+                              </span>
+                              <span class="p-text">
+                                <span class="p-name">
+                                  {label}
+                                  {soon && <span class="soon" data-parity="new">soon</span>}
+                                </span>
+                                <span class="p-blurb" data-parity="new">{blurb}</span>
+                              </span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </li>
+                ) : (
+                  <li>
+                    <a
+                      href={entry.href}
+                      class:list={{ highlight: entry.highlight }}
+                      aria-current={isCurrent(entry.href) ? 'page' : undefined}
+                      {...linkAttrs(entry.href)}
+                    >
+                      {entry.highlight && <Icon name="heartFilled" size={18} class="heart" />}
+                      {entry.label}
+                      {isExternal(entry.href) && <Icon name="external" size={14} />}
+                    </a>
+                  </li>
+                ),
+              )
+            }
+          </ul>
+          <div class="sheet-foot">
+            <a class="btn btn-outline" href={SOCIAL.github} target="_blank" rel="noopener noreferrer">
+              <Icon name="github" size={16} />
+              BasicSwap Github
+            </a>
+            <a class="icon-link" href={SOCIAL.x} target="_blank" rel="noopener noreferrer" title="Follow us on X">
+              <Icon name="x" size={16} label="BasicSwap on X" />
+            </a>
+            <a class="icon-link" href={SOCIAL.matrix} target="_blank" rel="noopener noreferrer" title="Join us on Matrix">
+              <Icon name="matrix" size={18} label="BasicSwap on Matrix" />
+            </a>
+          </div>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Products menu: click or Enter toggles it, Escape and leaving it close it.
+  // Hover opens it in CSS as well.
+  document.querySelectorAll<HTMLElement>('[data-menu]').forEach((item) => {
+    const trigger = item.querySelector<HTMLButtonElement>('.menu-trigger')!;
+    const set = (open: boolean) => {
+      item.classList.toggle('open', open);
+      trigger.setAttribute('aria-expanded', String(open));
+    };
+    trigger.addEventListener('click', () => set(!item.classList.contains('open')));
+    item.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && item.classList.contains('open')) {
+        set(false);
+        trigger.focus();
+      }
+    });
+    item.addEventListener('focusout', (e) => {
+      if (!item.contains(e.relatedTarget as Node | null)) set(false);
+    });
+    document.addEventListener('click', (e) => {
+      if (!item.contains(e.target as Node)) set(false);
+    });
+    // Hovering shows the menu, so say so to assistive tech too.
+    item.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && trigger.setAttribute('aria-expanded', 'true'));
+    item.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && !item.classList.contains('open') && trigger.setAttribute('aria-expanded', 'false'));
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in oklab, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(1.4) blur(14px);
+    -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    border-bottom: 1px solid var(--border);
+    view-transition-name: site-header;
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    height: var(--header-h);
+  }
+
+  .brand {
+    display: inline-flex;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .nav-desktop {
+    display: none;
+    margin-inline-end: auto;
+  }
+
+  .nav-desktop > ul {
+    display: flex;
+    gap: var(--space-1);
+  }
+
+  .nav-desktop .top-link {
+    position: relative;
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color var(--dur) var(--ease);
+  }
+
+  .nav-desktop .top-link:hover,
+  .nav-desktop .top-link[aria-current='page'],
+  .nav-desktop .menu-trigger.current,
+  .nav-desktop .menu-trigger:hover,
+  .menu-item.open .menu-trigger {
+    color: var(--text);
+  }
+
+  /* Donations: the brand red with a heart, as on the old site */
+  .nav-desktop a.highlight {
+    display: inline-flex;
+    white-space: nowrap;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--destructive);
+  }
+
+  .nav-desktop a.highlight:hover,
+  .nav-desktop a.highlight[aria-current='page'] {
+    color: color-mix(in oklab, var(--destructive) 78%, white);
+  }
+
+  .nav-desktop a.highlight[aria-current='page']::after {
+    background: var(--destructive);
+  }
+
+  /* on white, a deeper red keeps the label legible (WCAG AA) */
+  :global(:root[data-theme='light']) .nav-desktop a.highlight,
+  :global(:root[data-theme='light']) .sheet a.highlight {
+    color: color-mix(in oklab, var(--destructive) 82%, black);
+  }
+
+  .nav-desktop a.highlight :global(.heart) {
+    flex: none;
+    transition: transform var(--dur) var(--ease);
+  }
+
+  .nav-desktop a.highlight:hover :global(.heart) {
+    transform: scale(1.15);
+  }
+
+  .nav-desktop .top-link[aria-current='page']::after,
+  .nav-desktop .menu-trigger.current::after {
+    content: '';
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    bottom: -0.2rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--brand);
+  }
+
+  /* ---- Products menu ---- */
+  .menu-item {
+    position: relative;
+  }
+
+  .nav-desktop .menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: var(--step--1);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .menu-trigger :global(.chev) {
+    transition: rotate var(--dur) var(--ease);
+  }
+
+  .menu-item.open .menu-trigger :global(.chev) {
+    rotate: 180deg;
+  }
+
+  /* The padding bridges the gap to the trigger, so the pointer can cross it. */
+  .menu {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    z-index: 10;
+    padding-top: 0.75rem;
+    translate: -50% 0.35rem;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--dur) var(--ease),
+      translate var(--dur) var(--ease),
+      visibility 0s linear var(--dur);
+  }
+
+  .menu-item.open .menu,
+  :global(html:not([data-js])) .menu-item:focus-within .menu {
+    translate: -50% 0;
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  /* Hover opens it only with a mouse: on a touchscreen a tap would leave the
+     hover stuck, and the menu could never be closed by tapping again. */
+  @media (hover: hover) and (pointer: fine) {
+    .menu-item:hover .menu {
+      translate: -50% 0;
+      opacity: 1;
+      visibility: visible;
+      transition-delay: 0s;
+    }
+
+    .menu-item:hover .menu-trigger :global(.chev) {
+      rotate: 180deg;
+    }
+  }
+
+  .menu-panel {
+    display: grid;
+    gap: 0.15rem;
+    width: 21rem;
+    padding: var(--space-2);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xl);
+    background: color-mix(in oklab, var(--surface) 55%, var(--bg));
+    box-shadow:
+      0 1px 0 color-mix(in oklab, white 5%, transparent) inset,
+      0 28px 56px -24px hsl(var(--shadow-color) / 0.75);
+  }
+
+  .product {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-3);
+    border-radius: var(--radius-lg);
+    color: var(--text);
+    text-decoration: none;
+    transition: background-color var(--dur) var(--ease);
+  }
+
+  .product:hover,
+  .product:focus-visible,
+  .product[aria-current='page'] {
+    background: color-mix(in oklab, var(--text) 6%, transparent);
+  }
+
+  .p-glyph {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid transparent;
+    border-radius: 0.7rem;
+    background:
+      linear-gradient(160deg, color-mix(in oklab, var(--brand) 24%, var(--bg)), var(--bg)) padding-box,
+      linear-gradient(150deg, color-mix(in oklab, var(--brand) 80%, white), color-mix(in oklab, var(--accent) 45%, transparent) 60%, var(--border)) border-box;
+    color: color-mix(in oklab, var(--brand) 55%, var(--text));
+  }
+
+  .p-text {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .p-name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  .p-blurb {
+    color: var(--text-muted);
+    font-size: var(--step--2);
+  }
+
+  .soon {
+    padding: 0.05rem 0.4rem;
+    border-radius: var(--radius-md);
+    background: color-mix(in oklab, var(--accent) 18%, transparent);
+    color: color-mix(in oklab, var(--accent) 70%, var(--text));
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 400;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu,
+    .menu-trigger :global(.chev) {
+      transition: none;
+    }
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-inline-start: auto;
+  }
+
+  .icon-link {
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-lg);
+    color: var(--text-muted);
+    transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  }
+
+  .icon-link:hover {
+    color: var(--text);
+    background: color-mix(in oklab, var(--text) 7%, transparent);
+  }
+
+  .social,
+  .github {
+    display: none;
+  }
+
+  .github {
+    margin-inline-start: var(--space-2);
+    min-height: 2.5rem;
+  }
+
+  /* ---- Mobile sheet: <details>, no JS ---- */
+
+  .nav-mobile summary {
+    list-style: none;
+  }
+
+  .nav-mobile summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .nav-mobile :global(.shut),
+  .nav-mobile[open] :global(.open) {
+    display: none;
+  }
+
+  .nav-mobile[open] :global(.shut) {
+    display: block;
+  }
+
+  .sheet {
+    position: absolute;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    max-height: calc(100dvh - var(--header-h));
+    overflow-y: auto;
+    padding: var(--space-4) var(--gutter) var(--space-6);
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 24px 48px -24px hsl(var(--shadow-color) / 0.6);
+  }
+
+  .sheet a:not(.btn):not(.icon-link) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: var(--step-1);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .sheet a[aria-current='page']:not(.btn):not(.icon-link) {
+    color: var(--brand);
+  }
+
+  .sheet a :global(svg) {
+    color: var(--text-subtle);
+  }
+
+  .sheet a.highlight:not(.btn),
+  .sheet a.highlight :global(.heart) {
+    color: var(--destructive);
+  }
+
+  /* Products in the sheet: a row that expands like the desktop menu. */
+  .sheet-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: var(--step-1);
+    font-weight: 500;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .sheet-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .sheet-summary :global(.chev) {
+    color: var(--text-subtle);
+    transition: rotate var(--dur) var(--ease);
+  }
+
+  .sheet-group details[open] .sheet-summary :global(.chev) {
+    rotate: 180deg;
+  }
+
+  .sheet-products {
+    display: grid;
+    gap: 0.15rem;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sheet a.sheet-product:not(.btn):not(.icon-link) {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: center;
+    min-height: 3.5rem;
+    padding: var(--space-2) var(--space-2);
+    border-bottom: 0;
+    border-radius: var(--radius-lg);
+    font-size: var(--step-0);
+  }
+
+  .sheet a.sheet-product[aria-current='page']:not(.btn):not(.icon-link) {
+    background: color-mix(in oklab, var(--text) 6%, transparent);
+    color: var(--text);
+  }
+
+  .sheet .sheet-product :global(svg) {
+    color: inherit;
+  }
+
+  .sheet-product .p-name {
+    font-size: var(--step-0);
+  }
+
+  .sheet-product .p-blurb {
+    font-size: var(--step--1);
+  }
+
+  .sheet-foot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+  }
+
+  @media (min-width: 40rem) {
+    .social {
+      display: inline-grid;
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .nav-desktop,
+    .github {
+      display: inline-flex;
+    }
+
+    .nav-mobile {
+      display: none;
+    }
+  }
+
+  /* Ten links and the actions only just fit the header's width (it stops
+     growing at the content width), so desktop links sit closer together. */
+  @media (min-width: 72rem) {
+    .bar {
+      gap: var(--space-4);
+    }
+
+    .nav-desktop > ul {
+      gap: 0;
+    }
+
+    .nav-desktop .top-link {
+      padding-inline: 0.55rem;
+    }
+
+    .nav-desktop .top-link[aria-current='page']::after,
+    .nav-desktop .menu-trigger.current::after {
+      left: 0.55rem;
+      right: 0.55rem;
+    }
+
+    .github {
+      margin-inline-start: var(--space-1);
+    }
+  }
+</style>

@@ -1,0 +1,236 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/home/Hero.astro';
+import Icon from '../components/Icon.astro';
+import SectionHead from '../components/sections/SectionHead.astro';
+import Rail from '../components/home/steps/Rail.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import OrderBook from '../components/home/OrderBook.astro';
+import DirectSwap from '../components/home/DirectSwap.astro';
+import Benefits from '../components/home/Benefits.astro';
+import Primitives from '../components/home/Primitives.astro';
+import Contributions from '../components/home/Contributions.astro';
+import { MARKETS_URL, ORGANIZATION_LD, WEBSITE_LD } from '../config/site';
+import pages from '../data/pages.json';
+
+const steps = [
+  {
+    n: '01',
+    title: 'Install the client',
+    body: 'Desktop builds the full protocol on your own machine, while Mobile rides inside wallets that have already integrated it. Neither asks for a signup or a form.',
+  },
+  {
+    n: '02',
+    title: 'Fund your own wallets',
+    body: 'BasicSwap generates addresses inside coin wallets that stay under your control, and funds go straight to those. No third party holds a deposit at any point.',
+  },
+  {
+    n: '03',
+    title: 'Post or take an offer',
+    body: 'The order book travels between peers over encrypted messaging, so a trader can post a price or take one that is already sitting there.',
+  },
+  {
+    n: '04',
+    title: 'The chains settle it',
+    body: 'Both sides lock, then release together. If one side walks away, the timelocks return the coins to their owners without anyone stepping in.',
+  },
+];
+
+const benefits = [
+  {
+    n: '01',
+    title: 'Fully non-custodial',
+    body: 'You stay in control of your keys at every step of the swap. They never leave your local device. No bridge, no third-party custodian, no temporary loss of custody.',
+  },
+  {
+    n: '02',
+    title: 'On-chain settlement',
+    body: 'Each swap is executed and settled by the underlying blockchains themselves. No off-chain promises, no liquidity pool risk, no intermediary chain or token.',
+  },
+  {
+    n: '03',
+    title: 'Zero protocol fees',
+    body: 'The BasicSwap protocol takes no cut. You pay only the on-chain network cost of each transaction.',
+  },
+  {
+    n: '04',
+    title: 'No account',
+    body: "Launch the client, set up your wallet, and you're trading. No signup, no forms, no delays. Nothing personal is stored, so no breach can ever expose you.",
+  },
+  {
+    n: '05',
+    title: 'Private by design',
+    body: 'Two layers of privacy. With no central operator, no one logs your trades. Orders move through encrypted peer-to-peer messaging, optionally over Tor. On-chain, adaptor signatures make every swap indistinguishable from a regular transaction.',
+  },
+  {
+    n: '06',
+    title: 'Distributed order book',
+    body: "The order book is built and maintained automatically by the network's nodes. No central matcher to throttle, censor, or prioritize some offers over others. No bot can front-run your trades.",
+  },
+];
+
+const primitives = [
+  {
+    n: 'otves',
+    title: 'Adaptor signatures',
+    body: 'A single cryptographic operation binds both sides of a cross-chain swap. More private and efficient than regular atomic swaps, and compatible with scriptless chains like Monero.',
+  },
+  {
+    n: 'smsg',
+    title: 'Secure messaging',
+    body: 'Encrypted peer-to-peer messaging carries the order book and the cryptographic exchange between matched traders. No central relayer, no operator in between.',
+  },
+  {
+    n: 'lite',
+    title: 'Light nodes enabled',
+    body: 'Optionally, thin clients can read chain state from public Electrum nodes. No daemon to run, no full sync required. Bridges atomic swap security with everyday usability.',
+  },
+];
+---
+
+<BaseLayout
+  {...pages.index}
+  jsonLd={[ORGANIZATION_LD, WEBSITE_LD]}
+>
+  <Hero />
+
+  <section class="section container intro-grid">
+    <div class="intro-copy">
+      <h2>Atomic swaps made easy.</h2>
+      <div class="flow lead">
+      <p>
+        Crypto removed intermediaries from sending money. Trading is the last place they still stand between you and
+        the other party.
+      </p>
+      <p>Atomic swaps solved this in theory, but they're complex to use on their own.</p>
+      <p>
+        BasicSwap makes them usable, with a distributed order book and an open protocol where traders meet directly
+        across chains, with no custodian, no account, and no one taking a cut. Cross-chain trading, finally ordinary.
+      </p>
+      </div>
+    </div>
+    <DirectSwap />
+  </section>
+
+  <section class="section band" id="how">
+    <div class="container">
+      <SectionHead kicker="from install to settled" title="How a swap works." />
+      <Rail items={steps} />
+    </div>
+  </section>
+
+  <section class="section band" id="benefits">
+    <div class="container">
+      <SectionHead kicker="what makes basicswap different" title="What you get back." />
+      <Benefits items={benefits} />
+    </div>
+  </section>
+
+  <section class="section band-surface" id="primitives">
+    <div class="container">
+      <SectionHead kicker="under the hood" title="Three primitives that make it possible." />
+      <Primitives items={primitives} />
+      <p class="more"><a href="/protocol">Read the architecture</a></p>
+    </div>
+  </section>
+
+  <section class="section container live" id="live">
+    <div class="live-copy">
+      <p class="kicker">see it live</p>
+      <h2>Trusted by traders around the world.</h2>
+      <p class="lead">
+        BasicSwap's order book is public and live. Read it in any browser, no install required. The <a
+          href="/bitcoin-to-monero">Bitcoin to Monero</a
+        > pair is the one most people arrive for.
+      </p>
+      <a class="btn btn-outline" href={MARKETS_URL} target="_blank" rel="noopener noreferrer"
+        >Open the markets dashboard<Icon name="external" size={14} /></a
+      >
+    </div>
+    <OrderBook />
+  </section>
+
+  <section class="section band funding" id="funding">
+    <div class="container funding-inner">
+      <div class="funding-copy">
+        <p class="kicker">how basicswap is funded</p>
+        <h2>No tokens. No investors. Just contributors.</h2>
+        <p class="lead">
+          Every line of BasicSwap is funded by the people who use it. It's the only funding model that keeps an open
+          protocol free and sovereign.
+        </p>
+        <a class="btn btn-outline" href="/donations">Support the project</a>
+      </div>
+      <Contributions />
+    </div>
+  </section>
+
+  <CtaBand title="Your turn.">
+    <p>Install BasicSwap on the device you trade from.</p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary btn-lg" href="/desktop"><Icon name="download" />Install Desktop</a>
+      <a class="btn btn-outline btn-lg" href="/mobile">Install Mobile</a>
+    </Fragment>
+  </CtaBand>
+</BaseLayout>
+
+<style>
+  .intro-grid {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+
+  .intro-copy {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  /* The problem, then the resolution: the last paragraph reads strongest. */
+  .intro-copy .lead p:last-child {
+    color: var(--text);
+  }
+
+  .live {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+
+  .live-copy {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-5);
+  }
+
+  .more {
+    margin-top: var(--space-7);
+    font-weight: 600;
+  }
+
+  .funding-inner {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+
+  .funding-copy {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-5);
+  }
+
+  @media (min-width: 64rem) {
+    .intro-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .live {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .funding-inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+</style>

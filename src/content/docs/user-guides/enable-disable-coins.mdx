@@ -1,0 +1,94 @@
+---
+title: "Enable or disable coins"
+sidebar: "Enable or Disable Coins"
+seoTitle: "Enable or Disable Coins in BasicSwap"
+description: "Add a coin to BasicSwap or switch one off with basicswap-prepare's --addcoin and --disablecoin, using Docker, the basicswap-bash scripts or a source install."
+published: 2025-03-14
+---
+A new BasicSwap runs Particl, which it needs for itself, plus the coins you chose when you installed. You can add more coins, or switch one off, at any time. Adding a coin downloads its daemon and creates its wallet from your existing recovery phrase, so it needs no new backup. Disabling a coin stops its daemon but keeps its data, so you can turn it back on later without syncing from the start.
+
+Every change follows the same pattern, in which you stop BasicSwap, run the command once for each coin and then start BasicSwap again. The coin names to use are `bitcoin`, `litecoin`, `monero`, `wownero`, `bitcoincash`, `dogecoin`, `namecoin`, `decred`, `dash`, `pivx` and `firo`, while Particl always stays on.
+
+## Enable a coin
+
+<Tabs groupId="install-method">
+<TabItem value="bash" label="basicswap-bash" default>
+
+With BasicSwap stopped, run the add-coin command:
+
+```bash
+bsx-addcoin
+```
+
+It lists the coins you can add and asks which one you want. For Bitcoin and Litecoin it also asks whether to use an [Electrum light wallet](/docs/user-guides/lightweight-modes) and, for a full Bitcoin node, whether to start from a snapshot, while for other coins it offers to connect to a node you already run. When it's done, start BasicSwap again with `basicswap-bash`.
+
+</TabItem>
+<TabItem value="docker" label="Docker">
+
+In the `basicswap/docker` folder, stop BasicSwap, add the coin and start it again:
+
+```bash
+docker-compose stop
+docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --addcoin=bitcoin --usebtcfastsync
+docker-compose up
+```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+With BasicSwap stopped, set up the terminal, add the coin and start BasicSwap again:
+
+```bash
+export SWAP_DATADIR=$HOME/coinswaps
+. $SWAP_DATADIR/venv/bin/activate
+basicswap-prepare --datadir=$SWAP_DATADIR --addcoin=bitcoin --usebtcfastsync
+basicswap-run --datadir=$SWAP_DATADIR
+```
+
+</TabItem>
+</Tabs>
+
+Replace `bitcoin` with the coin you want, and leave out `--usebtcfastsync` for any other coin, where it does nothing. A few more options change how the new coin runs:
+
+- `--btc-mode=electrum` or `--ltc-mode=electrum` adds Bitcoin or Litecoin as an [Electrum light wallet](/docs/user-guides/lightweight-modes) instead of a full node.
+- For Monero or Wownero, you choose a remote node with the environment variables that [Prepare options](/docs/user-guides/prepare-options#light-wallets-and-remote-nodes) lists.
+- If your wallets are encrypted, give the password as `WALLET_ENCRYPTION_PWD`, for example `docker-compose run --rm -e WALLET_ENCRYPTION_PWD=yourpassword swapclient basicswap-prepare …`, or `WALLET_ENCRYPTION_PWD=yourpassword basicswap-prepare …` from source.
+
+<Callout type="tip" title="Reusing a pruned Bitcoin chain">
+
+If you already have a pruned Bitcoin blockchain, you can copy its data folder into BasicSwap's `bitcoin` folder, which is `~/coinswaps/bitcoin` or `/var/data/coinswaps/bitcoin` with Docker, after adding the coin, and skip most of the sync. Leave out its `bitcoin.conf` and any wallets, and remove wallets that were copied over, or the Bitcoin daemon won't start.
+
+</Callout>
+
+The new coin then syncs its blockchain, which you can follow on the [Wallets page](/docs/user-guides/manage-enabled-coins).
+
+## Disable a coin
+
+<Tabs groupId="install-method">
+<TabItem value="bash" label="basicswap-bash" default>
+
+With BasicSwap stopped, run `bsx-removecoin`, enter the coin's name, then start BasicSwap again with `basicswap-bash`.
+
+</TabItem>
+<TabItem value="docker" label="Docker">
+
+```bash
+docker-compose stop
+docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --disablecoin=bitcoin
+docker-compose up
+```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+```bash
+export SWAP_DATADIR=$HOME/coinswaps
+. $SWAP_DATADIR/venv/bin/activate
+basicswap-prepare --datadir=$SWAP_DATADIR --disablecoin=bitcoin
+basicswap-run --datadir=$SWAP_DATADIR
+```
+
+</TabItem>
+</Tabs>
+
+A disabled coin comes back on when you enable it again in the same way as above.

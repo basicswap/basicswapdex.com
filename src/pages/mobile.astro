@@ -1,0 +1,277 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import SectionHead from '../components/sections/SectionHead.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import PhoneFilm from '../components/mobile/PhoneFilm.astro';
+import Partners from '../components/mobile/Partners.astro';
+import Benefits from '../components/mobile/Benefits.astro';
+import HowSteps from '../components/mobile/HowSteps.astro';
+import CompareTable from '../components/mobile/CompareTable.astro';
+import QuestionsAccordion from '../components/btm/QuestionsAccordion.astro';
+import phoneShell from '../assets/mobile/phone-nexus.png';
+import { breadcrumb } from '../lib/seo';
+import pages from '../data/pages.json';
+
+// Mobile next to Desktop, row by row. Each cell has its text (trusted HTML,
+// so it can hold links) and a status for its mark: good, mid or bad, or info
+// for a plain fact. For fees, "No" is the good one.
+const compare = [
+  {
+    label: 'Setup',
+    mobile: { t: 'Built into a wallet app, nothing to install', s: 'good' },
+    desktop: { t: "Installs on your computer, with each coin's wallet", s: 'info' },
+  },
+  {
+    label: 'Chain data',
+    mobile: { t: 'Asked from public remote nodes, nothing to sync', s: 'info' },
+    desktop: { t: 'Checked by your own full nodes, or asked from public remote nodes in <a href="/docs/user-guides/lightweight-modes">lightweight modes</a>', s: 'good' },
+  },
+  { label: 'Your keys', mobile: { t: 'On your phone', s: 'good' }, desktop: { t: 'On your computer', s: 'good' } },
+  { label: 'Take offers', mobile: { t: 'Yes', s: 'good' }, desktop: { t: 'Yes', s: 'good' } },
+  {
+    label: 'Post your own offers',
+    mobile: { t: 'No, Mobile takes offers', s: 'bad' },
+    desktop: { t: 'Yes, with market making and order management', s: 'good' },
+  },
+  { label: 'Swapper reputation', mobile: { t: 'Up to the wallet app', s: 'mid' }, desktop: { t: 'Yes', s: 'good' } },
+  { label: 'App fees', mobile: { t: 'Yes, depends on the app', s: 'mid' }, desktop: { t: 'No', s: 'good' } },
+  { label: 'Coins', mobile: { t: 'Depends on the app', s: 'mid' }, desktop: { t: '<a href="/desktop#coins">All 12</a>', s: 'good' } },
+];
+
+// Each question names BasicSwap Mobile, the way people search for it.
+// Answers lead with the answer and may hold internal links (trusted HTML).
+const faq = [
+  {
+    q: 'Does BasicSwap Mobile hold my keys?',
+    a: 'No. Your keys stay on your phone, inside the wallet app, and every swap settles directly on the two blockchains. Nobody in between holds your coins at any point.',
+  },
+  {
+    q: 'Is there a BasicSwap Mobile app in the App Store or Google Play?',
+    a: 'No. BasicSwap Mobile comes built into wallet apps instead of shipping on its own. Today that\'s the <a href="https://nexuswallet.com/">Litecoin Nexus Wallet</a> on iOS and Android.',
+  },
+  {
+    q: 'Which wallets have BasicSwap Mobile?',
+    a: 'The Litecoin Nexus Wallet has it now, in beta. Cake Wallet, Edge and Particl Marketplace v2 are adding it. <a href="#surfaces">See every app</a>.',
+  },
+  {
+    q: 'Can I swap Monero with BasicSwap Mobile?',
+    a: 'Not yet. The Nexus Wallet doesn\'t hold Monero, and Cake Wallet and Edge, which do, are adding BasicSwap. Until then, <a href="/bitcoin-to-monero">Bitcoin to Monero swaps</a> run on BasicSwap Desktop.',
+  },
+  {
+    q: 'What are the fees on BasicSwap Mobile?',
+    a: "BasicSwap's protocol charges no fee. You pay the ordinary network fee on each of the two chains, and the wallet app sets any fee of its own.",
+  },
+  {
+    q: 'Do I need to keep the app open during a BasicSwap Mobile swap?',
+    a: 'No. The swap runs as a background service, so you can leave the app or lock your phone while it settles, usually within tens of minutes. Background services can be less reliable on iOS. On an iPhone, open the app now and then until the swap completes.',
+  },
+  {
+    q: 'What happens if my phone goes offline mid-swap?',
+    a: "Nobody can take your coins. When you're back online, the wallet either completes the swap or, once the timelock passes, takes back what you locked.",
+  },
+  {
+    q: 'How is BasicSwap Mobile different from BasicSwap Desktop?',
+    a: 'Mobile is a light client built into wallet apps, so there\'s nothing to install or sync. Desktop runs the whole protocol on your own computer with full nodes and adds features like posting your own offers. <a href="#compare">Compare them</a>.',
+  },
+  {
+    q: 'Do I need an account or KYC to use BasicSwap Mobile?',
+    a: 'No. BasicSwap has no accounts and no identity checks. You swap from your own wallet directly with another trader.',
+  },
+];
+// Search engines get the answers as plain text, without the links.
+const plain = (html: string) => html.replace(/<[^>]+>/g, '');
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map(({ q, a }) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: plain(a) } })),
+};
+
+---
+
+<BaseLayout {...pages.mobile} jsonLd={[breadcrumb('Mobile', '/mobile'), faqLd]}>
+  <PageHero
+    ribbon="hero"
+    fit
+    aside="narrow"
+    jump={[
+      { href: '#how', label: 'How it works' },
+      { href: '#benefits', label: 'What you get' },
+      { href: '#surfaces', label: 'Apps with BasicSwap' },
+      { href: '#compare', label: 'Mobile or Desktop' },
+      { href: '#questions', label: 'Questions' },
+    ]}
+    title={'Cross-chain atomic swaps\nfrom your phone.'}>
+    <p data-parity="new">
+      BasicSwap Mobile brings the protocol to people who would rather not run a node. It comes built into wallet apps,
+      so there's no blockchain to download and no account to create, and your keys never leave your phone.
+    </p>
+    <p class="runs" data-parity="new">Runs on iOS and Android</p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary btn-lg" href="#surfaces" data-parity="new">See which apps have it</a>
+      <a class="btn btn-outline btn-lg" href="#other-ways" data-parity="new">Other ways to swap</a>
+    </Fragment>
+    <div slot="aside" class="hero-phone">
+      <div class="phone-stage">
+        <div class="phone-glow" aria-hidden="true"></div>
+        <div class="phone-render" style={`--phone-ratio:${phoneShell.width / phoneShell.height}`}><PhoneFilm /></div>
+      </div>
+      <p class="phone-note">
+        <strong>Beta.</strong> This is BasicSwap Mobile in the <a href="https://nexuswallet.com/" target="_blank" rel="noopener noreferrer">Litecoin Nexus Wallet</a>, the first wallet to add it.
+      </p>
+    </div>
+  </PageHero>
+
+  <!-- how a swap works: three phones, one per step -->
+  <section class="section band-surface" id="how">
+    <div class="container">
+      <SectionHead kicker="how it works" title="A swap from your phone." class="centred" />
+      <HowSteps />
+    </div>
+  </section>
+
+  <section class="section container" id="benefits">
+    <Benefits />
+  </section>
+
+  <section class="section band-surface" id="surfaces">
+    <div class="container">
+      <SectionHead kicker="integrations · open protocol" title="Apps with BasicSwap built in.">
+        <p data-parity="new">There's no BasicSwap app of its own. Wallets build the open protocol in, and you swap from inside them.</p>
+      </SectionHead>
+      <Partners />
+    </div>
+  </section>
+
+  <!-- Mobile next to Desktop -->
+  <section class="section container" id="compare">
+    <SectionHead kicker="mobile or desktop" title="How Mobile compares to Desktop." />
+    <CompareTable rows={compare} />
+    <p class="compare-note">
+      Desktop is the most private and secure way to use BasicSwap. You check the blockchains yourself instead of trusting anyone else's copy.
+    </p>
+    <a class="btn btn-outline btn-lg" href="/desktop">Explore BasicSwap Desktop</a>
+  </section>
+
+  <!-- questions -->
+  <section class="section band-surface" id="questions">
+    <div class="container">
+      <SectionHead kicker="basicswap mobile, asked and answered" title="Questions about Mobile." />
+      <QuestionsAccordion faq={faq} />
+    </div>
+  </section>
+
+  <CtaBand kicker="other ways to swap" title="Not on your phone? Swap from your computer." id="other-ways">
+    <p data-parity="new">
+      BasicSwap Desktop runs every coin and pair on your own computer today. BasicSwap Web will bring the same swaps to
+      a browser tab, with nothing to install, once it launches.
+    </p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary btn-lg" href="/desktop">Explore Desktop</a>
+      <a class="btn btn-outline btn-lg" href="/web">See BasicSwap Web</a>
+    </Fragment>
+  </CtaBand>
+</BaseLayout>
+
+<style>
+  #how :global(.centred) {
+    justify-items: center;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  /* ---- Mobile next to Desktop ---- */
+  .compare-note {
+    max-width: var(--prose-max);
+    margin: var(--space-5) 0;
+    color: var(--text-muted);
+  }
+
+  .runs {
+    color: var(--text-subtle);
+    font-size: var(--step-0);
+  }
+
+  /* The phone render: a 3D model of Nexus's swap screen (tools/phone-render),
+     lit by the hero's ribbon colours. */
+  .hero-phone {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-4);
+  }
+
+  .phone-stage {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    width: 100%;
+  }
+
+  /* Under the phone, as on the Web page: what the render shows, its lead-in in
+     BasicSwap yellow (a darker gold on the light theme, for contrast). */
+  .phone-note {
+    --yellow: #f7b500;
+    max-width: 22rem;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    text-align: center;
+  }
+
+  :global(html[data-theme='light']) .phone-note {
+    --yellow: #9a6b00;
+  }
+
+  .phone-note strong {
+    color: var(--yellow);
+    font-weight: 600;
+  }
+
+  .phone-note a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--border-strong);
+    text-underline-offset: 0.2em;
+  }
+
+  .phone-render {
+    position: relative;
+    width: min(100%, 19rem);
+  }
+
+  /* The float moves the phone by fractions of a pixel. On a 1x screen that
+     resamples the whole phone and smears its small text, so it only runs on
+     high-density screens, where half pixels are invisible. */
+  @media (min-resolution: 1.5dppx) {
+    .phone-render {
+      animation: phone-float 9s ease-in-out infinite alternate;
+    }
+  }
+
+  .phone-glow {
+    position: absolute;
+    inset: 12% 4% 6%;
+    background:
+      radial-gradient(50% 45% at 65% 40%, color-mix(in oklab, #0073ff 45%, transparent), transparent 70%),
+      radial-gradient(45% 45% at 35% 70%, color-mix(in oklab, #a855f7 38%, transparent), transparent 70%);
+    filter: blur(40px);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  :global(html[data-theme='light']) .phone-glow {
+    opacity: 0.45;
+  }
+
+  @keyframes phone-float {
+    from { translate: 0 -5px; }
+    to { translate: 0 7px; }
+  }
+
+  /* Fitted hero: the phone takes the screen height it is given, less room
+     for the note under it. */
+  @media (min-width: 64rem) and (min-height: 34rem) {
+    .phone-render {
+      width: calc(min(var(--hero-h, 100svh) - 12rem, 52rem) * var(--phone-ratio));
+    }
+  }
+</style>

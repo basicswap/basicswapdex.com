@@ -1,0 +1,132 @@
+---
+// A roadmap: items down a rail, each with a status (or a date), a summary
+// and optional longer notes that open in place.
+import StatusPill from './StatusPill.astro';
+
+interface Item {
+  title: string;
+  description: string;
+  status?: string;
+  date?: string;
+  long_description?: string;
+}
+interface Props {
+  items: Item[];
+}
+const { items } = Astro.props;
+---
+
+<ol class="timeline" role="list">
+  {
+    items.map((item) => (
+      <li class="item">
+        <span class="node" aria-hidden="true" />
+        <div class="card">
+          <div class="top">
+            <h3 class="title">{item.title}</h3>
+            {item.status ? <StatusPill status={item.status} /> : item.date && <span class="date data">{item.date}</span>}
+          </div>
+          <p class="desc">{item.description}</p>
+          {item.long_description && (
+            <details class="notes">
+              <summary>Show notes</summary>
+              <div class="long">{item.long_description}</div>
+            </details>
+          )}
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .timeline {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    margin-block: var(--space-7);
+    padding: 0 0 0 var(--space-6);
+    list-style: none;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 0.75rem;
+    bottom: 0.75rem;
+    left: 0.4rem;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(var(--brand), var(--accent));
+    opacity: 0.55;
+  }
+
+  .item {
+    position: relative;
+    margin: 0;
+  }
+
+  .node {
+    position: absolute;
+    top: 1.35rem;
+    left: calc(-1 * var(--space-6) + 0.1rem);
+    width: 0.65rem;
+    height: 0.65rem;
+    border: 2px solid var(--primary);
+    border-radius: 50%;
+    background: var(--bg);
+  }
+
+  .card {
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  .top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .title {
+    margin: 0;
+    font-size: var(--step-0);
+    font-weight: 650;
+    letter-spacing: 0;
+  }
+
+  .date {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .desc {
+    margin-top: var(--space-2);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .notes {
+    margin-top: var(--space-3);
+    font-size: var(--step--1);
+  }
+
+  summary {
+    width: fit-content;
+    color: var(--link);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .long {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    white-space: pre-line;
+  }
+</style>

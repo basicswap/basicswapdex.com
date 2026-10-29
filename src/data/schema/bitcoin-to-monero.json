@@ -1,0 +1,161 @@
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is a Bitcoin to Monero atomic swap?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A trade of Bitcoin for Monero between two people, settled by the two blockchains themselves. Both payments complete or both refund, so neither trader can end up with both sides, and nobody holds the coins in between. BasicSwap runs it with adaptor signatures, which work with Monero even though Monero has no scripting of its own."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does a Bitcoin to Monero swap take?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Usually tens of minutes. Both chains have to confirm, and a default install waits for one confirmation on Bitcoin and three on Monero, several times over as each side locks its coins and then claims them. A custodial service can look quicker. It moves the funds itself instead of waiting on two chains, and that is the step BasicSwap does without."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I swap Monero back to Bitcoin?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Both directions run on the same protocol and have done since 2023. You post an offer to sell XMR for BTC the same way you would post one the other way round."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I swap Bitcoin to Monero without KYC?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. BasicSwap has no account, no sign-up and no identity check. You trade from your own wallet directly with another trader, and the only record is the two payments, each on its own chain."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens if the other trader disappears?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Nobody ends up with both sides, whoever stops. If the seller disappears before claiming, your Bitcoin comes back once the timelock runs out, and taking it back lets them recover their Monero later. If the Bitcoin holder never takes that refund, the seller can claim the Bitcoin after a second timelock, and by default their client then hands over the key half for the Monero. Both traders sign the refunds before either locks a coin."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need to run a Bitcoin node and a Monero node?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Lightweight mode leans on public Electrum servers and Monero nodes for chain state, and mobile wallets that build in BasicSwap work the same way. Running each coin's official core wallet on Desktop is still the strongest setup, and then BasicSwap validates everything itself. Either way, the client has to stay online for the whole swap, as the two sides hand each other data at every step."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are the fees for converting Bitcoin to Monero?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The protocol takes nothing, for either side of the trade. You pay the ordinary network fee on each chain, the same as any other transaction, and that is the whole cost."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can you send Bitcoin to a Monero wallet?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. They are separate chains with different address formats, and a Monero wallet has no way to receive or spend a Bitcoin transaction. Sending BTC to an XMR address will not deliver the funds, and depending on the address it may lose them. Converting is the only route, and that is what a swap does. Your Bitcoin goes to whoever wanted it, their Monero comes to you, and the two payments are bound together so neither can happen alone."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need a Monero wallet before I swap?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "BasicSwap creates one for you. Desktop runs Monero's own wallet software locally and generates the address the swap pays into, so there is nothing to set up beforehand and no address to paste. If you would rather receive into a wallet you already use, withdraw once the swap finishes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is a Bitcoin to Monero swap traceable?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Not as a swap. The Bitcoin payment is as public as any other Bitcoin transaction, and the Monero payment carries Monero's usual privacy. Adaptor signatures leave nothing on the Bitcoin chain that says a swap took place or which Monero transaction it pairs with, so the trade looks like ordinary spending rather than a conversion into a privacy coin."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is this different from an instant swap service?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "An instant swap service takes your Bitcoin, holds it, and sends you Monero from its own reserves, which is quicker and means the service can freeze the funds, ask for identification, or fail while holding them. An atomic swap has no such middle step. The coins move directly between two traders and the chains enforce that both payments happen or neither does."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Where can I get Monero now that exchanges are delisting it?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Several large exchanges have dropped Monero, in some regions or entirely. An atomic swap does not depend on any of them. You swap Bitcoin, or another supported coin, for Monero directly with another trader, and there is no listing for anyone to withdraw."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I swap Bitcoin to Monero on my phone?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Not yet. BasicSwap Mobile is live in the Litecoin Nexus Wallet, which does not hold Monero, and wallets that do, such as Cake Wallet and Edge, are adding it. For now, Bitcoin to Monero swaps run on BasicSwap Desktop."
+        }
+      }
+    ]
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "How to swap Bitcoin for Monero with an atomic swap",
+    "description": "Settle a BTC to XMR atomic swap on BasicSwap, with no custodian holding the coins.",
+    "totalTime": "PT1H",
+    "supply": [
+      {
+        "@type": "HowToSupply",
+        "name": "Bitcoin or Monero to trade"
+      }
+    ],
+    "tool": [
+      {
+        "@type": "HowToTool",
+        "name": "BasicSwap Desktop"
+      }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "Install BasicSwap Desktop",
+        "text": "Desktop runs the protocol and each coin's core wallet on your own machine. If two full nodes are more than you want to manage, lightweight mode reads from public servers instead.",
+        "url": "https://basicswapdex.com/bitcoin-to-monero#step-1"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "Fund the wallet you are selling from",
+        "text": "BasicSwap creates a deposit address in the wallet it manages for you. Send the Bitcoin or Monero you plan to trade to that address, and wait for it to confirm.",
+        "url": "https://basicswapdex.com/bitcoin-to-monero#step-2"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "Find an offer, or post your own",
+        "text": "Offers arrive over encrypted peer-to-peer messaging. Filter the order book to BTC and XMR, then take an offer at a price that suits you, or post your own.",
+        "url": "https://basicswapdex.com/bitcoin-to-monero#step-3"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 4,
+        "name": "Stay online until it settles",
+        "text": "The client hands data to the other side at each step, so keep it running. If you pay in Bitcoin and stay away past both timelocks, the seller can claim it and you get their Monero late.",
+        "url": "https://basicswapdex.com/bitcoin-to-monero#step-4"
+      }
+    ]
+  }
+]

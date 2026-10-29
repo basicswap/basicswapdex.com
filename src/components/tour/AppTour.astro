@@ -1,0 +1,524 @@
+---
+// The app tour: BasicSwap 0.19.0's own UI, captured page by page with example
+// data (tools/app-shots), played as one film with a cursor and camera:
+//   Order book      Monero's price card, then Swap on the best Monero offer
+//   Send a bid      0.1 BTC typed in, Send Bid, the confirmation
+//   Swap progress   the bid page stepping from Sent to Completed
+//   Smart Buy       0.3 BTC spread over the cheapest Monero offers
+//   Wallets         the balances, then Manage Wallet on Bitcoin: its wallet
+//                   page, deposit address and history (the swap's lock first)
+//   AMM             the offer templates, then Add Offer
+// Each page is one image the film scrolls over, with patches for the states
+// that differ (a hover, a typed amount, a modal), so every pixel is the app's.
+//
+// The film is drawn into a canvas (src/scripts/app-tour.ts) from the timeline
+// worked out here, with high-quality image smoothing: every frame is resampled
+// with mipmaps at its own zoom, so text stays anti-aliased through the camera
+// moves. (CSS-scaled layers are drawn once and shrunk with plain bilinear
+// filtering, which ripples text as the zoom changes.) The canvas takes its
+// time from a CSS-animated clock, so the tabs underneath (radio buttons,
+// see the modes in film.ts) and the address bar stay pure CSS, and
+// picking a tab restarts everything together. Without JS, a still shows.
+import { Film } from '../desktop/film';
+import tour from '../../assets/app-tour/tour.json';
+
+const files = import.meta.glob<{ default: ImageMetadata }>('../../assets/app-tour/*.webp', { eager: true });
+const src = (file: string) => files[`../../assets/app-tour/${file}`].default.src;
+
+const W = tour.view.w;
+const H = tour.view.h;
+type SceneId = keyof typeof tour.scenes;
+const S = tour.scenes;
+
+// ---- the chapters and the shared loop -------------------------------------------
+const chapters = [
+  { k: 'book', label: 'Order book', at: 0 },
+  { k: 'offer', label: 'Send a bid', at: 8.4 },
+  { k: 'swap', label: 'Swap progress', at: 16.6 },
+  { k: 'smartbuy', label: 'Smart Buy', at: 26.4 },
+  { k: 'wallets', label: 'Wallets', at: 36.2 },
+  { k: 'amm', label: 'AMM', at: 47.0 },
+] as const;
+const LOOP = 55.4;
+const end = (i: number) => chapters[i + 1]?.at ?? LOOP;
+
+// The pages, in order, each with its stretch of the loop and its address.
+const pages: { id: SceneId; from: number; path: string }[] = [
+  { id: 'book', from: 0, path: '/offers' },
+  { id: 'offer', from: 8.4, path: `/offer/${tour.ids.offer}` },
+  { id: 'swap', from: 16.6, path: `/bid/${tour.ids.bid}` },
+  { id: 'smartbuy', from: 26.4, path: '/smartbuy' },
+  { id: 'wallets', from: 36.2, path: '/wallets' },
+  { id: 'wallet', from: 40.3, path: '/wallet/BTC' },
+  { id: 'amm', from: 47.0, path: '/amm' },
+];
+const until = (i: number) => pages[i + 1]?.from ?? LOOP;
+const FADE = 0.35;
+
+// ---- what each page does: scroll stops [seconds, view] and states [name, from, to]
+const views = (id: SceneId) => S[id].views as Record<string, number>;
+const script: Record<SceneId, { scroll: [number, string][]; states: [string, number, number][]; fade?: number }> = {
+  book: { scroll: [[0, 'top'], [2.0, 'cards'], [5.8, 'table']], states: [['xmr', 3.45, 8.8], ['swapHover', 6.7, 8.8]] },
+  offer: {
+    scroll: [[8.4, 'top'], [10.0, 'form']],
+    states: [['focus', 11.0, 11.5], ['typed1', 11.5, 11.7], ['typed2', 11.7, 11.9], ['typed', 11.9, 12.7], ['filled', 12.7, 13.9], ['modal', 13.9, 15.2], ['confirmHover', 15.2, 17]],
+  },
+  swap: { scroll: [[16.6, 'top'], [18.0, 'state']], states: [['s1', 19.0, 20.6], ['s2', 20.6, 22.2], ['s3', 22.2, 23.8], ['s4', 23.8, 25.4], ['s5', 25.4, 27]], fade: 0.25 },
+  smartbuy: {
+    scroll: [[26.4, 'top'], [27.8, 'form'], [30.0, 'find'], [32.4, 'form']],
+    states: [['typed', 28.8, 30.6], ['plan', 30.6, 31.6], ['planTop', 31.6, 33.2], ['placeHover', 33.2, 33.9], ['confirm', 33.9, 36.6]],
+  },
+  wallets: { scroll: [[36.2, 'top'], [37.8, 'cards']], states: [['btcHover', 39.3, 41]] },
+  wallet: { scroll: [[40.3, 'top'], [42.2, 'deposit'], [44.4, 'history']], states: [] },
+  amm: { scroll: [[47.0, 'top'], [48.6, 'tables']], states: [['addHover', 49.8, 50.5], ['add', 50.5, LOOP]] },
+};
+
+/** Scroll keyframes: hold at each view, then ease to the next over 1.1 s. */
+function scrollFrames(stops: [number, string][], id: SceneId): [number, number][] {
+  const out: [number, number][] = [];
+  stops.forEach(([t, v], i) => {
+    const y = views(id)[v];
+    if (i > 0) out.push([t - 1.1, out[out.length - 1][1]]);
+    out.push([t, y]);
+  });
+  return out;
+}
+
+const film_pages = pages.map(({ id, from }, i) => {
+  const s = S[id];
+  const to = until(i);
+  const { scroll, states, fade = 0.12 } = script[id];
+  return {
+    id,
+    base: { src: src(s.base), h: s.height },
+    // each page stays under the next while it fades in
+    win: [i === 0 ? 0 : from, i === pages.length - 1 ? LOOP : to + FADE] as [number, number],
+    scroll: scrollFrames(scroll, id),
+    patches: states
+      .filter(([name]) => (s.snaps as Record<string, unknown>)[name])
+      .map(([name, a, b]) => {
+        const p = (s.snaps as Record<string, { file: string; x: number; y: number; w: number; h: number }>)[name];
+        return { src: src(p.file), x: p.x, y: p.y, w: p.w, h: p.h, win: [a, b, fade] as [number, number, number] };
+      }),
+  };
+});
+
+// ---- the cursor, clicks and camera ------------------------------------------------
+const rect = (id: SceneId, name: string) => (S[id].rects as Record<string, { x: number; y: number; w: number; h: number }>)[name];
+/** A rect's centre on screen when the page is scrolled to `view`. */
+const at = (id: SceneId, name: string, view: string, dx = 0, dy = 0): [number, number] => {
+  const r = rect(id, name);
+  return [Math.round(r.x + r.w / 2 + dx), Math.round(r.y + r.h / 2 - views(id)[view] + dy)];
+};
+const P = {
+  card: at('book', 'cardXmr', 'cards'),
+  swap: at('book', 'swap', 'table'),
+  field: at('offer', 'send', 'form', -160),
+  sendBid: at('offer', 'sendBid', 'form'),
+  confirm: at('offer', 'confirm', 'form'),
+  pay: at('smartbuy', 'pay', 'form', -60),
+  find: at('smartbuy', 'find', 'find'),
+  place: at('smartbuy', 'place', 'form'),
+  btc: at('wallets', 'btcManage', 'cards'),
+  add: at('amm', 'add', 'tables'),
+};
+const clicks: [keyof typeof P, number][] = [
+  ['card', 3.4], ['swap', 7.5], ['field', 10.95], ['sendBid', 13.85], ['confirm', 15.75],
+  ['pay', 28.7], ['find', 30.55], ['place', 33.85], ['btc', 39.95], ['add', 50.45],
+];
+const rest: [number, number] = [W * 0.62, H * 0.55];
+// out of the way while the swap runs and on the wallet page
+const aside: [number, number] = [W * 0.86, H * 0.9];
+const go = (t: number, p: [number, number]): [number, number, number] => [t, p[0], p[1]];
+const cursor = [
+  go(0, rest), go(1.6, rest),
+  go(2.8, P.card), go(3.9, P.card),
+  go(5.2, rest), go(6.0, rest),
+  go(6.8, P.swap), go(8.2, P.swap),
+  go(9.4, rest), go(10.2, rest),
+  go(10.8, P.field), go(12.9, P.field),
+  go(13.6, P.sendBid), go(14.3, P.sendBid),
+  go(15.4, P.confirm), go(16.4, P.confirm),
+  go(17.6, aside), go(26.2, aside),
+  go(28.5, P.pay), go(29.4, P.pay),
+  go(30.3, P.find), go(31.0, P.find),
+  go(33.0, P.place), go(34.6, P.place),
+  go(36.0, rest), go(38.2, rest),
+  go(39.1, P.btc), go(40.4, P.btc),
+  go(41.4, aside), go(48.8, aside),
+  go(49.9, P.add), go(51.4, P.add),
+  go(52.8, rest), go(LOOP, rest),
+];
+
+// the camera leans in on each action, then pulls back: [seconds, centre, zoom]
+const cam = (t: number, p: [number, number], z: number): [number, number, number, number] => [t, p[0], p[1], z];
+const mid: [number, number] = [W / 2, H / 2];
+const camera = [
+  cam(0, mid, 1), cam(2.4, mid, 1),
+  cam(3.0, P.card, 1.35), cam(4.4, P.card, 1.35),
+  cam(5.4, mid, 1), cam(6.2, mid, 1),
+  cam(7.0, P.swap, 1.4), cam(8.2, P.swap, 1.4),
+  cam(9.2, mid, 1), cam(10.3, mid, 1),
+  cam(11.0, [P.field[0] - 250, P.field[1] + 50], 1.4), cam(13.0, [P.field[0] - 250, P.field[1] + 50], 1.4),
+  cam(13.9, mid, 1), cam(16.4, mid, 1),
+  cam(18.6, mid, 1), cam(19.4, [W * 0.42, H * 0.36], 1.3), cam(26.0, [W * 0.42, H * 0.36], 1.3),
+  cam(26.8, mid, 1), cam(28.2, mid, 1),
+  cam(28.9, [P.pay[0] + 60, P.pay[1]], 1.35), cam(29.8, [P.pay[0] + 60, P.pay[1]], 1.35),
+  cam(30.5, mid, 1), cam(31.4, [W * 0.62, H * 0.5], 1.2), cam(32.6, [W * 0.62, H * 0.5], 1.2),
+  cam(33.6, mid, 1), cam(36.6, mid, 1),
+  cam(39.0, P.btc, 1.3), cam(40.2, P.btc, 1.3),
+  cam(41.0, mid, 1), cam(44.6, mid, 1),
+  // the swap's lock, first in the history
+  cam(45.4, [W * 0.38, H * 0.36], 1.35), cam(46.6, [W * 0.38, H * 0.36], 1.35),
+  cam(47.2, mid, 1), cam(50.9, mid, 1),
+  cam(51.8, [W * 0.56, 470], 1.1), cam(54.6, [W * 0.56, 470], 1.1),
+  cam(LOOP, mid, 1),
+].map(([t, cx, cy, z]) => {
+  // clamped so the page's edges never come into view
+  const tx = Math.min(0, Math.max(W - W * z, W / 2 - cx * z));
+  const ty = Math.min(0, Math.max(H - H * z, H / 2 - cy * z));
+  return [t, +tx.toFixed(2), +ty.toFixed(2), z];
+});
+
+const data = {
+  W,
+  H,
+  loop: LOOP,
+  fade: FADE,
+  pages: film_pages,
+  cursor,
+  presses: clicks.map(([, t]) => t),
+  ripples: clicks.map(([k, t]) => [t, P[k][0], P[k][1]]),
+  camera,
+};
+
+// ---- the CSS side: a clock for the canvas, the address bar and the tabs -------
+const modes = chapters.flatMap(({ k, at }) => [
+  { when: `.tour:has(#tour-${k}:checked)`, delay: -at, suffix: `-${k}` },
+  { when: `.tour:has(#tour-${k}2:checked)`, delay: -at, suffix: `-${k}2` },
+]);
+const film = new Film('.window', LOOP, 0, LOOP, modes);
+film.track('clock', '.clock', [[0, 'opacity:0'], [LOOP, 'opacity:1']], 'linear');
+pages.forEach(({ id, from }, i) => film.show(`url-${id}`, `.url-${id}`, [[from, until(i)]], 0.2));
+
+const tabCss = modes
+  .flatMap(({ when, delay, suffix }) =>
+    chapters.flatMap(({ k }, i) => {
+      const a = +((chapters[i].at / LOOP) * 100).toFixed(3);
+      const b = +((end(i) / LOOP) * 100).toFixed(3);
+      const lit = `0%{color:var(--text-muted)}${a}%{color:var(--text)}${b}%{color:var(--text-muted)}`;
+      // the last chapter fills right to the loop's end (a reset frame at 100%
+      // would override its own 100% and keep it empty)
+      const fill = b >= 100 ? `0%{scale:0 1}${a}%{scale:0 1}100%{scale:1 1}` : `0%{scale:0 1}${a}%{scale:0 1}${b}%{scale:1 1}${b + 0.01}%,100%{scale:0 1}`;
+      return [
+        `@keyframes tour-lit-${k}${suffix}{${lit}}`,
+        `@keyframes tour-fill-${k}${suffix}{${fill}}`,
+        `${when} .tab-${k}{animation:tour-lit-${k}${suffix} ${LOOP}s step-end ${delay}s infinite}`,
+        `${when} .tab-${k} .track i{animation:tour-fill-${k}${suffix} ${LOOP}s linear ${delay}s infinite}`,
+      ];
+    }),
+  )
+  .join('\n');
+const css = film.css() + '\n' + tabCss;
+---
+
+<div class="tour" data-parity="new">
+  {
+    chapters.map(({ k, label }, i) => (
+      <>
+        <input type="radio" name="tour" id={`tour-${k}`} class="pick" checked={i === 0} aria-label={`Play from: ${label}`} />
+        <input type="radio" name="tour" id={`tour-${k}2`} class="pick" aria-label={`Play from: ${label}`} tabindex="-1" />
+      </>
+    ))
+  }
+  <div class="stage">
+    <div class="glow" aria-hidden="true"></div>
+    <figure class="window">
+      <figcaption class="titlebar">
+        <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="address data">
+          <span class="host">localhost:12700</span>
+          <span class="paths">
+            {pages.map(({ id, path }) => <span class={`url url-${id}`}>{path}</span>)}
+          </span>
+        </span>
+      </figcaption>
+      <div
+        class="view"
+        role="img"
+        aria-label="BasicSwap 0.19.0 in use, with example data: the order book is filtered to Monero and its best offer taken, a bid of 0.1 BTC is sent and confirmed, the swap steps from Sent to Completed, Smart Buy spreads 0.3 BTC over the cheapest Monero offers, the Bitcoin wallet shows the swap's lock in its history, then the automated market maker."
+        data-tour={JSON.stringify(data)}
+      >
+        <img class="still" src={src(S.book.base)} alt="" width={W} height={S.book.height} loading="lazy" decoding="async" />
+        <canvas aria-hidden="true"></canvas>
+        <span class="clock" aria-hidden="true"></span>
+      </div>
+    </figure>
+  </div>
+  <div class="tabs" role="group" aria-label="Choose a part of the tour">
+    {
+      chapters.map(({ k, label }) => (
+        <div class={`tab tab-${k}`}>
+          <label for={`tour-${k}`} class="hit main" aria-hidden="true" />
+          <label for={`tour-${k}2`} class="hit alt" aria-hidden="true" />
+          <span class="track"><i /></span>
+          {label}
+        </div>
+      ))
+    }
+  </div>
+  <p class="note">BasicSwap 0.19.0, with example figures.</p>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import '../../scripts/app-tour';
+</script>
+
+<style>
+  .tour {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .pick {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .stage {
+    position: relative;
+  }
+
+  /* the hero ribbons' colours, behind the window */
+  .glow {
+    position: absolute;
+    inset: 6% -4% 4% -4%;
+    z-index: -1;
+    background:
+      radial-gradient(45% 55% at 25% 55%, color-mix(in oklab, #0073ff 40%, transparent), transparent 70%),
+      radial-gradient(40% 50% at 78% 40%, color-mix(in oklab, #a855f7 32%, transparent), transparent 70%);
+    filter: blur(48px);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  :global(html[data-theme='light']) .glow {
+    opacity: 0.4;
+  }
+
+  .window {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background:
+      linear-gradient(#141a26, #141a26) padding-box,
+      linear-gradient(140deg, color-mix(in oklab, #60a5fa 70%, white), color-mix(in oklab, #3b82f6 30%, transparent) 30%, color-mix(in oklab, #a855f7 35%, transparent) 75%, color-mix(in oklab, #c084fc 60%, transparent)) border-box;
+    box-shadow:
+      0 30px 60px -20px hsl(var(--shadow-color) / 0.85),
+      0 0 0 1px color-mix(in oklab, white 4%, transparent) inset,
+      0 0 90px -24px color-mix(in oklab, #3b82f6 45%, transparent);
+  }
+
+  .titlebar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.4rem;
+    border-bottom: 1px solid #262f42;
+    background: linear-gradient(to bottom, #222a3a, #1a2030);
+  }
+
+  .lights {
+    position: absolute;
+    left: var(--space-4);
+    display: flex;
+    gap: 6px;
+  }
+
+  .lights i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef5844;
+    opacity: 0.85;
+  }
+
+  .lights i:nth-child(2) { background: #f59e0b; }
+  .lights i:nth-child(3) { background: #2ad168; }
+
+  /* the address bar: a fixed host, the path for the page on screen */
+  .address {
+    display: inline-flex;
+    align-items: center;
+    min-width: min(26rem, 60%);
+    max-width: min(38rem, calc(100% - 9rem));
+    overflow: hidden;
+    padding: 0.25rem 0.9rem;
+    border-radius: var(--radius-full);
+    background: #141a26;
+    color: #919eb0;
+    font-size: var(--step--2);
+    white-space: nowrap;
+  }
+
+  .paths {
+    display: grid;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* phones: no traffic lights, and the address keeps clear of the edges */
+  @media (max-width: 40rem) {
+    .lights {
+      display: none;
+    }
+
+    .address {
+      min-width: 0;
+      max-width: calc(100% - 2rem);
+    }
+  }
+
+  .url {
+    grid-area: 1 / 1;
+    overflow: hidden;
+    color: #d6dde8;
+    text-overflow: ellipsis;
+    opacity: 0;
+  }
+
+  .url-book {
+    opacity: 1;
+  }
+
+  /* The window's content, 16:10 like the capture. */
+  .view {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1600 / 1000;
+    background: #1f2937;
+  }
+
+  .view canvas,
+  .still {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* without JS: the order book's top, still */
+  .still {
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .view canvas {
+    display: none;
+  }
+
+  .view.live canvas {
+    display: block;
+  }
+
+  .view.live .still {
+    display: none;
+  }
+
+  .clock {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-4);
+  }
+
+  @media (min-width: 48rem) {
+    .tabs {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+
+  .tab {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    padding-block: 2px 4px;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .tab:hover {
+    color: var(--text);
+  }
+
+  .track {
+    position: relative;
+    display: block;
+    height: 2px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: color-mix(in oklab, var(--text) 12%, transparent);
+  }
+
+  .track i {
+    position: absolute;
+    inset: 0;
+    background: var(--primary);
+    transform-origin: left;
+    scale: 0 1;
+  }
+
+  /* A tab's label always points at its radio that isn't checked. */
+  .hit {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+  }
+
+  .alt {
+    display: none;
+  }
+
+  .tour:has(#tour-book:checked) .tab-book .main,
+  .tour:has(#tour-offer:checked) .tab-offer .main,
+  .tour:has(#tour-swap:checked) .tab-swap .main,
+  .tour:has(#tour-smartbuy:checked) .tab-smartbuy .main,
+  .tour:has(#tour-wallets:checked) .tab-wallets .main,
+  .tour:has(#tour-amm:checked) .tab-amm .main {
+    display: none;
+  }
+
+  .tour:has(#tour-book:checked) .tab-book .alt,
+  .tour:has(#tour-offer:checked) .tab-offer .alt,
+  .tour:has(#tour-swap:checked) .tab-swap .alt,
+  .tour:has(#tour-smartbuy:checked) .tab-smartbuy .alt,
+  .tour:has(#tour-wallets:checked) .tab-wallets .alt,
+  .tour:has(#tour-amm:checked) .tab-amm .alt {
+    display: block;
+  }
+
+  .tour:has(.pick:focus-visible) .tabs {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+    border-radius: var(--radius-md);
+  }
+
+  .note {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+</style>

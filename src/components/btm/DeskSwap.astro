@@ -1,0 +1,806 @@
+---
+// The Desktop chapter of SwapTour: BasicSwap Desktop's Smart Buy (BETA)
+// page, stylized, beside a BTC/XMR price chart. Smart Buy fills an amount
+// across as many offers as it takes: 0.01 BTC is asked for against XMR,
+// Find cheapest fill splits it over three offers (each marked on the chart),
+// Place bids and Confirm send them, and each bid goes Sent, then Accepted.
+// The flow and wording follow the app's own page (BasicSwap 0.19.0,
+// templates/smartbuy.html), in the opposite direction. A 17 s chapter of the shared
+// loop (film.ts); at rest (reduced motion) it holds on the accepted bids.
+// Light and dark follow the site's theme. Example figures throughout.
+import { Image } from 'astro:assets';
+import { Film, priceSeries, type Step } from '../desktop/film';
+import Logo from '../Logo.astro';
+import bitcoin from '../../assets/coins/bitcoin-circle.png';
+import monero from '../../assets/coins/monero-circle.png';
+
+interface Props {
+  offset: number;
+  loop: number;
+  modes: { when: string; delay: number; suffix: string }[];
+}
+const { offset, loop, modes } = Astro.props;
+
+const D = 17;
+const film = new Film('.dk', D, offset, loop, modes);
+
+// The chart: XMR per BTC over a 100 x 60 box.
+const chart = priceSeries(41, 60, { x0: 0, x1: 100, y0: 12, y1: 50 }, 0.05, 1.1);
+const lastY = +chart.line.split(' ').at(-1)!;
+
+// The plan Smart Buy finds: 0.01 BTC over three offers, best rate first.
+const legs = [
+  { id: '3f9a1c2e…', rate: '343.90', recv: '0.00500000', pay: '1.71950000', y: lastY + 4 },
+  { id: 'a81d5e09…', rate: '344.40', recv: '0.00350000', pay: '1.20540000', y: lastY + 9 },
+  { id: '5c0e7a4b…', rate: '345.10', recv: '0.00150000', pay: '0.51765000', y: lastY + 14 },
+];
+const stats = [
+  ['Average rate', '344.255'],
+  ['Against market', '−0.18%'],
+  ['You pay', '3.44255 XMR'],
+  ['Bids', '3'],
+];
+
+// The cursor, in percent of the window's width (both axes).
+const cursor: [number, number, number][] = [
+  [0, 60, 40],
+  [0.8, 60, 40],
+  [1.5, 17, 33.4],
+  [2.6, 17, 33.4],
+  [3.2, 17, 39.4],
+  [4.6, 17, 39.4],
+  [5.3, 64, 61],
+  [6.0, 64, 61],
+  [6.7, 58, 38],
+  [7.6, 58, 38],
+  [8.4, 52, 52],
+  [D, 52, 52],
+];
+const CLICKS = { field: 1.6, find: 3.3, place: 5.6, confirm: 7.0 };
+film.track('cursor', '.cursor', cursor.map(([t, x, y]): Step => [t, `translate:${x}cqw ${y}cqw`]), 'cubic-bezier(0.55, 0, 0.2, 1)');
+film.track('press', '.cursor svg', [[0, 'scale:1'], ...Object.values(CLICKS).flatMap((c): Step[] => [[c - 0.1, 'scale:1'], [c, 'scale:0.8'], [c + 0.16, 'scale:1']])], 'ease-out');
+Object.entries(CLICKS).forEach(([k, t]) => film.ripple(k, t));
+
+// 1. the chart draws in
+film
+  .track('line', '.line', [[0, 'opacity:0;translate:-3% 0'], [0.2, 'opacity:0;translate:-3% 0'], [1.4, 'opacity:1;translate:0 0']], 'cubic-bezier(0.3, 0, 0.2, 1)')
+  .track('area', '.area', [[0, 'opacity:0'], [1.2, 'opacity:0'], [2, 'opacity:1']], 'linear')
+  .show('last', '.last', [[1.8, D]], 0.3);
+
+// 2. 0.01 BTC typed in, then Find cheapest fill
+film
+  .track('focus', '.recv .ring', [[0, 'opacity:0'], [1.55, 'opacity:0'], [1.65, 'opacity:1'], [3.0, 'opacity:1'], [3.2, 'opacity:0']], 'linear')
+  .show('recv-ph', '.recv .ph', [[0, 1.8]], 0.05);
+['t0', 't1', 't2', 't3'].forEach((k, i) => film.show(k, `.recv .${k}`, [[1.8 + i * 0.15, D]], 0.02));
+film
+  .track('find', '.find', [[CLICKS.find - 0.1, 'scale:1'], [CLICKS.find, 'scale:0.96'], [CLICKS.find + 0.2, 'scale:1']], 'ease-out')
+  .show('empty', '.empty', [[0, 3.5]], 0.15)
+  .show('pay-ph', '.pay .ph', [[0, 3.9]], 0.05)
+  .show('pay', '.pay .val', [[3.9, D]], 0.2)
+  .show('stats', '.stats', [[3.9, D]], 0.3);
+legs.forEach((_, i) => {
+  const t = 3.5 + i * 0.2;
+  film
+    .track(`leg${i}`, `.leg-${i}`, [[0, 'opacity:0;translate:0 0.6cqw'], [t, 'opacity:0;translate:0 0.6cqw'], [t + 0.3, 'opacity:1;translate:0 0']], 'ease-out')
+    .track(`mark${i}`, `.mark-${i}`, [[0, 'opacity:0;scale:0'], [t + 0.1, 'opacity:0;scale:0'], [t + 0.4, 'opacity:1;scale:1.3'], [t + 0.6, 'opacity:1;scale:1']], 'ease-out');
+});
+
+// 3. Place bids, the confirm dialog, then each bid is sent and accepted
+film
+  .track('place', '.place', [[0, 'opacity:0.45'], [3.9, 'opacity:0.45'], [4.1, 'opacity:1'], [CLICKS.place - 0.1, 'opacity:1;scale:1'], [CLICKS.place, 'opacity:1;scale:0.96'], [CLICKS.place + 0.2, 'opacity:1;scale:1']], 'ease-out')
+  .track('modal', '.modal', [[0, 'opacity:0;scale:0.94'], [5.75, 'opacity:0;scale:0.94'], [6.05, 'opacity:1;scale:1'], [7.2, 'opacity:1;scale:1'], [7.45, 'opacity:0;scale:0.97']], 'cubic-bezier(0.3, 1.3, 0.5, 1)')
+  .track('scrim', '.scrim', [[0, 'opacity:0'], [5.75, 'opacity:0'], [6.0, 'opacity:1'], [7.2, 'opacity:1'], [7.45, 'opacity:0']], 'linear')
+  .track('confirm', '.modal .go', [[CLICKS.confirm - 0.1, 'scale:1'], [CLICKS.confirm, 'scale:0.95'], [CLICKS.confirm + 0.2, 'scale:1']], 'ease-out');
+const ACCEPT = [9.6, 10.6, 11.8];
+legs.forEach((_, i) => {
+  const sent = 7.7 + i * 0.25;
+  film
+    .show(`nb${i}`, `.leg-${i} .nb`, [[0, sent]], 0.08)
+    .show(`sent${i}`, `.leg-${i} .sent`, [[sent, ACCEPT[i]]], 0.08)
+    .show(`acc${i}`, `.leg-${i} .acc`, [[ACCEPT[i], D]], 0.1);
+});
+film.track('toast', '.toast', [[0, 'opacity:0;translate:30% 0'], [12.2, 'opacity:0;translate:30% 0'], [12.6, 'opacity:1;translate:0 0']], 'cubic-bezier(0.3, 1.3, 0.5, 1)');
+
+const css = film.css();
+const CHECK = '<path d="M5 12.5 10 17.5 19 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>';
+const NAV = ['Offers', 'Smart Buy', 'Wallets', 'Swaps', 'AMM'];
+---
+
+<div class="desk">
+  <div class="dk">
+    <div class="bar-top">
+      <span class="lights"><i></i><i></i><i></i></span>
+      <Logo height={14} />
+      <nav class="nav">{NAV.map((n) => <span class:list={{ on: n === 'Smart Buy' }}>{n}</span>)}</nav>
+    </div>
+    <div class="body">
+      <!-- left: the Smart Buy form -->
+      <div class="form">
+        <div class="head">
+          <p class="h1">Smart Buy <span class="beta">beta</span></p>
+          <p class="sub">Fill an amount across as many offers as necessary.</p>
+        </div>
+        <div class="side pay">
+          <div class="lbl"><span>You pay</span><span class="bal">Balance 12.8</span></div>
+          <div class="sel"><Image src={monero} alt="" width={40} height={40} />Monero</div>
+          <div class="box"><span class="ph">0.00</span><span class="val">3.44255</span><span class="unit">XMR</span></div>
+        </div>
+        <div class="side recv">
+          <div class="lbl"><span>You receive</span><span class="bal">Balance 0.21</span></div>
+          <div class="sel"><Image src={bitcoin} alt="" width={40} height={40} />Bitcoin</div>
+          <div class="box"><span class="ring"></span><span class="ph">0.00</span><span class="typed"><span class="t0">0</span><span class="t1">.</span><span class="t2">0</span><span class="t3">1</span></span><span class="unit">BTC</span><span class="ripple rp-field"></span></div>
+        </div>
+        <div class="find">Find cheapest fill<span class="ripple rp-find"></span></div>
+        <dl class="stats">{stats.map(([k, v], i) => <div><dt>{k}</dt><dd class:list={{ good: i === 1 }}>{v}</dd></div>)}</dl>
+      </div>
+
+      <!-- right: the chart and the plan -->
+      <div class="right">
+        <div class="pair">
+          <span class="coins"><Image src={bitcoin} alt="" width={40} height={40} /><Image src={monero} alt="" width={40} height={40} /></span>
+          <b>BTC / XMR</b>
+          <span class="price">344.83</span>
+          <span class="chg">−0.6%</span>
+        </div>
+        <div class="chart">
+          <svg viewBox="0 0 100 60" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="dk-area" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#3b82f6" stop-opacity="0.3" />
+                <stop offset="1" stop-color="#3b82f6" stop-opacity="0" />
+              </linearGradient>
+              <linearGradient id="dk-line" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#0073ff" />
+                <stop offset="1" stop-color="#60a5fa" />
+              </linearGradient>
+            </defs>
+            {[15, 27, 39, 51].map((y) => <path class="grid" d={`M0 ${y}H100`} />)}
+            <path class="area" d={chart.area} fill="url(#dk-area)" />
+            <path class="line" d={chart.line} />
+            <path class="last" d={`M0 ${lastY}H100`} />
+          </svg>
+          <span class="last last-tag" style={`top:${(lastY / 60) * 100}%`}>344.83</span>
+          {legs.map((l, i) => <span class={`mark mark-${i}`} style={`top:${(Math.min(l.y, 56) / 60) * 100}%`}>{l.rate}</span>)}
+        </div>
+        <div class="plan">
+          <div class="row th"><span>Offer</span><span>Rate</span><span>Receive BTC</span><span>Pay XMR</span><span>Status</span></div>
+          <p class="empty">Find the cheapest fill to see the plan.</p>
+          {
+            legs.map((l, i) => (
+              <div class={`row leg leg-${i}`}>
+                <span class="mono">{l.id}</span>
+                <span>{l.rate}</span>
+                <span>{l.recv}</span>
+                <span>{l.pay}</span>
+                <span class="st">
+                  <span class="nb">Not bid</span>
+                  <span class="sent">Sent</span>
+                  <span class="acc"><svg viewBox="0 0 24 24" set:html={CHECK} />Accepted</span>
+                </span>
+              </div>
+            ))
+          }
+        </div>
+        <div class="place">Place bids<span class="ripple rp-place"></span></div>
+      </div>
+    </div>
+
+    <!-- the confirm dialog -->
+    <div class="scrim"></div>
+    <div class="modal">
+      <p class="m-title">Confirm bids</p>
+      <dl>
+        <div><dt>Bids</dt><dd>3</dd></div>
+        <div><dt>You pay</dt><dd>3.44255000 XMR</dd></div>
+        <div><dt>Approx. net received</dt><dd>0.00998710 BTC</dd></div>
+      </dl>
+      <div class="m-actions"><span class="cancel">Cancel</span><span class="go">Place bids<span class="ripple rp-confirm"></span></span></div>
+    </div>
+
+    <div class="toast">
+      <span class="tick"><svg viewBox="0 0 24 24" set:html={CHECK} /></span>
+      <span><b>3 bids accepted</b><span class="plus">0.01 BTC on its way</span></span>
+    </div>
+    <span class="cursor"><svg viewBox="0 0 24 24"><path d="M5 3l14 8.2-6.3 1.5L9.4 19z" /></svg></span>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<style>
+  .desk {
+    --btc: #f7b500;
+    --xmr: #ff6600;
+    --ink: #f9fafb;
+    --muted: #9ca3af;
+    --dim: #6b7280;
+    --line: rgb(255 255 255 / 0.08);
+    --panel: rgb(255 255 255 / 0.035);
+    --win-a: #111827;
+    --win-b: #0d1322;
+    --top: rgb(255 255 255 / 0.02);
+    --chip: rgb(255 255 255 / 0.07);
+    --raise: #182132;
+    --scrim: rgb(5 8 16 / 0.55);
+    --good: #34d399;
+    --bad: #f87171;
+    --logo-word: #fff;
+    width: 100%;
+  }
+
+  /* the light theme's version of the same app */
+  :global(html[data-theme='light']) .desk {
+    --ink: #111827;
+    --muted: #4b5563;
+    --dim: #9ca3af;
+    --line: rgb(15 23 42 / 0.09);
+    --panel: #f8fafc;
+    --win-a: #ffffff;
+    --win-b: #fbfcfe;
+    --top: #f3f4f6;
+    --chip: rgb(15 23 42 / 0.06);
+    --raise: #ffffff;
+    --scrim: rgb(15 23 42 / 0.25);
+    --good: #059669;
+    --bad: #dc2626;
+    --logo-word: #212121;
+  }
+
+  .dk {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    aspect-ratio: 16 / 10.4;
+    overflow: hidden;
+    container-type: inline-size;
+    border: 1px solid transparent;
+    border-radius: 1.6cqw;
+    background:
+      linear-gradient(var(--win-a), var(--win-b)) padding-box,
+      linear-gradient(140deg, #60a5fa, rgb(59 130 246 / 0.3) 30%, rgb(59 130 246 / 0.2) 75%, #3b82f6) border-box;
+    box-shadow: 0 30px 60px -20px hsl(var(--shadow-color) / 0.85);
+    color: var(--ink);
+    font-family: var(--font-sans);
+  }
+
+  /* the base size sits one level down: a container's own cqw would measure
+     the page, not the window */
+  .dk > * {
+    font-size: 1.4cqw;
+  }
+
+  .bar-top {
+    display: flex;
+    align-items: center;
+    gap: 1.6cqw;
+    height: 4.4cqw;
+    padding-inline: 1.8cqw;
+    border-bottom: 1px solid var(--line);
+    background: var(--top);
+  }
+
+  .lights {
+    display: flex;
+    gap: 0.7cqw;
+  }
+
+  .lights i {
+    width: 1.1cqw;
+    height: 1.1cqw;
+    border-radius: 99px;
+    background: #ef5944;
+  }
+
+  .lights i:nth-child(2) {
+    background: #f59e0b;
+  }
+
+  .lights i:nth-child(3) {
+    background: #2ad168;
+  }
+
+  .bar-top :global(.logo) {
+    width: auto;
+    height: 2.2cqw;
+  }
+
+  .nav {
+    display: flex;
+    gap: 1.8cqw;
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 1.25cqw;
+  }
+
+  .nav .on {
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: 0 1.3cqw 0 -1.05cqw #3b82f6;
+  }
+
+  .body {
+    display: grid;
+    grid-template-columns: 33cqw minmax(0, 1fr);
+    gap: 1.6cqw;
+    min-height: 0;
+    padding: 1.6cqw;
+  }
+
+  /* ---- the form ---- */
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 1cqw;
+  }
+
+  .h1 {
+    display: flex;
+    align-items: center;
+    gap: 0.8cqw;
+    font-size: 2cqw;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .beta {
+    padding: 0.1cqw 0.7cqw;
+    border-radius: 99px;
+    background: rgb(59 130 246 / 0.16);
+    color: #3b82f6;
+    font-size: 1.05cqw;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .sub {
+    margin-top: 0.3cqw;
+    color: var(--muted);
+    font-size: 1.15cqw;
+  }
+
+  .side {
+    display: grid;
+    gap: 0.6cqw;
+    padding: 1cqw;
+    border: 1px solid var(--line);
+    border-radius: 1cqw;
+    background: var(--panel);
+  }
+
+  .lbl {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 1.1cqw;
+  }
+
+  .lbl > span:first-child {
+    color: var(--ink);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .sel {
+    display: flex;
+    align-items: center;
+    gap: 0.7cqw;
+    font-size: 1.3cqw;
+    font-weight: 600;
+  }
+
+  .sel :global(img) {
+    width: 1.9cqw;
+    height: 1.9cqw;
+  }
+
+  .box {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: 0.6cqw 0.9cqw;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 0.7cqw;
+    background: var(--win-a);
+    font-size: 1.7cqw;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .box > .ph,
+  .box > .val,
+  .box > .typed {
+    grid-area: 1 / 1;
+  }
+
+  .ph {
+    color: var(--dim);
+    opacity: 0;
+  }
+
+  /* the focus ring, faded in and out so it stays on the GPU */
+  .ring {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px #3b82f6;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .unit {
+    grid-column: 2;
+    color: var(--muted);
+    font-size: 1.2cqw;
+  }
+
+  .find,
+  .place,
+  .go {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 3.4cqw;
+    overflow: hidden;
+    border-radius: 0.8cqw;
+    background: var(--primary);
+    color: #fff;
+    font-size: 1.35cqw;
+    font-weight: 700;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8cqw;
+    margin-top: auto;
+  }
+
+  .stats div {
+    padding: 0.7cqw 0.9cqw;
+    border: 1px solid var(--line);
+    border-radius: 0.8cqw;
+    background: var(--panel);
+  }
+
+  .stats dt {
+    color: var(--muted);
+    font-size: 1.05cqw;
+  }
+
+  .stats dd {
+    font-size: 1.35cqw;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stats .good {
+    color: var(--good);
+  }
+
+  /* ---- the chart ---- */
+  .right {
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    gap: 1cqw;
+    min-height: 0;
+  }
+
+  .pair {
+    display: flex;
+    align-items: center;
+    gap: 1cqw;
+    white-space: nowrap;
+  }
+
+  .pair b {
+    font-size: 1.6cqw;
+  }
+
+  .coins {
+    display: inline-flex;
+  }
+
+  .coins :global(img) {
+    width: 2.3cqw;
+    height: 2.3cqw;
+  }
+
+  .coins :global(img + img) {
+    margin-left: -0.7cqw;
+  }
+
+  .price {
+    font-size: 1.6cqw;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chg {
+    color: var(--bad);
+    font-weight: 600;
+  }
+
+  .chart {
+    position: relative;
+    min-height: 0;
+    padding-right: 6.5cqw;
+    border: 1px solid var(--line);
+    border-radius: 1cqw;
+    background: var(--panel);
+  }
+
+  .chart svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .grid {
+    stroke: var(--line);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .line {
+    fill: none;
+    stroke: url(#dk-line);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  path.last {
+    stroke: #3b82f6;
+    stroke-dasharray: 3 3;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .last-tag,
+  .mark {
+    position: absolute;
+    right: 0.5cqw;
+    translate: 0 -50%;
+    padding: 0.15cqw 0.5cqw;
+    border-radius: 0.4cqw;
+    font-size: 1.05cqw;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .last-tag {
+    background: #3b82f6;
+    color: #fff;
+  }
+
+  /* each offer in the plan, marked at its rate */
+  .mark {
+    border: 1px solid color-mix(in oklab, var(--xmr) 60%, transparent);
+    background: color-mix(in oklab, var(--xmr) 14%, var(--win-a));
+    color: color-mix(in oklab, var(--xmr) 75%, var(--ink));
+  }
+
+  /* ---- the plan ---- */
+  .plan {
+    position: relative;
+    display: grid;
+    gap: 0.25cqw;
+    padding: 0.7cqw;
+    border: 1px solid var(--line);
+    border-radius: 1cqw;
+    background: var(--panel);
+    font-size: 1.15cqw;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr 1.1fr 1.1fr 1fr;
+    align-items: center;
+    gap: 0.6cqw;
+    padding: 0.45cqw 0.6cqw;
+    border-radius: 0.4cqw;
+  }
+
+  .th {
+    color: var(--dim);
+    font-size: 1.02cqw;
+  }
+
+  .leg:nth-child(odd) {
+    background: var(--chip);
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+    color: var(--muted);
+  }
+
+  .empty {
+    position: absolute;
+    inset: 2.6cqw 0.6cqw auto;
+    color: var(--dim);
+    text-align: center;
+    opacity: 0;
+  }
+
+  .st {
+    display: inline-grid;
+  }
+
+  .st > span {
+    display: inline-flex;
+    grid-area: 1 / 1;
+    align-items: center;
+    gap: 0.3cqw;
+    justify-self: start;
+    padding: 0.1cqw 0.6cqw;
+    border-radius: 99px;
+    font-size: 1.02cqw;
+    font-weight: 600;
+  }
+
+  .nb {
+    background: var(--chip);
+    color: var(--muted);
+    opacity: 0;
+  }
+
+  .sent {
+    background: rgb(59 130 246 / 0.16);
+    color: #3b82f6;
+    opacity: 0;
+  }
+
+  .acc {
+    background: color-mix(in oklab, var(--good) 16%, transparent);
+    color: var(--good);
+  }
+
+  .acc svg {
+    width: 1.1cqw;
+    height: 1.1cqw;
+  }
+
+  /* ---- dialog, toast, cursor ---- */
+  .scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: var(--scrim);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .modal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    display: grid;
+    gap: 1.2cqw;
+    width: 34cqw;
+    margin: -11cqw 0 0 -17cqw;
+    padding: 1.8cqw;
+    border: 1px solid var(--line);
+    border-radius: 1.4cqw;
+    background: var(--raise);
+    box-shadow: 0 2cqw 5cqw rgb(0 0 0 / 0.35);
+    opacity: 0;
+  }
+
+  .m-title {
+    font-size: 1.7cqw;
+    font-weight: 700;
+  }
+
+  .modal dl {
+    display: grid;
+    gap: 0.7cqw;
+  }
+
+  .modal dl div {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .modal dt {
+    color: var(--muted);
+  }
+
+  .modal dd {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .m-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8cqw;
+  }
+
+  .cancel {
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 0.8cqw;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .ripple {
+    position: absolute;
+    width: 8cqw;
+    height: 8cqw;
+    border-radius: 99px;
+    background: rgb(255 255 255 / 0.35);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .rp-field {
+    background: rgb(59 130 246 / 0.25);
+  }
+
+  .toast {
+    position: absolute;
+    top: 6cqw;
+    right: 1.6cqw;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 1cqw;
+    padding: 1cqw 1.4cqw;
+    border: 1px solid color-mix(in oklab, var(--good) 45%, transparent);
+    border-radius: 1cqw;
+    background: var(--raise);
+    box-shadow: 0 1cqw 3cqw rgb(0 0 0 / 0.3), 0 0 3cqw -1cqw rgb(16 185 129 / 0.6);
+    font-size: 1.3cqw;
+  }
+
+  .toast > span:last-child {
+    display: grid;
+  }
+
+  .tick {
+    display: grid;
+    place-items: center;
+    width: 2.6cqw;
+    height: 2.6cqw;
+    border-radius: 99px;
+    background: #10b981;
+    color: #fff;
+  }
+
+  .tick svg {
+    width: 1.6cqw;
+    height: 1.6cqw;
+  }
+
+  .plus {
+    color: var(--muted);
+  }
+
+  .cursor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    width: 2.4cqw;
+    height: 2.4cqw;
+    translate: 52cqw 52cqw;
+  }
+
+  .cursor svg {
+    width: 100%;
+    height: 100%;
+    fill: #fff;
+    stroke: #111827;
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0.3cqw 0.4cqw rgb(0 0 0 / 0.5));
+    transform-origin: 20% 15%;
+  }
+</style>

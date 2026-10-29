@@ -1,0 +1,191 @@
+---
+// Adaptor signatures: bitcoin and monero sit locked on either side. A
+// single signature writes itself between them, both locks release at once,
+// and the coins swap sides. 8 s loop.
+// At rest (reduced motion): the signature drawn, the coins swapped.
+import bitcoin from '../../../assets/coins/bitcoin-circle.png';
+import monero from '../../../assets/coins/monero-circle.png';
+
+const A = { x: 56, y: 70 };
+const B = { x: 184, y: 70 };
+const SIG = 'M76 70 C 88 44, 101 46, 102 62 S 96 92, 110 86 S 127 50, 134 64 S 141 90, 151 80 S 160 66, 164 70';
+// the swap: straight across on one line; monero is listed first so
+// bitcoin passes in front of it
+const coins = [
+  { k: 'xmr', src: monero.src, tint: '#ff6600', d: `M${B.x} ${B.y} L${A.x} ${A.y}` },
+  { k: 'btc', src: bitcoin.src, tint: '#f7931a', d: `M${A.x} ${A.y} L${B.x} ${B.y}` },
+];
+---
+
+<svg viewBox="0 0 240 140" fill="none" class="o1">
+  <defs>
+    <linearGradient id="o1-ink" x1="76" y1="0" x2="164" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3b82f6" />
+      <stop offset="1" stop-color="#a855f7" />
+    </linearGradient>
+    {
+      coins.map(({ k, tint }) => (
+        <radialGradient id={`o1-halo-${k}`}>
+          <stop offset="0" stop-color={tint} stop-opacity="0.45" />
+          <stop offset="1" stop-color={tint} stop-opacity="0" />
+        </radialGradient>
+      ))
+    }
+  </defs>
+
+  <!-- locks: a dashed ring around each coin -->
+  <circle class="lock a" cx={A.x} cy={A.y} r="19" />
+  <circle class="lock b" cx={B.x} cy={B.y} r="19" />
+  <circle class="open a" cx={A.x} cy={A.y} r="19" />
+  <circle class="open b" cx={B.x} cy={B.y} r="19" />
+
+  <!-- the signature -->
+  <path class="sig" d={SIG} pathLength="1" />
+  <circle class="pen" r="2.4" style={`offset-path: path('${SIG}')`} />
+
+  <!-- the coins, which swap sides -->
+  {
+    coins.map(({ k, src, d }) => (
+      <g class={`coin ${k}`} style={`offset-path: path('${d}')`}>
+        <g class="depth">
+          <circle r="20" fill={`url(#o1-halo-${k})`} class="halo" />
+          <image href={src} x="-12" y="-12" width="24" height="24" />
+        </g>
+      </g>
+    ))
+  }
+</svg>
+
+<style>
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .a { --c: #3b82f6; }
+  .b { --c: #a855f7; }
+
+  .lock {
+    stroke: var(--c);
+    stroke-width: 1.4;
+    stroke-dasharray: 3 3.5;
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .open {
+    stroke: var(--green);
+    stroke-width: 1.4;
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+
+  .sig {
+    stroke: url(#o1-ink);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    filter: drop-shadow(0 0 4px color-mix(in oklab, #6d6af8 60%, transparent));
+  }
+
+  .pen {
+    fill: #fff;
+    filter: drop-shadow(0 0 4px #a855f7);
+    offset-rotate: 0deg;
+    opacity: 0;
+  }
+
+  :global(html[data-theme='light']) .pen {
+    fill: var(--accent);
+  }
+
+  /* at rest: swapped */
+  .coin {
+    offset-rotate: 0deg;
+    offset-distance: 100%;
+  }
+
+  .halo,
+  .depth {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* ---- the loop, 8 s ---- */
+  .lock, .open, .sig, .pen, .coin, .halo, .depth {
+    animation-duration: 8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: var(--ease);
+  }
+
+  .lock { animation-name: o1-lock; }
+  .open { animation-name: o1-open; }
+  .sig { animation-name: o1-sig; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  .pen { animation-name: o1-pen; animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  .btc { animation-name: o1-btc; }
+  .xmr { animation-name: o1-xmr; }
+  .halo { animation-name: o1-halo; }
+  .btc .depth { animation-name: o1-front; }
+  .xmr .depth { animation-name: o1-back; }
+
+  /* Locked, slowly turning, until the signature completes. */
+  @keyframes o1-lock {
+    0% { opacity: 0; rotate: 0deg; scale: 1; }
+    4% { opacity: 1; }
+    30% { opacity: 1; rotate: 50deg; scale: 1; }
+    34%, 100% { opacity: 0; rotate: 60deg; scale: 1.25; }
+  }
+  @keyframes o1-open {
+    0%, 30% { opacity: 0; scale: 1; }
+    31% { opacity: 1; scale: 1; }
+    42%, 100% { opacity: 0; scale: 1.7; }
+  }
+
+  /* One signature, written in one stroke. */
+  @keyframes o1-sig {
+    0%, 8% { stroke-dashoffset: 1; opacity: 1; }
+    30%, 88% { stroke-dashoffset: 0; opacity: 1; }
+    96%, 100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  @keyframes o1-pen {
+    0%, 8% { offset-distance: 0%; opacity: 0; }
+    9% { opacity: 1; }
+    30% { offset-distance: 100%; opacity: 1; }
+    32%, 100% { offset-distance: 100%; opacity: 0; }
+  }
+
+  /* Both coins cross to the other side, on the same line. */
+  @keyframes o1-btc {
+    0% { offset-distance: 0%; opacity: 0; }
+    4%, 36% { offset-distance: 0%; opacity: 1; animation-timing-function: cubic-bezier(0.6, 0, 0.3, 1); }
+    60%, 90% { offset-distance: 100%; opacity: 1; }
+    97%, 100% { offset-distance: 100%; opacity: 0; }
+  }
+  @keyframes o1-xmr {
+    0% { offset-distance: 0%; opacity: 0; }
+    4%, 36% { offset-distance: 0%; opacity: 1; animation-timing-function: cubic-bezier(0.6, 0, 0.3, 1); }
+    60%, 90% { offset-distance: 100%; opacity: 1; }
+    97%, 100% { offset-distance: 100%; opacity: 0; }
+  }
+  /* As they pass, bitcoin lifts towards the viewer and monero sinks back. */
+  @keyframes o1-front {
+    0%, 36% { scale: 1; }
+    48% { scale: 1.2; }
+    60%, 100% { scale: 1; }
+  }
+  @keyframes o1-back {
+    0%, 36% { scale: 1; opacity: 1; }
+    48% { scale: 0.8; opacity: 0.75; }
+    60%, 100% { scale: 1; opacity: 1; }
+  }
+  @keyframes o1-halo {
+    0%, 59% { scale: 1; opacity: 0.7; }
+    62% { scale: 1.35; opacity: 1; }
+    70%, 100% { scale: 1; opacity: 0.7; }
+  }
+</style>

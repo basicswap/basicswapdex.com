@@ -1,0 +1,659 @@
+---
+// The Web chapter of SwapTour: BasicSwap Web built into a website, stylized.
+// A placeholder exchange site (domain.example) with the swap module in its hero,
+// the way instant-exchange sites put theirs: 2.5 XMR typed in, the BTC quote,
+// a receive address, Exchange, then the module steps through the swap to a
+// receipt. "Powered by BasicSwap" sits under the module. A 17 s chapter of
+// the shared loop (film.ts); at rest (reduced motion) it holds on the receipt.
+// Example figures throughout.
+import { Image } from 'astro:assets';
+import { Film, type Step } from '../desktop/film';
+import Logo from '../Logo.astro';
+import bitcoin from '../../assets/coins/bitcoin-circle.png';
+import monero from '../../assets/coins/monero-circle.png';
+import coins from '../../data/coins.json';
+
+interface Props {
+  offset: number;
+  loop: number;
+  modes: { when: string; delay: number; suffix: string }[];
+}
+const { offset, loop, modes } = Astro.props;
+
+const D = 17;
+// how many chains BasicSwap swaps between, from the coin snapshot
+const CHAINS = coins.coins.length;
+const film = new Film('.wb', D, offset, loop, modes);
+
+// The cursor, in percent of the window's width (both axes).
+const cursor: [number, number, number][] = [
+  [0, 40, 50],
+  [0.4, 40, 50],
+  [1.1, 70, 22.8],
+  [2.4, 70, 22.8],
+  [3.2, 72, 42.3],
+  [3.9, 72, 42.3],
+  [4.5, 78, 52.2],
+  [5.4, 78, 52.2],
+  [6.4, 50, 56],
+  [D, 50, 56],
+];
+const CLICKS = [1.2, 3.3, 4.6];
+film.track('cursor', '.cursor', cursor.map(([t, x, y]): Step => [t, `translate:${x}cqw ${y}cqw`]), 'cubic-bezier(0.55, 0, 0.2, 1)');
+film.track('press', '.cursor svg', [[0, 'scale:1'], ...CLICKS.flatMap((c): Step[] => [[c - 0.1, 'scale:1'], [c, 'scale:0.8'], [c + 0.16, 'scale:1']])], 'ease-out');
+film.ripple('go', CLICKS[2]);
+
+// 1. the form: amount, quote, address, Exchange
+film
+  .track('focus', '.f-send .ring', [[0, 'opacity:0'], [1.1, 'opacity:0'], [1.25, 'opacity:1'], [2.3, 'opacity:1'], [2.5, 'opacity:0']], 'linear')
+  .show('d0', '.d0', [[1.4, D]], 0.02)
+  .show('d1', '.d1', [[1.6, D]], 0.02)
+  .show('d2', '.d2', [[1.8, D]], 0.02)
+  .show('get-ph', '.get-ph', [[0, 2.1]], 0.15)
+  .show('get', '.get', [[2.1, D]], 0.2)
+  .show('addr-ph', '.addr-ph', [[0, 3.5]], 0.1)
+  .show('addr', '.addr', [[3.5, D]], 0.2)
+  .track('go-press', '.go', [[CLICKS[2] - 0.1, 'scale:1'], [CLICKS[2], 'scale:0.96'], [CLICKS[2] + 0.2, 'scale:1']], 'ease-out');
+
+// 2. the module turns over to the swap's progress, then the receipt
+const panel = (name: string, a: number, b: number) =>
+  film.track(name, `.p-${name}`, [
+    [0, 'opacity:0;translate:6% 0'],
+    [a - 0.3, 'opacity:0;translate:6% 0'],
+    [a, 'opacity:1;translate:0 0'],
+    [b, 'opacity:1;translate:0 0'],
+    [b + 0.3, 'opacity:0;translate:-6% 0'],
+  ]);
+film.track('form', '.p-form', [[0, 'opacity:1;translate:0 0'], [5.0, 'opacity:1;translate:0 0'], [5.3, 'opacity:0;translate:-6% 0']]);
+panel('progress', 5.4, 12.6);
+film.track('receipt', '.p-receipt', [[0, 'opacity:0;scale:0.94'], [12.7, 'opacity:0;scale:0.94'], [13.1, 'opacity:1;scale:1']], 'cubic-bezier(0.3, 1.4, 0.5, 1)');
+const STEPS = [6.4, 8.2, 10.0, 11.8];
+film.track('fill', '.fill', [[0, 'scale:0 1'], [5.4, 'scale:0 1'], ...STEPS.map((t, i): Step => [t, `scale:${(i + 1) / 4} 1`])]);
+STEPS.forEach((t, i) => {
+  film
+    .track(`tick${i}`, `.s${i} .tick`, [[0, 'opacity:0.25;scale:0.6'], [t - 0.15, 'opacity:0.25;scale:0.6'], [t, 'opacity:1;scale:1.2'], [t + 0.2, 'opacity:1;scale:1']], 'ease-out')
+    .track(`s${i}`, `.s${i}`, [[0, 'opacity:0.45'], [t - 0.1, 'opacity:0.45'], [t, 'opacity:1']], 'linear');
+});
+
+const css = film.css();
+const CHECK = '<path d="M5 12.5 10 17.5 19 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>';
+const FLIP = '<path d="M8 4v15m0 0-3.5-3.5M8 19l3.5-3.5M16 20V5m0 0-3.5 3.5M16 5l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+---
+
+<div class="web">
+  <div class="wb">
+    <div class="chrome">
+      <span class="lights"><i></i><i></i><i></i></span>
+      <span class="url"><svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2.5" /><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" /></svg>domain.example</span>
+    </div>
+    <div class="site">
+      <header class="nav">
+        <span class="brand"><span class="mark"></span><span class="ghost"></span></span>
+        <span class="links"><span>Exchange</span><span>Wallet</span><span>Rates</span><span>Help</span></span>
+      </header>
+      <div class="hero">
+        <div class="copy">
+          <p class="eyebrow">Non-custodial exchange</p>
+          <p class="h1">Swap Monero for Bitcoin in minutes.</p>
+          <p class="lead">No account and no deposit with us. Your coins go straight from one chain to the other.</p>
+          <div class="trust">
+            <span><b>0</b> sign-ups</span>
+            <span><b>No</b> custody</span>
+            <span><b>{CHAINS}</b> chains</span>
+          </div>
+        </div>
+        <div class="module">
+          <div class="card">
+            <!-- the form -->
+            <div class="p p-form">
+              <div class="tabs"><span class="on">Exchange</span><span>Buy</span></div>
+              <div class="f f-send">
+                <span class="ring"></span>
+                <span class="k">You send</span>
+                <div class="row">
+                  <span class="amt"><span class="d0">2</span><span class="d1">.</span><span class="d2">5</span></span>
+                  <span class="pill"><Image src={monero} alt="" width={40} height={40} />XMR</span>
+                </div>
+              </div>
+              <span class="flip"><svg viewBox="0 0 24 24" set:html={FLIP} /></span>
+              <div class="f">
+                <span class="k">You get</span>
+                <div class="row">
+                  <span class="amt stack"><span class="get-ph">0</span><span class="get">≈ 0.00725</span></span>
+                  <span class="pill"><Image src={bitcoin} alt="" width={40} height={40} />BTC</span>
+                </div>
+              </div>
+              <div class="f f-addr">
+                <span class="k">Your BTC address</span>
+                <span class="stack"><span class="addr-ph">Paste address</span><span class="addr">bc1qxy2kgdyg…0wlh</span></span>
+              </div>
+              <div class="go">Exchange<span class="ripple rp-go"></span></div>
+            </div>
+
+            <!-- the swap's progress -->
+            <div class="p p-progress">
+              <p class="title">Exchanging 2.5 XMR</p>
+              <span class="track"><span class="fill"></span></span>
+              <ol class="steps">
+                <li class="s0"><span class="tick"><svg viewBox="0 0 24 24" set:html={CHECK} /></span>Offer matched</li>
+                <li class="s1"><span class="tick"><svg viewBox="0 0 24 24" set:html={CHECK} /></span>BTC locked</li>
+                <li class="s2"><span class="tick"><svg viewBox="0 0 24 24" set:html={CHECK} /></span>XMR locked</li>
+                <li class="s3"><span class="tick"><svg viewBox="0 0 24 24" set:html={CHECK} /></span>BTC claimed</li>
+              </ol>
+              <p class="hint">Nobody holds your coins in between.</p>
+            </div>
+
+            <!-- the receipt -->
+            <div class="p p-receipt">
+              <span class="seal"><svg viewBox="0 0 24 24" set:html={CHECK} /></span>
+              <p class="title">Exchange complete</p>
+              <p class="plus">+ 0.00725 BTC</p>
+              <p class="hint">Sent to bc1qxy2kgdyg…0wlh</p>
+            </div>
+          </div>
+          <p class="powered">Powered by <Logo height={14} /></p>
+        </div>
+      </div>
+    </div>
+    <span class="cursor"><svg viewBox="0 0 24 24"><path d="M5 3l14 8.2-6.3 1.5L9.4 19z" /></svg></span>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<style>
+  .web {
+    /* BasicSwap's blue for the controls, its violet for text accents */
+    --blue: #3b82f6;
+    --violet: #c084fc;
+    --ink: #f9fafb;
+    --muted: #9ca3af;
+    --dim: #6b7280;
+    --line: rgb(255 255 255 / 0.1);
+    --win: #0f1424;
+    --chrome: #161c2c;
+    --url: rgb(0 0 0 / 0.3);
+    --page-a: #10172a;
+    --page-b: #10172a;
+    --card: rgb(22 28 44 / 0.92);
+    --field: rgb(255 255 255 / 0.04);
+    --chip: rgb(255 255 255 / 0.08);
+    --flip-bg: #1d2438;
+    --logo-word: #fff;
+    width: 100%;
+  }
+
+  /* the light theme's version of the same site */
+  :global(html[data-theme='light']) .web {
+    --ink: #111827;
+    --muted: #4b5563;
+    --dim: #9ca3af;
+    --line: rgb(15 23 42 / 0.1);
+    --win: #ffffff;
+    --chrome: #f3f4f6;
+    --url: #ffffff;
+    --page-a: #ffffff;
+    --page-b: #ffffff;
+    --card: rgb(255 255 255 / 0.96);
+    --field: #f9fafb;
+    --chip: rgb(15 23 42 / 0.06);
+    --flip-bg: #ffffff;
+    --logo-word: #212121;
+    --blue: #2563eb;
+    --violet: #9333ea;
+  }
+
+  .wb {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    aspect-ratio: 16 / 10.4;
+    overflow: hidden;
+    container-type: inline-size;
+    border: 1px solid transparent;
+    border-radius: 1.6cqw;
+    background:
+      linear-gradient(var(--win), var(--win)) padding-box,
+      linear-gradient(140deg, #60a5fa, rgb(59 130 246 / 0.3) 30%, rgb(59 130 246 / 0.2) 75%, #3b82f6) border-box;
+    box-shadow: 0 30px 60px -20px hsl(var(--shadow-color) / 0.85);
+    color: var(--ink);
+    font-family: var(--font-sans);
+  }
+
+  /* the base size sits one level down: a container's own cqw would measure
+     the page, not the window */
+  .wb > * {
+    font-size: 1.5cqw;
+  }
+
+  .chrome {
+    display: flex;
+    align-items: center;
+    gap: 2cqw;
+    height: 4.4cqw;
+    padding-inline: 1.8cqw;
+    border-bottom: 1px solid var(--line);
+    background: var(--chrome);
+  }
+
+  .lights {
+    display: flex;
+    gap: 0.7cqw;
+  }
+
+  .lights i {
+    width: 1.1cqw;
+    height: 1.1cqw;
+    border-radius: 99px;
+    background: #ef5944;
+  }
+
+  .lights i:nth-child(2) {
+    background: #f59e0b;
+  }
+
+  .lights i:nth-child(3) {
+    background: #2ad168;
+  }
+
+  .url {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6cqw;
+    width: 40cqw;
+    margin-inline: auto;
+    padding: 0.5cqw 1.2cqw;
+    border-radius: 99px;
+    background: var(--url);
+    color: var(--muted);
+    font-size: 1.3cqw;
+  }
+
+  .url svg {
+    width: 1.3cqw;
+    height: 1.3cqw;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+  }
+
+  /* ---- the made-up site ---- */
+  .site {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 0;
+    background:
+      linear-gradient(var(--page-a), var(--page-b));
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.6cqw 3.4cqw;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8cqw;
+    font-size: 1.8cqw;
+    font-weight: 700;
+  }
+
+  .mark {
+    width: 2.2cqw;
+    height: 2.2cqw;
+    border-radius: 99px;
+    background: conic-gradient(from 200deg, var(--blue), var(--violet), var(--blue));
+    box-shadow: inset 0 0 0 0.5cqw var(--page-a);
+  }
+
+  /* where the site's own name would go */
+  .ghost {
+    width: 7cqw;
+    height: 1cqw;
+    border-radius: 99px;
+    background: var(--chip);
+  }
+
+  .links {
+    display: flex;
+    gap: 2.6cqw;
+    color: var(--muted);
+    font-size: 1.35cqw;
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36cqw;
+    align-items: center;
+    gap: 3cqw;
+    padding: 0 3.4cqw 2.4cqw;
+  }
+
+  .copy {
+    display: grid;
+    gap: 1.6cqw;
+  }
+
+  .eyebrow {
+    color: var(--violet);
+    font-size: 1.3cqw;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .h1 {
+    font-size: 4.4cqw;
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+  }
+
+  .lead {
+    color: var(--muted);
+    font-size: 1.6cqw;
+    line-height: 1.5;
+  }
+
+  .trust {
+    display: flex;
+    gap: 2.4cqw;
+    color: var(--muted);
+    font-size: 1.3cqw;
+  }
+
+  .trust b {
+    display: block;
+    color: var(--ink);
+    font-size: 2.2cqw;
+  }
+
+  /* ---- the swap module ---- */
+  .module {
+    display: grid;
+    gap: 1cqw;
+  }
+
+  .card {
+    position: relative;
+    height: 44cqw;
+    border: 1px solid var(--line);
+    border-radius: 2cqw;
+    background: var(--card);
+    box-shadow: 0 2cqw 5cqw -1cqw rgb(0 0 0 / 0.35);
+  }
+
+  .p {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2cqw;
+    padding: 2cqw;
+    opacity: 0;
+  }
+
+  .p-receipt {
+    opacity: 1;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 1.6cqw;
+    color: var(--dim);
+    font-size: 1.4cqw;
+    font-weight: 600;
+  }
+
+  .tabs .on {
+    color: var(--ink);
+    box-shadow: 0 0.3cqw 0 -0.05cqw var(--violet);
+  }
+
+  .f {
+    display: grid;
+    gap: 0.6cqw;
+    padding: 1cqw 1.4cqw;
+    border: 1px solid var(--line);
+    border-radius: 1.2cqw;
+    background: var(--field);
+  }
+
+  /* the focus ring, faded in and out so it stays on the GPU */
+  .f-send {
+    position: relative;
+  }
+
+  .ring {
+    position: absolute;
+    inset: -1px;
+    border: 1px solid var(--blue);
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .k {
+    color: var(--muted);
+    font-size: 1.15cqw;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .amt {
+    display: inline-flex;
+    min-height: 1.2em;
+    font-size: 2.6cqw;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stack {
+    display: inline-grid;
+  }
+
+  .stack > * {
+    grid-area: 1 / 1;
+  }
+
+  .get-ph,
+  .addr-ph {
+    color: var(--dim);
+    opacity: 0;
+  }
+
+  .f-addr .stack {
+    font-size: 1.35cqw;
+    font-family: var(--font-mono);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5cqw;
+    padding: 0.4cqw 0.9cqw 0.4cqw 0.4cqw;
+    border-radius: 99px;
+    background: var(--chip);
+    font-size: 1.3cqw;
+    font-weight: 700;
+  }
+
+  .pill :global(img) {
+    width: 2cqw;
+    height: 2cqw;
+  }
+
+  .flip {
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 3cqw;
+    height: 3cqw;
+    margin: -2.1cqw auto;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: var(--flip-bg);
+    color: var(--violet);
+  }
+
+  .flip svg {
+    width: 1.6cqw;
+    height: 1.6cqw;
+  }
+
+  .go {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 4cqw;
+    margin-top: auto;
+    overflow: hidden;
+    border-radius: 1.1cqw;
+    background: var(--blue);
+    color: #fff;
+    font-size: 1.5cqw;
+    font-weight: 700;
+  }
+
+  .ripple {
+    position: absolute;
+    width: 10cqw;
+    height: 10cqw;
+    border-radius: 99px;
+    background: rgb(255 255 255 / 0.4);
+    opacity: 0;
+  }
+
+  .title {
+    font-size: 1.9cqw;
+    font-weight: 700;
+  }
+
+  .track {
+    position: relative;
+    height: 0.6cqw;
+    overflow: hidden;
+    border-radius: 99px;
+    background: var(--chip);
+  }
+
+  .fill {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, var(--blue), var(--violet));
+    transform-origin: left;
+  }
+
+  .steps {
+    display: grid;
+    gap: 1.3cqw;
+    margin-top: 0.6cqw;
+    list-style: none;
+  }
+
+  .steps li {
+    display: flex;
+    align-items: center;
+    gap: 1cqw;
+    font-size: 1.45cqw;
+    font-weight: 600;
+  }
+
+  .tick {
+    display: grid;
+    place-items: center;
+    width: 2cqw;
+    height: 2cqw;
+    border-radius: 99px;
+    background: #10b981;
+    color: #fff;
+  }
+
+  .tick svg {
+    width: 1.3cqw;
+    height: 1.3cqw;
+  }
+
+  .hint {
+    margin-top: auto;
+    color: var(--muted);
+    font-size: 1.2cqw;
+  }
+
+  .p-receipt {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .p-receipt .hint {
+    margin-top: 0;
+    font-family: var(--font-mono);
+  }
+
+  .seal {
+    display: grid;
+    place-items: center;
+    width: 8cqw;
+    height: 8cqw;
+    margin-bottom: 1cqw;
+    border-radius: 99px;
+    background: radial-gradient(circle at 35% 30%, #34d399, #10b981 60%, #047857);
+    box-shadow: 0 0 0 1cqw rgb(16 185 129 / 0.16), 0 0 5cqw -1cqw #10b981;
+    color: #fff;
+  }
+
+  .seal svg {
+    width: 50%;
+    height: 50%;
+  }
+
+  .plus {
+    color: var(--violet);
+    font-size: 2.8cqw;
+    font-weight: 700;
+  }
+
+  .powered {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6cqw;
+    color: var(--muted);
+    font-size: 1.2cqw;
+  }
+
+  .powered :global(.logo) {
+    width: auto;
+    height: 1.9cqw;
+  }
+
+  .cursor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    width: 2.4cqw;
+    height: 2.4cqw;
+    translate: 50cqw 56cqw;
+  }
+
+  .cursor svg {
+    width: 100%;
+    height: 100%;
+    fill: #fff;
+    stroke: #111827;
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0.3cqw 0.4cqw rgb(0 0 0 / 0.5));
+    transform-origin: 20% 15%;
+  }
+</style>

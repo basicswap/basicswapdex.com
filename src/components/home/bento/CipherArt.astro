@@ -1,0 +1,186 @@
+---
+// Bento art for "Private by design": messages are encrypted end to end.
+// Six lines of plaintext; a beam sweeps across and turns them into
+// ciphertext glyphs (blue to violet, scrambling), and at the end of the sweep
+// an open padlock snaps shut and its keyhole lights. The ciphertext holds,
+// then everything eases back to plaintext with the lock open. 8 s loop.
+// At rest (reduced motion): ciphertext with the lock closed.
+let seed = 0xc1f3;
+const rand = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+const X0 = 44;
+const STEP = 8;
+const mix = (t: number) => {
+  // #3b82f6 -> #a855f7
+  const a = [59, 130, 246];
+  const b = [168, 85, 247];
+  return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(' ')})`;
+};
+const widths = [150, 118, 168, 96, 140, 112];
+const rows = widths.map((w, i) => ({
+  y: 96 + i * 22,
+  w,
+  glyphs: Array.from({ length: Math.floor(w / STEP) }, (_, g) => ({
+    x: X0 + g * STEP,
+    h: 3 + Math.round(rand() * 8),
+    fill: mix((g * STEP) / 168),
+    delay: (rand() * -1.6).toFixed(2),
+  })),
+}));
+const LOCK: [number, number] = [258, 151];
+---
+
+<svg viewBox="30 58 266 184" preserveAspectRatio="xMidYMid meet" fill="none" class="cipher-art">
+  <defs>
+    <linearGradient id="ca-trail" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#a855f7" stop-opacity="0.28" />
+      <stop offset="1" stop-color="#a855f7" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="ca-beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c084fc" stop-opacity="0" />
+      <stop offset="0.5" stop-color="#e9d5ff" />
+      <stop offset="1" stop-color="#c084fc" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="ca-lock" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60a5fa" />
+      <stop offset="1" stop-color="#c084fc" />
+    </linearGradient>
+    <radialGradient id="ca-lock-glow">
+      <stop offset="0" stop-color="#a855f7" stop-opacity="0.4" />
+      <stop offset="1" stop-color="#a855f7" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- plaintext, hidden behind the beam -->
+  <g class="plain">
+    {rows.map(({ y, w }) => <rect class="line" x={X0} y={y - 3.5} width={w} height="7" rx="3.5" />)}
+  </g>
+
+  <!-- ciphertext, revealed behind the beam -->
+  <g class="cipher">
+    {
+      rows.map(({ y, glyphs }) =>
+        glyphs.map(({ x, h, fill, delay }) => (
+          <rect class="glyph" x={x} y={y - h / 2} width="5" height={h} rx="1.5" fill={fill} style={`animation-delay:${delay}s`} />
+        )),
+      )
+    }
+  </g>
+
+  <!-- the beam and its trail -->
+  <g class="beam">
+    <rect x="-60" y="78" width="60" height="146" fill="url(#ca-trail)" />
+    <rect x="-1" y="70" width="2" height="162" fill="url(#ca-beam)" class="beam-line" />
+  </g>
+
+  <!-- the lock -->
+  <g transform={`translate(${LOCK[0]} ${LOCK[1]})`}>
+    <circle r="40" fill="url(#ca-lock-glow)" class="lock-glow" />
+    <path class="shackle" d="M-10 -6 V-15 a10 10 0 0 1 20 0 V-6" stroke="url(#ca-lock)" />
+    <rect class="body" x="-17" y="-6" width="34" height="27" rx="7" stroke="url(#ca-lock)" />
+    <circle class="keyhole" cx="0" cy="5" r="3" />
+    <path class="keyhole" d="M0 7 V13" />
+  </g>
+</svg>
+
+<style>
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .line {
+    fill: color-mix(in oklab, var(--text-subtle) 50%, var(--bg));
+  }
+
+  .glyph {
+    animation: ca-scramble 1.6s steps(4) infinite;
+  }
+
+  @keyframes ca-scramble {
+    0% { opacity: 1; }
+    25% { opacity: 0.35; }
+    50% { opacity: 0.8; }
+    75% { opacity: 0.5; }
+  }
+
+  .body {
+    fill: color-mix(in oklab, var(--surface) 92%, transparent);
+    stroke-width: 1.6;
+  }
+
+  .shackle {
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    transform-box: fill-box;
+    transform-origin: 100% 100%;
+  }
+
+  .keyhole {
+    fill: #e9d5ff;
+    stroke: #e9d5ff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 4px #a855f7);
+  }
+
+  :global(html[data-theme='light']) .keyhole {
+    fill: var(--accent);
+    stroke: var(--accent);
+  }
+
+  /* ---- the loop, 8 s. Sweep 0-42%, lock 42-48%, hold, return 86-100%. ---- */
+  .plain { animation: ca-plain 8s linear infinite; clip-path: inset(0 0 0 100%); }
+  .cipher { animation: ca-cipher 8s linear infinite; }
+  .beam { animation: ca-beam 8s cubic-bezier(0.45, 0, 0.35, 1) infinite; opacity: 0; }
+  .shackle { animation: ca-shackle 8s var(--ease) infinite; }
+  .keyhole { animation: ca-key 8s var(--ease) infinite; }
+  .lock-glow { animation: ca-glow 8s var(--ease) infinite; }
+
+  @keyframes ca-plain {
+    0% { clip-path: inset(0 0 0 0); opacity: 1; }
+    42% { clip-path: inset(0 0 0 100%); opacity: 1; }
+    88% { clip-path: inset(0 0 0 100%); opacity: 0; }
+    96%, 100% { clip-path: inset(0 0 0 0); opacity: 1; }
+  }
+
+  @keyframes ca-cipher {
+    0% { clip-path: inset(0 100% 0 0); opacity: 1; }
+    42% { clip-path: inset(0 0 0 0); opacity: 1; }
+    86% { clip-path: inset(0 0 0 0); opacity: 1; }
+    94%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
+  }
+
+  @keyframes ca-beam {
+    0% { translate: 40px 0; opacity: 0; }
+    4% { opacity: 1; }
+    42% { translate: 222px 0; opacity: 1; }
+    48%, 100% { translate: 230px 0; opacity: 0; }
+  }
+
+  /* The shackle stands open until the sweep lands, then snaps shut. */
+  @keyframes ca-shackle {
+    0%, 40% { translate: 0 -7px; rotate: 0deg; }
+    44% { translate: 0 1px; }
+    47%, 86% { translate: 0 0; }
+    94%, 100% { translate: 0 -7px; }
+  }
+
+  @keyframes ca-key {
+    0%, 42% { opacity: 0.25; }
+    48%, 86% { opacity: 1; }
+    94%, 100% { opacity: 0.25; }
+  }
+
+  @keyframes ca-glow {
+    0%, 42% { opacity: 0; scale: 0.6; }
+    46% { opacity: 1; scale: 1.15; }
+    56%, 86% { opacity: 0.55; scale: 1; }
+    94%, 100% { opacity: 0; scale: 0.6; }
+  }
+
+  .lock-glow {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+</style>

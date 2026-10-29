@@ -1,0 +1,48 @@
+---
+// A development status, colored by stage: research, planned, under way, live.
+interface Props {
+  status: string;
+}
+const { status } = Astro.props;
+const stage =
+  {
+    Research: 'research',
+    Planned: 'planned',
+    'In Progress': 'active',
+    'In Testing': 'active',
+    'Live on Dev': 'live',
+    'In Production': 'live',
+  }[status] ?? 'planned';
+---
+
+<span class:list={['status', stage]}>{status}</span>
+
+<style>
+  .status {
+    --tone: var(--gray-400);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.2em 0.65em;
+    border: 1px solid color-mix(in oklab, var(--tone) 40%, transparent);
+    border-radius: var(--radius-full);
+    background: color-mix(in oklab, var(--tone) 12%, transparent);
+    color: color-mix(in oklab, var(--tone) 75%, var(--text));
+    font-size: var(--step--2);
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .status::before {
+    content: '';
+    width: 0.45em;
+    height: 0.45em;
+    border-radius: 50%;
+    background: var(--tone);
+  }
+
+  .research { --tone: var(--link); }
+  .active { --tone: var(--warning); }
+  .live { --tone: var(--success); }
+</style>

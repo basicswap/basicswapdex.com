@@ -1,0 +1,67 @@
+---
+// One card in <Cards>: an icon, a title and a short text.
+import Icon, { type IconName } from '../../Icon.astro';
+
+interface Props {
+  title: string;
+  icon?: IconName;
+}
+const { title, icon } = Astro.props;
+---
+
+<div class="card">
+  {
+    icon && (
+      <span class="icon">
+        <Icon name={icon} size={20} />
+      </span>
+    )
+  }
+  <p class="title">{title}</p>
+  <div class="text"><slot /></div>
+</div>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .card:hover {
+    border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  }
+
+  .icon {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: var(--space-1);
+    border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--primary) 14%, transparent);
+    color: var(--link);
+  }
+
+  .title {
+    color: var(--text);
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .text {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.6;
+  }
+
+  .text :global(p) {
+    margin: 0;
+  }
+</style>

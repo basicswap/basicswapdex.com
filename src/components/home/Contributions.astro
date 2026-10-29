@@ -1,0 +1,83 @@
+---
+// A contribution-graph grid for the funding section: the visual form of
+// "funded by contributors, commit by commit". Levels come from a seeded
+// generator, so the pattern is stable between builds; a handful of cells
+// light up in turn. Decorative, no text, not real data.
+const WEEKS = 30;
+const DAYS = 7;
+
+let seed = 0x2b5f;
+const rand = () => {
+  seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+  return seed / 0x7fffffff;
+};
+
+// Busier toward the present, quieter on weekends.
+const cells = Array.from({ length: WEEKS * DAYS }, (_, i) => {
+  const week = Math.floor(i / DAYS);
+  const day = i % DAYS;
+  const activity = 0.35 + 0.5 * (week / WEEKS) - (day === 0 || day === 6 ? 0.25 : 0);
+  const r = rand() * activity;
+  const level = r > 0.55 ? 4 : r > 0.4 ? 3 : r > 0.25 ? 2 : r > 0.12 ? 1 : 0;
+  const live = rand() > 0.94;
+  return { level, live, delay: (rand() * 8).toFixed(2) };
+});
+---
+
+<div class="graph" aria-hidden="true">
+  {
+    cells.map(({ level, live, delay }) => (
+      <span class:list={['cell', `l${level}`, { live }]} style={live ? `animation-delay:${delay}s` : undefined} />
+    ))
+  }
+</div>
+
+<style>
+  .graph {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 1fr);
+    grid-auto-columns: 1fr;
+    gap: 4px;
+    width: 100%;
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+  }
+
+  .cell {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: color-mix(in oklab, var(--text-subtle) 14%, var(--bg));
+  }
+
+  .l1 { background: color-mix(in oklab, var(--brand) 25%, var(--bg)); }
+  .l2 { background: color-mix(in oklab, var(--brand) 45%, var(--bg)); }
+  .l3 { background: color-mix(in oklab, var(--brand) 70%, var(--bg)); }
+  .l4 { background: color-mix(in oklab, var(--accent) 75%, var(--brand)); }
+
+  /* The glow is drawn once on a pseudo-element and only its opacity animates,
+     which the compositor handles without restyling or repainting the page. */
+  .live {
+    position: relative;
+  }
+
+  .live::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgb(255 255 255 / 0.32);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 50%, transparent), 0 0 14px var(--accent);
+    opacity: 0;
+    will-change: opacity;
+    animation: commit 8s var(--ease) infinite;
+    animation-delay: inherit;
+  }
+
+  @keyframes commit {
+    0%, 82%, 100% { opacity: 0; }
+    88% { opacity: 1; }
+  }
+</style>

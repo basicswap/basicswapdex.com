@@ -1,0 +1,176 @@
+---
+// The eight-step OtVES swap, colored by sender. Text from the legacy page.
+type Who = 'alice' | 'bob' | 'both';
+const steps: { n: string; msg: string; route: string; who: Who; title: string; body: string }[] = [
+  { n: '01', msg: 'OfferMessage', route: 'Bob → mesh', who: 'bob', title: 'Bob publishes an offer', body: 'Bob gossips an OfferMessage onto SMSG: "I will trade 1.25 XMR for 0.052 BTC". The whole mesh now sees it.' },
+  { n: '02', msg: 'XmrBidMessage', route: 'Alice → mesh', who: 'alice', title: 'Alice bids', body: 'Alice spots the offer on her client and broadcasts a bid for it. SMSG carries it to Bob without revealing IP or identity.' },
+  { n: '03', msg: 'XmrBidAcceptMessage', route: 'Bob → mesh', who: 'bob', title: 'Bob accepts', body: 'Bob accepts the bid. Both sides now have the cryptographic material needed to begin the swap.' },
+  { n: '04', msg: 'XmrBidLockTxSigsMessage', route: 'Alice → mesh', who: 'alice', title: 'Alice sends lock signatures', body: 'Alice produces adaptor signatures and presigned refund branches. She sends them through SMSG to Bob.' },
+  { n: '05', msg: 'XmrSplitTxMessage', route: 'Bob → mesh', who: 'bob', title: 'Bob shares the split tx', body: 'Bob shares the Monero split transaction. The XMR funds are locked on chain, but only Alice can spend them with the secret she will reveal.' },
+  { n: '06', msg: 'XmrBidLockSpendTxMessage', route: 'Alice → mesh', who: 'alice', title: 'Alice publishes the spend tx', body: 'Alice publishes the BTC spend transaction. The act of publishing reveals the secret embedded in her adaptor signature.' },
+  { n: '07', msg: 'XmrBidLockReleaseMessage', route: 'Bob → mesh', who: 'bob', title: 'Bob extracts the secret', body: 'Bob extracts the revealed secret from the BTC chain and uses it to claim the XMR Alice locked. The swap atomically completes.' },
+  { n: '08', msg: 'on-chain settlement', route: 'Alice ↔ Bob', who: 'both', title: 'Settled, on chain', body: 'Either both transactions confirm or, if anyone walks away, the presigned refund branches return the funds. No coordinator was ever in the loop.' },
+];
+---
+
+<div class="sequence">
+  <div class="cast">
+    <p class="cast-head"><span class="data">otves method</span><span class="data">XMR &#8596; BTC &middot; adaptor signatures</span></p>
+    <p class="cast-note">who's who &middot; each step below is colored by its sender</p>
+    <ul role="list">
+      <li class="alice"><strong>Alice</strong><span>taker &middot; sends BTC</span></li>
+      <li class="mesh"><strong>SMSG mesh</strong><span>the gossip layer every message passes through</span></li>
+      <li class="bob"><strong>Bob</strong><span>maker &middot; sends XMR</span></li>
+    </ul>
+  </div>
+
+  <ol class="steps" role="list">
+    {
+      steps.map((s) => (
+        <li class:list={['step', s.who]}>
+          <span class="n data">{s.n}</span>
+          <div class="body">
+            <p class="meta">
+              <code>{s.msg}</code>
+              <span class="route data">{s.route}</span>
+            </p>
+            <h3>{s.title}</h3>
+            <p>{s.body}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style>
+  .sequence {
+    --alice: var(--primary);
+    --bob: var(--accent);
+    --both: var(--success);
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .cast {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  .cast-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2);
+    color: var(--text);
+    font-size: var(--step--1);
+  }
+
+  .cast-note {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .cast ul {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+  }
+
+  .cast li {
+    display: grid;
+    gap: 0.1rem;
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--c);
+    font-size: var(--step--1);
+  }
+
+  .cast li span {
+    color: var(--text-muted);
+  }
+
+  .alice { --c: var(--alice); }
+  .bob { --c: var(--bob); }
+  .mesh { --c: var(--border-strong); }
+  .both { --c: var(--both); }
+
+  .steps {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--c);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+  }
+
+  /* As text, each sender's colour leans a quarter toward the text colour:
+     lighter on dark, darker on light, so it reads at 4.5:1 in both themes. */
+  .n {
+    color: color-mix(in oklab, var(--c) 75%, var(--text));
+    font-size: var(--step-1);
+    line-height: 1.3;
+  }
+
+  .body {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .meta code {
+    color: color-mix(in oklab, var(--c) 75%, var(--text));
+  }
+
+  .route {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  h3 {
+    font-size: var(--step-1);
+  }
+
+  .body > p:last-child {
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 64rem) {
+    .sequence {
+      grid-template-columns: 18rem minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .cast {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-5));
+    }
+
+    .step.bob {
+      margin-left: var(--space-8);
+    }
+
+    .step.both {
+      margin-inline: var(--space-4);
+    }
+  }
+</style>

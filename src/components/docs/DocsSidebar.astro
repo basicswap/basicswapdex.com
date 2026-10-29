@@ -1,0 +1,233 @@
+---
+// The docs sidebar: a search button, then each section (an icon and its
+// pages) as a collapsible group, the current page marked. Sections open by
+// default; the one holding the current page always does. Rendered twice by
+// DocsLayout: in the rail on wide screens and in the menu drawer on phones.
+import Icon from '../Icon.astro';
+import { DOC_SECTIONS, docPath, getDocs, navLabel } from '../../lib/docs';
+import { RELEASES_URL, getLatestRelease } from '../../lib/release';
+
+interface Props {
+  current?: string;
+}
+const { current } = Astro.props;
+const docs = await getDocs();
+const release = await getLatestRelease();
+---
+
+<div class="docs-sidebar">
+  <button type="button" class="search" data-docs-search-open>
+    <Icon name="search" size={15} />
+    <span>Search docs...</span>
+    <kbd class="data" data-kbd>Ctrl K</kbd>
+  </button>
+
+  <nav aria-label="Docs">
+    {
+      DOC_SECTIONS.map((section) => {
+        const active = section.items.includes(current ?? '') || (section.slug && current === `section:${section.slug}`);
+        return (
+          <details class:list={['group', { active }]} open>
+            <summary>
+              <Icon name={section.icon} size={16} class="section-icon" />
+              <span>{section.title}</span>
+              <span class="chev" aria-hidden="true" />
+            </summary>
+            <ul role="list">
+              {section.slug && (
+                <li>
+                  <a href={`/docs/${section.slug}`} aria-current={current === `section:${section.slug}` ? 'page' : undefined}>
+                    Overview
+                  </a>
+                </li>
+              )}
+              {section.items.map((id) => {
+                const doc = docs.get(id);
+                return (
+                  doc && (
+                    <li>
+                      <a href={docPath(id)} aria-current={id === current ? 'page' : undefined}>
+                        {navLabel(doc)}
+                      </a>
+                    </li>
+                  )
+                );
+              })}
+            </ul>
+          </details>
+        );
+      })
+    }
+  </nav>
+
+  <div class="foot">
+    {
+      release ? (
+        <a href={release.url} target="_blank" rel="noopener noreferrer">
+          Latest release <span class="data">{release.tag}</span>
+          <Icon name="external" size={12} />
+        </a>
+      ) : (
+        <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer">
+          Latest release <Icon name="external" size={12} />
+        </a>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .docs-sidebar {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-4) var(--space-3) var(--space-2);
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+    text-align: left;
+    transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+
+  .search:hover {
+    border-color: var(--border-strong);
+    color: var(--text-muted);
+  }
+
+  .search span {
+    flex: 1;
+  }
+
+  kbd {
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    color: var(--text-subtle);
+    font-size: 0.7rem;
+  }
+
+  nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3) var(--space-5);
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--radius-lg);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+    transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary:hover {
+    background: color-mix(in oklab, var(--surface) 70%, transparent);
+    color: var(--text);
+  }
+
+  summary span:first-of-type {
+    flex: 1;
+  }
+
+  summary :global(.section-icon) {
+    color: var(--text-subtle);
+  }
+
+  .active summary {
+    color: var(--text);
+  }
+
+  .active summary :global(.section-icon) {
+    color: var(--link);
+  }
+
+  .chev {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-right: 1.5px solid var(--text-subtle);
+    border-bottom: 1.5px solid var(--text-subtle);
+    transform: rotate(-45deg);
+    transition: transform var(--dur) var(--ease);
+  }
+
+  [open] > summary .chev {
+    transform: rotate(45deg);
+  }
+
+  ul {
+    margin: 0.15rem 0 var(--space-2) 1.45rem;
+    padding: 0 0 0 0.7rem;
+    border-left: 1px solid var(--border);
+    list-style: none;
+  }
+
+  li a {
+    display: block;
+    margin-left: calc(-0.7rem - 1px);
+    padding: 0.32rem 0.7rem;
+    border-left: 2px solid transparent;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.4;
+    text-decoration: none;
+    transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  }
+
+  li a:hover {
+    color: var(--text);
+    background: color-mix(in oklab, var(--surface) 60%, transparent);
+  }
+
+  li a[aria-current='page'] {
+    border-left-color: var(--primary);
+    background: color-mix(in oklab, var(--primary) 12%, transparent);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .foot {
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--border);
+    font-size: var(--step--2);
+  }
+
+  .foot a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-subtle);
+    text-decoration: none;
+  }
+
+  .foot a:hover {
+    color: var(--text);
+  }
+
+  .foot .data {
+    color: var(--link);
+  }
+</style>

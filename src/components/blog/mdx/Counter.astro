@@ -1,0 +1,41 @@
+---
+// The showcase post's interactive demo: a count with two buttons.
+---
+
+<div class="counter" data-counter>
+  <p>Current Count: <output class="data">0</output></p>
+  <button type="button" class="btn btn-primary" data-step="1">Increment</button>
+  <button type="button" class="btn btn-outline" data-step="-1">Decrement</button>
+</div>
+
+<style>
+  .counter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-block: var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  p {
+    margin: 0 auto 0 0;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-counter]').forEach((root) => {
+    const out = root.querySelector('output')!;
+    let count = 0;
+    root.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) =>
+      b.addEventListener('click', () => {
+        count += Number(b.dataset.step);
+        out.textContent = String(count);
+      }),
+    );
+  });
+</script>

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- The blog's release-art thumbnail (basicswap-blog scripts/release-art/thumbnail.svg)
+       at 1200x630, with the page title in place of the version. tools/docs-cards.mjs
+       fills the __PLACEHOLDERS__. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111827"/>
+      <stop offset="0.52" stop-color="#111827"/>
+      <stop offset="1" stop-color="#374151"/>
+    </linearGradient>
+    <radialGradient id="blueGlow" cx="0.36" cy="0.54" r="0.72">
+      <stop offset="0" stop-color="#0073ff" stop-opacity="0.23"/>
+      <stop offset="0.56" stop-color="#0073ff" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#0073ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="violetGlow" cx="0.9" cy="0.2" r="0.52">
+      <stop offset="0" stop-color="#a855f7" stop-opacity="0.19"/>
+      <stop offset="1" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="signal" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0073ff"/>
+      <stop offset="0.58" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="screenFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#111827" stop-opacity="0.45"/>
+      <stop offset="0.32" stop-color="#111827" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#111827" stop-opacity="0.14"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-100%" width="140%" height="300%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="dotGrid" width="41" height="41" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#3b82f6" opacity="0.2"/>
+    </pattern>
+    <clipPath id="screenClip"><rect x="786" y="68" width="504" height="394" rx="30"/></clipPath>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#blueGlow)"/>
+  <rect width="1200" height="630" fill="url(#violetGlow)"/>
+  <rect x="930" width="270" height="630" fill="url(#dotGrid)" opacity="0.36"/>
+
+  <g opacity="0.48" clip-path="url(#screenClip)">
+    <rect x="786" y="68" width="504" height="394" rx="30" fill="#374151" stroke="#3b82f6" stroke-width="2"/>
+    <image x="786" y="68" width="504" height="394" preserveAspectRatio="xMidYMin slice" opacity="0.78" xlink:href="__UI_ASSET__"/>
+    <rect x="786" y="68" width="504" height="394" fill="url(#screenFade)"/>
+  </g>
+
+  <g transform="translate(70 47)">
+    <g transform="scale(2.06)">
+      <path fill="#0073ff" stroke="#0073ff" stroke-miterlimit="10" d="M5.4 10.6C5.4 9.1 6.6 8 8 8h11.8l-2 2c-.3.3-.3.9 0 1.2s.9.3 1.2 0l3.4-3.4c.2-.1.3-.4.3-.7 0-.2-.1-.5-.3-.6L19 3c-.3-.3-.9-.3-1.2 0s-.3.9 0 1.2l2 2H8c-2.4 0-4.3 2-4.3 4.4v8.1c0 .5.4.9.9.9s.9-.4.9-.9l-.1-8.1z"/>
+      <path fill="#0073ff" stroke="#0073ff" stroke-miterlimit="10" d="M18.1 24H6.3l2-2c.3-.3.3-.9 0-1.2s-.9-.3-1.2 0l-3.4 3.4c-.2.1-.3.4-.3.7 0 .2.1.5.3.6L7.1 29c.3.3.9.3 1.2 0s.3-.9 0-1.2l-2-2h11.8c2.4 0 4.3-2 4.3-4.4v-8.1c0-.5-.4-.9-.9-.9s-.9.4-.9.9v8.1c0 1.5-1.2 2.6-2.6 2.6z"/>
+    </g>
+    <text x="71" y="48" fill="#ffffff" font-family="DejaVu Sans, sans-serif" font-size="41" font-weight="700" letter-spacing="-1.4">BasicSwap</text>
+  </g>
+
+  <g font-family="DejaVu Sans, sans-serif">
+    <text x="72" y="172" fill="#f9fafb" opacity="0.64" font-size="19" font-weight="700" letter-spacing="7">__EYEBROW__</text>
+    <rect x="72" y="195" width="70" height="5" rx="2.5" fill="#0073ff"/>
+    <rect x="150" y="195" width="23" height="5" rx="2.5" fill="#a855f7"/>
+    <text fill="#ffffff" font-size="__TITLE_SIZE__" font-weight="700" letter-spacing="__TITLE_SPACING__">__TITLE_LINES__</text>
+    <text x="72" y="452" fill="#f9fafb" opacity="0.68" font-size="20" letter-spacing="2.6">PRIVATE · CROSS-CHAIN · NON-CUSTODIAL</text>
+  </g>
+
+  <g filter="url(#glow)" fill="none" stroke-linecap="round">
+    <path d="M66 543C286 483 451 500 606 559C754 617 906 583 1138 487" stroke="#0073ff" stroke-width="6"/>
+    <path d="M66 574C292 512 460 521 610 568C768 619 925 601 1138 530" stroke="#a855f7" stroke-width="4.2" opacity="0.9"/>
+  </g>
+  <g>
+    <circle cx="606" cy="559" r="15" fill="#111827" stroke="#0073ff" stroke-width="3.6"/>
+    <circle cx="606" cy="559" r="5" fill="#ffffff"/>
+    <circle cx="906" cy="583" r="12" fill="#111827" stroke="#a855f7" stroke-width="3.6"/>
+    <circle cx="906" cy="583" r="4.2" fill="#ffffff"/>
+  </g>
+  <rect y="623" width="1200" height="7" fill="url(#signal)"/>
+</svg>

@@ -1,0 +1,67 @@
+---
+title: "Mandatory Firo Core Update Ahead of Hardfork"
+seoTitle: "Mandatory Firo Core Update for the Hardfork"
+date: 2025-05-06
+author: "BasicSwap Team"
+tags: ["Coin Update", "Release", "Hardfork"]
+description: "A mandatory Firo Core update is required for the upcoming hardfork, introducing Spark Names and other improvements."
+thumbnail: ./images/mandatory-firo-update-thumbnail.png
+banner: ./images/mandatory-firo-update-banner.png
+---
+There is a mandatory Firo Core update ahead of their upcoming hardfork on block 1,104,500 (approximately 28 May 2025). This update introduces several updates to Firo, but most notably the introduction of Spark Names, "allowing users to register unique, easy-to-remember aliases instead of long cryptographic addresses".
+
+<Callout type="info" title="Spark Names Introduction">
+  This new core update is now available to users who have updated their BasicSwap instance to the latest version, and you must update your Firo node as soon as possible if you've enabled the coin on your local instance.
+</Callout>
+
+## Firo Release
+
+Firo release: [https://github.com/firoorg/firo/releases/tag/v0.14.14.1](https://github.com/firoorg/firo/releases/tag/v0.14.14.1)
+
+### Primary Firo Changelog 📝
+
+*   Spark Names #1532
+*   View key export #1543
+*   Sigma pool closed #1477
+*   UI improvements #1475
+*   Tor upgrade to v0.14.8.9 #1544
+*   Gettotalsupply fix #1502
+*   Mint refactor #1515
+*   Leveldb: upgrade 1.20 to 1.22 #1522
+*   Implement new rpc calls to get anonymity sets #1507
+*   Add memo field in Spark send UI #1493
+*   Various housekeeping and bug fixes
+
+Full Changelog: [v0.14.14.0...v0.14.14.1](https://github.com/firoorg/firo/compare/v0.14.14.0...v0.14.14.1)
+
+## Additional BasicSwap Changes ✅
+
+On top of the Firo Core update, this BasicSwap update adds a few bug fixes and improvements to the codebase:
+
+*   ui: Fixed incorrect swap direction shown on active swaps page
+*   ui: Fixed incorrect amounts shown on active swaps page for reverse swaps
+*   cores: Firo v0.14.14.1 (required for hardfork on 2025-05-28)
+*   Allow starting with a subset of configured coins
+*   New `--withcoin` and `--withoutcoin` options for basicswap-run
+*   Timeout waiting for mutex on shutdown
+*   Waits a maximum of 5 seconds for any processing to complete.
+
+## Update Coin Cores on BasicSwap‌
+
+To update coin cores on BasicSwap DEX, simply follow the instructions available here on the Particl Academy.
+
+1.  Shutdown BasicSwap properly and stop the Docker image.
+2.  From the basicswap folder, type the `git pull` command.
+3.  Type the relevant update command, depending whether you're running BasicSwap with or without Docker (see [here](/docs/user-guides/update)).
+4.  If you run BasicSwap on Linux without Docker, you can easily upgrade coin cores to their most recent version by running the community-built upgrade script available [here](https://github.com/nahuhh/basicswap-bash/releases) (bsx-update).
+
+---
+
+## Stay Connected
+
+Stay connected with us on our social media channels for real-time updates, news, and more.
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

@@ -1,0 +1,106 @@
+{
+  "ref": "v0.19.0",
+  "coins": [
+    {
+      "name": "Particl",
+      "ticker": "PART",
+      "dir": "part",
+      "scripts": true,
+      "segwitDefault": true,
+      "version": "27.2.6.0",
+      "segwit": true
+    },
+    {
+      "name": "Bitcoin",
+      "ticker": "BTC",
+      "dir": "btc",
+      "scripts": true,
+      "light": "Electrum",
+      "version": "29.4",
+      "segwit": true
+    },
+    {
+      "name": "Litecoin",
+      "ticker": "LTC",
+      "dir": "ltc",
+      "scripts": true,
+      "light": "Electrum",
+      "version": "0.21.5.8",
+      "segwit": true
+    },
+    {
+      "name": "Monero",
+      "ticker": "XMR",
+      "dir": "xmr",
+      "scripts": false,
+      "light": "Remote node",
+      "version": "0.18.5.1",
+      "segwit": false
+    },
+    {
+      "name": "Wownero",
+      "ticker": "WOW",
+      "dir": "wow",
+      "scripts": false,
+      "light": "Remote node",
+      "version": "0.11.3.0",
+      "segwit": false
+    },
+    {
+      "name": "Bitcoin Cash",
+      "ticker": "BCH",
+      "dir": "bch",
+      "scripts": true,
+      "version": "29.1.0",
+      "segwit": false
+    },
+    {
+      "name": "Dash",
+      "ticker": "DASH",
+      "dir": "dash",
+      "scripts": true,
+      "version": "23.1.8",
+      "segwit": false
+    },
+    {
+      "name": "Decred",
+      "ticker": "DCR",
+      "dir": "dcr",
+      "scripts": true,
+      "version": "2.1.6",
+      "segwit": true
+    },
+    {
+      "name": "Dogecoin",
+      "ticker": "DOGE",
+      "dir": "doge",
+      "scripts": true,
+      "version": "23.2.1",
+      "segwit": false
+    },
+    {
+      "name": "Firo",
+      "ticker": "FIRO",
+      "dir": "firo",
+      "scripts": true,
+      "version": "0.14.18.1",
+      "segwit": false
+    },
+    {
+      "name": "Namecoin",
+      "ticker": "NMC",
+      "dir": "nmc",
+      "scripts": true,
+      "version": "28.0",
+      "segwit": true
+    },
+    {
+      "name": "PIVX",
+      "ticker": "PIVX",
+      "dir": "pivx",
+      "scripts": true,
+      "version": "5.6.1",
+      "segwit": false
+    }
+  ]
+}

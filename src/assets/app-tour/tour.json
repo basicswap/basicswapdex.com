@@ -1,0 +1,317 @@
+{
+  "view": {
+    "w": 1600,
+    "h": 1000
+  },
+  "dpr": 2,
+  "ids": {
+    "offer": "000000006ad02f6b1599740583429c98b3a2656f6c3d8c04dcbbf2c6",
+    "bid": "000000006ad02b33a1e969381dccc192f43a7bb947d0a9a58a308d79"
+  },
+  "scenes": {
+    "book": {
+      "base": "book-base.webp",
+      "height": 1850,
+      "rects": {
+        "cardXmr": {
+          "x": 288,
+          "y": 776,
+          "w": 256,
+          "h": 204
+        },
+        "swap": {
+          "x": 1465.484375,
+          "y": 1396,
+          "w": 80,
+          "h": 28
+        }
+      },
+      "views": {
+        "top": 0,
+        "cards": 40,
+        "table": 850
+      },
+      "snaps": {
+        "xmr": {
+          "file": "book-xmr.webp",
+          "x": 40,
+          "y": 388,
+          "w": 1494,
+          "h": 584
+        },
+        "swapHover": {
+          "file": "book-swapHover.webp",
+          "x": 28,
+          "y": 850,
+          "w": 1544,
+          "h": 604
+        }
+      }
+    },
+    "offer": {
+      "base": "offer-base.webp",
+      "height": 2882,
+      "rects": {
+        "send": {
+          "x": 605.90625,
+          "y": 2176,
+          "w": 890.09375,
+          "h": 42
+        },
+        "recv": {
+          "x": 605.90625,
+          "y": 2278,
+          "w": 890.09375,
+          "h": 42
+        },
+        "sendBid": {
+          "x": 1332.59375,
+          "y": 2611,
+          "w": 91.8125,
+          "h": 42
+        },
+        "confirm": {
+          "x": 709.5625,
+          "y": 2516,
+          "w": 87.28125,
+          "h": 42
+        }
+      },
+      "views": {
+        "top": 0,
+        "form": 1796
+      },
+      "snaps": {
+        "focus": {
+          "file": "offer-focus.webp",
+          "x": 602,
+          "y": 2172,
+          "w": 898,
+          "h": 50
+        },
+        "typed1": {
+          "file": "offer-typed1.webp",
+          "x": 602,
+          "y": 2172,
+          "w": 898,
+          "h": 50
+        },
+        "typed2": {
+          "file": "offer-typed2.webp",
+          "x": 602,
+          "y": 2172,
+          "w": 898,
+          "h": 50
+        },
+        "typed": {
+          "file": "offer-typed.webp",
+          "x": 602,
+          "y": 2172,
+          "w": 898,
+          "h": 50
+        },
+        "filled": {
+          "file": "offer-filled.webp",
+          "x": 613,
+          "y": 2186,
+          "w": 124,
+          "h": 122
+        },
+        "modal": {
+          "file": "offer-modal.webp",
+          "x": 46,
+          "y": 1803,
+          "w": 1511,
+          "h": 990
+        },
+        "confirmHover": {
+          "file": "offer-confirmHover.webp",
+          "x": 46,
+          "y": 1803,
+          "w": 1511,
+          "h": 990
+        }
+      }
+    },
+    "swap": {
+      "base": "swap-base.webp",
+      "height": 2013,
+      "rects": {},
+      "views": {
+        "top": 0,
+        "state": 322
+      },
+      "snaps": {
+        "s1": {
+          "file": "swap-s1.webp",
+          "x": 592,
+          "y": 816,
+          "w": 459,
+          "h": 288
+        },
+        "s2": {
+          "file": "swap-s2.webp",
+          "x": 601,
+          "y": 816,
+          "w": 450,
+          "h": 288
+        },
+        "s3": {
+          "file": "swap-s3.webp",
+          "x": 601,
+          "y": 816,
+          "w": 450,
+          "h": 288
+        },
+        "s4": {
+          "file": "swap-s4.webp",
+          "x": 595,
+          "y": 816,
+          "w": 458,
+          "h": 288
+        },
+        "s5": {
+          "file": "swap-s5.webp",
+          "x": 89,
+          "y": 816,
+          "w": 962,
+          "h": 293
+        }
+      }
+    },
+    "smartbuy": {
+      "base": "smartbuy-base.webp",
+      "height": 1577,
+      "rects": {
+        "pay": {
+          "x": 80,
+          "y": 594,
+          "w": 400,
+          "h": 66
+        },
+        "find": {
+          "x": 80,
+          "y": 1284,
+          "w": 400,
+          "h": 46
+        },
+        "place": {
+          "x": 1396.875,
+          "y": 488,
+          "w": 123.125,
+          "h": 40
+        }
+      },
+      "views": {
+        "top": 0,
+        "form": 264,
+        "find": 410
+      },
+      "snaps": {
+        "typed": {
+          "file": "smartbuy-typed.webp",
+          "x": 94,
+          "y": 613,
+          "w": 64,
+          "h": 27
+        },
+        "plan": {
+          "file": "smartbuy-plan.webp",
+          "x": 75,
+          "y": 484,
+          "w": 1449,
+          "h": 835
+        },
+        "planTop": {
+          "file": "smartbuy-planTop.webp",
+          "x": 75,
+          "y": 484,
+          "w": 1449,
+          "h": 780
+        },
+        "placeHover": {
+          "file": "smartbuy-placeHover.webp",
+          "x": 75,
+          "y": 484,
+          "w": 1449,
+          "h": 780
+        },
+        "confirm": {
+          "file": "smartbuy-confirm.webp",
+          "x": 52,
+          "y": 264,
+          "w": 1504,
+          "h": 1000
+        }
+      }
+    },
+    "wallets": {
+      "base": "wallets-base.webp",
+      "height": 2719,
+      "rects": {
+        "btcManage": {
+          "x": 913.328125,
+          "y": 482,
+          "w": 107.984375,
+          "h": 32
+        }
+      },
+      "views": {
+        "top": 0,
+        "cards": 182
+      },
+      "snaps": {
+        "btcHover": {
+          "file": "wallets-btcHover.webp",
+          "x": 909,
+          "y": 478,
+          "w": 116,
+          "h": 40
+        }
+      }
+    },
+    "wallet": {
+      "base": "wallet-base.webp",
+      "height": 3349,
+      "rects": {},
+      "views": {
+        "top": 0,
+        "deposit": 915,
+        "history": 2170
+      },
+      "snaps": {}
+    },
+    "amm": {
+      "base": "amm-base.webp",
+      "height": 1891,
+      "rects": {
+        "add": {
+          "x": 1421.9375,
+          "y": 386,
+          "w": 122.0625,
+          "h": 42
+        }
+      },
+      "views": {
+        "top": 0,
+        "tables": 128
+      },
+      "snaps": {
+        "addHover": {
+          "file": "amm-addHover.webp",
+          "x": 1419,
+          "y": 383,
+          "w": 128,
+          "h": 48
+        },
+        "add": {
+          "file": "amm-add.webp",
+          "x": 0,
+          "y": 128,
+          "w": 1600,
+          "h": 1000
+        }
+      }
+    }
+  }
+}

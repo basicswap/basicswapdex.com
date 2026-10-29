@@ -1,0 +1,282 @@
+---
+// The Bitcoin to Monero hero: one XMR for BTC swap, played three ways on one
+// shared loop, with tabs underneath like the homepage's app tour:
+//   Desktop   BasicSwap Desktop as an exchange screen (DeskSwap)
+//   Mobile    the quick swap screens of a wallet app (QuickSwap)
+//   Web       BasicSwap Web inside a made-up exchange site (WebSwap)
+// Each is a 17 s chapter. The tab of the chapter on screen lights up and its
+// track fills; picking a tab jumps the loop there. The tabs are radio pairs,
+// as in AppTour (see the modes in film.ts), so all of it is CSS.
+// The loop pauses off screen. With reduced motion each tab shows its device
+// at the end of its swap.
+//
+// `only` plays a single device on its own (the Web page shows just Web):
+// no tabs, and a stage the shape of that device.
+import { Film } from '../desktop/film';
+import QuickSwap from './QuickSwap.astro';
+import DeskSwap from './DeskSwap.astro';
+import WebSwap from './WebSwap.astro';
+
+type Device = 'mobile' | 'desktop' | 'web';
+interface Props {
+  only?: Device;
+}
+const { only } = Astro.props;
+
+const CH = 17;
+const ALL = [
+  { k: 'desktop', label: 'Desktop', soon: false, Mock: DeskSwap },
+  { k: 'mobile', label: 'Mobile', soon: false, Mock: QuickSwap },
+  { k: 'web', label: 'Web', soon: true, Mock: WebSwap },
+] as const;
+const chapters = (only ? ALL.filter((c) => c.k === only) : ALL).map((c, i) => ({ ...c, at: i * CH }));
+const solo = chapters.length === 1;
+const LOOP = chapters.length * CH;
+const LABEL: Record<Device, string> = {
+  mobile: 'BasicSwap Mobile',
+  desktop: 'BasicSwap Desktop',
+  web: 'BasicSwap Web',
+};
+const label = solo
+  ? `An example swap of 2.5 XMR for BTC in ${LABEL[chapters[0].k]}: an offer is taken, BTC and XMR are locked, the BTC is claimed and the swap completes. Example figures.`
+  : 'An example swap of 2.5 XMR for 0.00725 BTC, shown in BasicSwap Desktop, Mobile and Web. Each takes an offer, steps through BTC locked, XMR locked and BTC claimed, and completes. Example figures.';
+const end = (i: number) => chapters[i + 1]?.at ?? LOOP;
+
+const modes = chapters.flatMap(({ k, at }) => [
+  { when: `.swaps:has(#sw-${k}:checked)`, delay: -at, suffix: `-${k}` },
+  { when: `.swaps:has(#sw-${k}2:checked)`, delay: -at, suffix: `-${k}2` },
+]);
+
+// Each device fades in for its own chapter, and is hidden outright the
+// rest of the loop so the browser doesn't paint it.
+const film = new Film('.stage', LOOP, 0, LOOP, modes);
+const OFF = 'opacity:0;visibility:hidden';
+const ON = 'opacity:1;visibility:visible';
+chapters.forEach(({ k, at }, i) => {
+  const a = at + 0.15;
+  const b = end(i) - 0.25;
+  const steps: [number, string][] = [[0, OFF], [Math.max(0, a - 0.3), OFF], [a, ON], [b, ON]];
+  if (b < LOOP) steps.push([Math.min(LOOP, b + 0.3), OFF]);
+  film.track(`dev-${k}`, `.dev-${k}`, steps, 'linear');
+});
+
+const tabCss = modes
+  .flatMap(({ when, delay, suffix }) =>
+    chapters.flatMap(({ k }, i) => {
+      const a = +((chapters[i].at / LOOP) * 100).toFixed(3);
+      const b = +((end(i) / LOOP) * 100).toFixed(3);
+      const lit = `0%{opacity:0.62}${a}%{opacity:1}${b}%{opacity:0.62}`;
+      // the last chapter fills right to the loop's end (a reset frame at 100%
+      // would override its own 100% and keep it empty)
+      const fill = b >= 100 ? `0%{scale:0 1}${a}%{scale:0 1}100%{scale:1 1}` : `0%{scale:0 1}${a}%{scale:0 1}${b}%{scale:1 1}${b + 0.01}%,100%{scale:0 1}`;
+      return [
+        `@keyframes sw-lit-${k}${suffix}{${lit}}`,
+        `@keyframes sw-fill-${k}${suffix}{${fill}}`,
+        `${when} .tab-${k} .name{animation:sw-lit-${k}${suffix} ${LOOP}s step-end ${delay}s infinite}`,
+        `${when} .tab-${k} .track i{animation:sw-fill-${k}${suffix} ${LOOP}s linear ${delay}s infinite}`,
+      ];
+    }),
+  )
+  .join('\n');
+
+// A tab's label points at its radio that isn't checked, so every click is a
+// change that restarts the loop; with reduced motion, the checked pair shows
+// its device.
+const pickCss = chapters
+  .map(
+    ({ k }) =>
+      `.swaps:has(#sw-${k}:checked) .tab-${k} .main{display:none}` +
+      `.swaps:has(#sw-${k}:checked) .tab-${k} .alt{display:block}` +
+      `@media (prefers-reduced-motion: reduce){.swaps:has(#sw-${k}:checked,#sw-${k}2:checked) .dev-${k}{opacity:1;visibility:visible}` +
+      `.swaps:has(#sw-${k}:checked,#sw-${k}2:checked) .tab-${k} .name{opacity:1}}`,
+  )
+  .join('\n');
+// with reduced motion, picking another tab also hides the device shown at rest
+const first = chapters[0].k;
+const restCss = `@media (prefers-reduced-motion: reduce){.swaps:has(.pick:checked:not(#sw-${first}):not(#sw-${first}2)) .dev.rest{opacity:0;visibility:hidden}}`;
+const css = film.css() + '\n' + tabCss + '\n' + pickCss + '\n' + restCss;
+---
+
+<div class:list={['swaps', { solo, wide: solo && chapters[0].k !== 'mobile' }]}>
+  {
+    chapters.map(({ k, label }, i) => (
+      <>
+        <input type="radio" name="swaps" id={`sw-${k}`} class="pick" checked={i === 0} aria-label={`Show the swap on ${label}`} />
+        <input type="radio" name="swaps" id={`sw-${k}2`} class="pick" aria-label={`Show the swap on ${label}`} tabindex="-1" />
+      </>
+    ))
+  }
+  <div class="stage" role="img" aria-label={label}>
+    {
+      chapters.map(({ k, at, Mock }, i) => (
+        <div class:list={['dev', `dev-${k}`, { rest: i === 0 }]} aria-hidden="true">
+          <Mock offset={at} loop={LOOP} modes={modes} />
+        </div>
+      ))
+    }
+  </div>
+  {!solo && (
+  <div class="tabs" role="group" aria-label="Choose where the swap plays">
+    {
+      chapters.map((c) => (
+        <div class={`tab tab-${c.k}`}>
+          <label for={`sw-${c.k}`} class="hit main" aria-hidden="true" />
+          <label for={`sw-${c.k}2`} class="hit alt" aria-hidden="true" />
+          <span class="track"><i /></span>
+          <span class="name">
+            {c.label}
+            {c.soon && <span class="soon">soon</span>}
+          </span>
+        </div>
+      ))
+    }
+  </div>
+  )}
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  // Pause the loop while it is off screen.
+  document.querySelectorAll<HTMLElement>('.swaps').forEach((el) => {
+    new IntersectionObserver(([entry]) => el.classList.toggle('off', !entry.isIntersecting)).observe(el);
+  });
+</script>
+
+<style>
+  .swaps {
+    display: grid;
+    gap: var(--space-4);
+    /* as wide as the column, as long as stage and tabs still fit the hero's height */
+    width: min(100%, 52rem, calc((var(--hero-h, 100rem) - 6rem) * 1.25));
+    margin-inline: auto;
+  }
+
+  .swaps.off :global(*) {
+    animation-play-state: paused !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .swaps :global(*) {
+      animation: none !important;
+    }
+  }
+
+  .pick {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .stage {
+    position: relative;
+    aspect-ratio: 10 / 8;
+  }
+
+  /* one device alone fills its column, and a window gets a window's shape */
+  .swaps.solo {
+    width: 100%;
+  }
+
+  .wide .stage {
+    aspect-ratio: 16 / 10.4;
+  }
+
+  /* each device is its own paint and layout island */
+  /* Layout containment only: paint containment would clip each device's
+     drop shadow square at the stage's edge. Hidden devices are already
+     visibility: hidden, so they cost nothing to paint either way. */
+  .dev {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    contain: layout;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  /* the first device shows at rest (no JS, reduced motion) */
+  .dev.rest {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* ---- the tabs, as in the homepage's app tour ---- */
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .tab {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    padding-block: 2px 4px;
+    color: var(--text);
+    font-size: var(--step--1);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .tab:hover .name {
+    opacity: 1;
+  }
+
+  /* dimmed, and lit while its chapter plays (opacity, so it stays on the GPU) */
+  .name {
+    opacity: 0.62;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .soon {
+    padding: 0 0.45em;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-full);
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  .track {
+    position: relative;
+    display: block;
+    height: 2px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: color-mix(in oklab, var(--text) 12%, transparent);
+  }
+
+  .track i {
+    position: absolute;
+    inset: 0;
+    background: var(--primary);
+    transform-origin: left;
+    scale: 0 1;
+  }
+
+  /* Above the track and the name: both get their own layer (the track is
+     positioned, the name fades by opacity), which would paint over it and
+     take the click. */
+  .hit {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    cursor: pointer;
+  }
+
+  .alt {
+    display: none;
+  }
+
+  .swaps:has(.pick:focus-visible) .tabs {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+    border-radius: var(--radius-md);
+  }
+</style>

@@ -1,0 +1,148 @@
+---
+// A row of screenshots. Each opens full size in a lightbox; without JS the
+// thumbnail links to the full-size image.
+import { getImage } from 'astro:assets';
+import { postImage } from '../../../lib/blog-images';
+
+interface GalleryImage {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+}
+interface Props {
+  images: GalleryImage[];
+  maxImagesPerRow?: number;
+  fixedHeight?: number;
+}
+const { images, maxImagesPerRow = 3, fixedHeight } = Astro.props;
+const cols = Math.min(images.length, maxImagesPerRow);
+const height = Math.min(fixedHeight ?? 400, 400);
+
+const items = await Promise.all(
+  images.map(async ({ src, alt }) => {
+    const image = postImage(src);
+    const thumb = await getImage({ src: image, width: Math.min(image.width, 720), format: 'webp' });
+    const full = await getImage({ src: image, width: Math.min(image.width, 2400), format: 'webp' });
+    return { alt, thumb, full };
+  }),
+);
+---
+
+<div class="gallery" style={`--cols:${cols};--h:${height}px`} data-gallery>
+  {
+    items.map(({ alt, thumb, full }) => (
+      <a class="shot" href={full.src} data-full={full.src}>
+        <img src={thumb.src} alt={alt} width={thumb.attributes.width} height={thumb.attributes.height} loading="lazy" decoding="async" />
+      </a>
+    ))
+  }
+</div>
+
+<dialog class="lightbox" data-lightbox aria-label="Image viewer">
+  <form method="dialog"><button class="close" aria-label="Close">×</button></form>
+</dialog>
+
+<style>
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    gap: var(--space-3);
+    margin-block: var(--space-6);
+  }
+
+  .shot {
+    position: relative;
+    display: block;
+    height: min(var(--h), 60vw);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    cursor: zoom-in;
+  }
+
+  .shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    transition: transform var(--dur-slow) var(--ease);
+  }
+
+  .shot:hover img {
+    transform: scale(1.03);
+  }
+
+  @media (max-width: 36rem) {
+    .gallery {
+      grid-template-columns: repeat(min(var(--cols), 2), minmax(0, 1fr));
+    }
+  }
+
+  .lightbox {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    padding: var(--space-5);
+    border: 0;
+    background: transparent;
+  }
+
+  .lightbox::backdrop {
+    background: rgb(3 7 18 / 0.88);
+    backdrop-filter: blur(4px);
+  }
+
+  .lightbox[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  .lightbox :global(img) {
+    max-width: 100%;
+    max-height: calc(100dvh - 2 * var(--space-5));
+    border-radius: var(--radius-lg);
+    object-fit: contain;
+    cursor: zoom-out;
+  }
+
+  .lightbox form {
+    position: fixed;
+    top: var(--space-4);
+    right: var(--space-4);
+  }
+
+  .close {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    border-radius: 50%;
+    background: rgb(17 24 39 / 0.7);
+    color: #fff;
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-gallery]').forEach((gallery) => {
+    const dialog = gallery.nextElementSibling as HTMLDialogElement;
+    // The viewer's image is made on first use, so the page carries no empty
+    // <img> without a source or size.
+    const img = document.createElement('img');
+    img.decoding = 'async';
+    dialog.append(img);
+    gallery.querySelectorAll<HTMLAnchorElement>('[data-full]').forEach((a) =>
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        img.src = a.dataset.full!;
+        img.alt = a.querySelector('img')?.alt ?? '';
+        dialog.showModal();
+      }),
+    );
+    img.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (e) => e.target === dialog && dialog.close());
+  });
+</script>

@@ -1,0 +1,283 @@
+---
+title: "BasicSwap Integration on Litecoin's Nexus Mobile Wallet"
+seoTitle: "BasicSwap Comes to Litecoin's Nexus Wallet"
+date: 2026-04-14
+author: "BasicSwap Team"
+tags: ["News", "Release"]
+description: "BasicSwap DEX is coming to mobile! Learn more about the upcoming integration on Litecoin's Nexus wallet in this progress report."
+thumbnail: ./images/dev_update_thumbnail.jpg
+banner: ./images/dev_update_banner.jpg
+---
+This is one of the most significant progress reports we've published. Over the past few months, the team has been heads-down on two major initiatives that together bring BasicSwap closer to a stable 1.0 than it has ever been, and expand what the project can offer in both reach and ease of use.
+
+<Callout type="info" title="What's in This Update">
+  <ul>
+    <li>
+      <strong>BasicSwap on Litecoin's Nexus Mobile Wallet:</strong> swap directly from inside the Nexus app. No local setup required. Same atomic swap security as the standalone client.
+    </li>
+    <li>
+      <strong>Electrum Light Wallet Support:</strong> swap Bitcoin and Litecoin without running a full node. No multi-day sync. No hundreds of gigabytes of disk space. Available now on the <code>dev</code> branch.
+    </li>
+    <li>
+      <strong>Major Production Release:</strong> a large GUI and core update shipping alongside the above, with new wallet features, Electrum-specific improvements, and a long list of fixes.
+    </li>
+  </ul>
+</Callout>
+
+These two items are closely related, even though they serve different types of users, and together they required a near-complete refactor of BasicSwap's core. More on that below.
+
+---
+
+## BasicSwap on Litecoin's Nexus Mobile Wallet
+
+The biggest change in this update is bringing BasicSwap directly inside Litecoin's Nexus mobile wallet. To make this work, we built a new integration layer that handles the heavy lifting between BasicSwap and a host application. Nexus is what we built it for, and shipping it is the focus of this sprint.
+
+The same architecture will also have a life beyond Nexus. With some adaptation, it will let us bring BasicSwap to other mobile and web platforms in the future, and it'll serve as the foundation for a brand-new version of the Particl Marketplace as well.
+
+Building this required rethinking large parts of how BasicSwap works under the hood. The scope grew well beyond the original plan, and the result is a better protocol for it. Here's what went into it:
+
+**Mobile swap engine.** The core swap logic was rewritten in C++ (from Python) and integrated into a React turbomodule, making it suitable for mobile environments. Only adaptor signature swaps are supported in this mode, which is are better than regular atomic swaps because they are more efficient and more private.
+
+**Networking gateways.** BasicSwap needs to communicate with its network and process data for coins the host platform doesn't natively support. Litecoin's Nexus wallet doesn't include Bitcoin or Monero, for example, but a LTC/BTC swap still requires understanding Bitcoin's transaction data end-to-end. A dedicated communications layer handles this transparently.
+
+**Shared order book.** A bridge system connects the embedded BasicSwap instance's order book directly to the main BasicSwap protocol, so liquidity is shared. Users on Nexus and users on the standalone client are trading against the same book, even though under the hood they're running two entirely different implementations of the DEX. The user experience is seamless.
+
+**Liquidity at launch.** Ahead of the release, we've worked to ensure a substantial liquidity injection so the order book has depth and tight spreads from day one. The significance of this cannot be overstated: without proper liquidity, even the best exchange in the world becomes non-viable. We're working with partners to have it in place before launch day.
+
+The result is that BasicSwap now lives inside Nexus with almost no compromise. It communicates directly with the network with no intermediary, giving Nexus users the same security and atomicity as the standalone protocol.
+
+On the user side, the experience is a different story entirely. Set up a Nexus wallet as you normally would, and BasicSwap is available immediately. No manual configuration, no software to run locally, no node to sync. All swaps settle on-chain, and every step can be followed on the blockchain by either participant, exactly as it works today on the standalone client.
+
+This moves us closer to having a solution that can genuinely compete with centralized exchanges, and makes atomic swaps accessible to people who would never have run a full node setup.
+
+### What's Left
+
+The heavy lifting on the C++ backend is behind us, and the remaining work is well-scoped. Here's a high-level view of what's left before a live release:
+
+1. **C++ backend final touches.** The core backend is mostly complete, with only minor cleanup remaining before it's locked in for the integration.
+2. **Android example app.** This is the reference client that demonstrates the integration end-to-end, currently in active development. And this isn't throwaway work: the example app uses the same interface as the Nexus integration will, so most of its code carries directly into the Nexus build.
+3. **App ↔ backend communication layer.** The glue between the mobile app and the C++ backend, being built alongside the example app.
+4. **Nexus integration proper.** Once the example app is working, integrating into the Nexus codebase becomes mostly a matter of dropping in the shared interface code and adapting the C++ backend to Nexus's key model, either signing directly from Nexus keys or handing transactions to Nexus for signing.
+5. **Testing and UI/UX polish.** In collaboration with the Litecoin Foundation.
+
+### ETA
+
+This update represents months of work, and the hardest part is done. The biggest pieces are all in place: the swap engine rewrite, the networking layer, and the bridge that connects the embedded order book back to the main protocol. What's left is mostly integration work, and we already know what each piece looks like.
+
+However, because wiring into a codebase that isn't our own always has unknowns, so we can't yet commit to a firm date, but this is the final stretch.
+
+<Callout type="info" title="Phased Rollout">
+  To ship as quickly as possible, the initial release will support the <strong>LTC/BTC</strong> pair only. <strong>LTC/XMR</strong> will follow in a subsequent update.
+</Callout>
+
+---
+
+## Electrum Light Wallet Support
+
+The other major item shipping with this update is light wallet support via Electrum, our most-requested feature since the DEX launched.
+
+Until now, running BasicSwap meant running a full (pruned) node for every coin in your setup. For a multi-coin configuration, that can mean several gigabytes of data per coin, sync times that stretch over days, and ongoing maintenance. It's the most sovereign way to run the protocol, and we're not changing that option. But it's been a genuine barrier for many users.
+
+With Electrum mode enabled, your BasicSwap client connects to Electrum servers that handle blockchain data, while your private keys stay entirely on your machine. The atomic swap itself is unchanged; the verification just happens somewhere else.
+
+The feature is available now on the `dev` branch for Bitcoin and Litecoin. It is not yet in production.
+
+To get set up, whether you're running an existing instance or starting fresh, see the documentation guide: /docs/user-guides/lightweight-modes
+
+<UrlPreviewCard url="/docs/user-guides/lightweight-modes" />
+
+### Security First
+
+We've been testing this feature thoroughly for several weeks before opening it to the community. This is more involved than a typical feature: Electrum has to integrate cleanly with every possible atomic swap path and every BasicSwap function, and the stakes are real funds.
+
+Some features are not available in Electrum mode (MWEB for Litecoin, for example), and the UI makes those limitations clear before users commit to a swap.
+
+Community testing is the next step. If you'd like to help, start with small amounts and reach out with any feedback or issues.
+
+### Why This Matters
+
+Electrum support and the Nexus integration aren't independent features. They're two parts of the same shift, and the Electrum release serves two distinct groups of users at once.
+
+**Users running BasicSwap locally.** If you want to run BasicSwap on your own machine but don't want to deal with downloading, syncing, and maintaining full nodes for every coin, Electrum mode gives you a lighter alternative. Same client, same protocol, dramatically less overhead.
+
+**Litecoin users on Nexus.** Light wallet support was also a prerequisite for embedding BasicSwap directly inside Nexus. Without removing the full node requirement, the integration wouldn't have been possible.
+
+Two birds, one stone. BasicSwap can now reach Litecoin users right inside the Nexus wallet they already carry, and at the same time serve existing local users who want a faster, lighter setup, all without giving up the security model that makes atomic swaps worth using in the first place. That's a meaningful step toward our mission of democratizing atomic swaps.
+
+---
+
+## Production Update: GUI + Core
+
+Shipping alongside the above is a large production update that covers Electrum-specific improvements, wallet management, UI enhancements, and a broad set of fixes.
+
+<Callout type="warning" title="Action Required: Back Up Your Database">
+  Please back up your <code>db.sqlite</code> file before updating. This release includes a database version bump from <strong>33 → 34</strong> and DB version <strong>7 → 8</strong>.
+</Callout>
+
+With this release, users can run atomic swaps with only the Particl blockchain synced locally, while BTC and LTC operate through Electrum servers.
+
+**Staying on RPC mode?** If you're already running BTC or LTC in full node (RPC) mode, we recommend staying there. RPC mode gives you more features and more control than Electrum mode.
+
+**New to BasicSwap?** Electrum mode lets you skip the blockchain download entirely and start swapping in seconds.
+
+<StyledTableWrapper>
+  <thead>
+    <tr>
+      <th>Feature</th>
+      <th>Electrum Mode</th>
+      <th>Full Node (RPC) Mode</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Disk space required</td>
+      <td>Minimal (wallet data only)</td>
+      <td>500 GB+ (non-pruned) / 80–100 GB (pruned)</td>
+    </tr>
+    <tr>
+      <td>Setup time</td>
+      <td>Seconds</td>
+      <td>Hours to days</td>
+    </tr>
+    <tr>
+      <td>Swap support</td>
+      <td>Secret Hash + Adaptor Signature</td>
+      <td>Secret Hash + Adaptor Signature</td>
+    </tr>
+    <tr>
+      <td>Electrum server failover</td>
+      <td>Automatic (multiple servers)</td>
+      <td>N/A</td>
+    </tr>
+    <tr>
+      <td>Coin-specific features (e.g. LTC MWEB)</td>
+      <td>Not available</td>
+      <td>Full support</td>
+    </tr>
+  </tbody>
+</StyledTableWrapper>
+
+**Changelog:**
+
+### New Features
+
+- Core Electrum Implementation.
+- Full ElectrumX protocol implementation with SSL/TLS support.
+- BIP84 HD wallet (Native SegWit) address derivation
+- Batch query support for efficient balance/UTXO lookups
+- Connection pooling with automatic server failover
+- Added Header subscription for real-time block notifications
+- Transaction caching to reduce server queries
+- Keepalive pings to maintain connections (Electrum)
+- TOR and .onion (Electrum) server support.
+
+### Wallet Management
+
+- Thread-safe UTXO locking for atomic swaps.
+- Pending transaction tracking.
+- Watch-only address support for swap contracts. (In RPC mode the full node wallet handles this via importaddress or descriptors. In electrum mode, we store these contract addresses in the wallet_watch_only table).
+- Automatic key import from RPC wallets (migration support).
+- Fixed (fast initial display + the periodic scan).
+- Database-cached balances (Instant page load).
+
+### Wallet Page
+
+- Transaction History, full transaction history with pagination (RPC mode) + also transaction history for Decred and Monero. 
+- Added pending outgoing display - Shows unconfirmed outgoing transactions.
+- Wallet Mode indicator - Shows "Light Wallet (Electrum)" or "Full Node" badge.
+- Electrum server status - Connected server, version, and connection status.
+- Sweep functionality - Migrate from lite wallet to RPC wallet.
+- Removed workaround for blank wallet names.
+- MWEB features hidden in electrum mode (Not supported for now, will be added in the future).
+- Cleanup / wallet tables use own schema.
+
+### Price API
+
+- Backend: Fetching price/volume/history with single API call. (Reducing API calls).
+
+### Bid Page
+
+- Auto-refresh, page automatically refreshes every 30 seconds during active swaps.
+- Progress bar, showing swap completion percentages.
+- Time elapsed/duration, shows how long the swap has been running.
+- State tooltips, detailed explanation.
+- Event tooltips, detailed explanation.
+
+### Settings Page
+
+- Electrum server discovery.
+- Server connection status.
+- Custom server configuration.
+
+### Fixes
+
+- Fixed transaction caching causing stale data.
+- Fixed fee estimation for electrum mode.
+- Fixed USD value display not updating on balance changes with electrum.
+- Fixed bug form double-submit error on bid page auto-refresh.
+- Fixed DB locking.
+- Fixed 25% 50% 100% amount button (On the AMM page and New Offers Page).
+- Reverted BCH to the original logic.
+- Fixed bid page bugs, changed auto refresh from 15 to 60 seconds. Clear interval before refresh. 
+- Fixed bug with mouseleave. Fixed Negative countdown values.
+- Fixed electrum broadcast spam in CLI.
+- Fixed bid tooltips (?) (Adaptor / Secret hash) and progress bar.
+- Add LTC/BTC stackwallet electrum nodes.
+- Reduce log noise for watching outputs that were never broadcast.
+- Prevent silent wallet creation.
+- Added graceful shutdown for electrum nodes.
+- Refactor backports.
+- Fix wallet creation (LTC) when switching from electrum to RPC mode.
+- Fixed inconsistent with electrum_servers / eletrum_clearnet_servers in basicswap.json. 
+- Fixed electrum logic (settings page), fixed empty arrays to fall back to default servers. Fixed RPC/Electrum logic.  
+- Added option set electrum servers (GUI) before switch RPC -> Electrum mode. Fixed "No server discovered), some servers don't support peer discovery.
+- Hide refresh button for completed swaps.
+- Fix use string format for electrum servers host:port with prepare.
+- Electrum reduced CLI noise (electrum server connections INFO/DEBUG).
+- Fix (host:port:ssl).
+- Fix: For Tor set ssl: false (Tor already provides encryption.)
+- BSX install litewallets switch in RPC mode wallet creation (RPC: BTC/LTC(+MWEB)
+- Debug message for _fundTxElectrum
+- Fix: Use witness-aware vsize calculation in _fundTxElectrum.
+- Fix: Move getTxVSize call to after the change output is added.
+- BIP87 (WIP)
+- BIP87 (RPC -> Electrum) legacy balance fix.
+- ElectrumX: Timeout rotation (time-decay), graceful shutdown, lock fix, server.version handshake, reconnection tracking.
+- Wallet Manager changed GAP 25 -> 50.
+- Wallet Backend fee cache, batch size 5, stopping checks.
+- Settings page better descriptions, removed auto-transfer checkbox.
+- Settings page modal show/hide key toggle when transfer, import instructions, auto-transfer default.
+- Fixed electrum synced/waiting display. 
+- Notification-manager fixed toast ticker for transfer.
+- Page wallet/settings gap limit default, sync status, non-blocking refresh.
+- Fixed Graceful Shutdown.
+- RPC timeout fix. 
+- Auto-transfer fix.
+- Use `bsx_wallet` name for new installs whenever possible.
+- Reduced log (CLI) spam.
+- Various fixes.
+
+### UI
+
+- Bump GUI: v.3.4.1
+- Added caching for static files (CSS/JS/Images)
+- Added Gzip compression.
+
+### Tests
+
+- tecnovert: Base for electrum functional.
+- tecnovert: Function to start electrumx server per coin.
+- tecnovert: Add more electrum tests.
+- tecnovert: add wait_for_bid_state. 
+- tecnovert add remaining electrum tests.
+
+---
+
+## Stay Connected
+
+Follow us for real-time updates as the Nexus integration and production release approach.
+
+- **Twitter/X:** [@basicswapdex](https://x.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

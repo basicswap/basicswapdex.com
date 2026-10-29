@@ -1,0 +1,699 @@
+---
+// A small illustration for each benefit on the Web page, labels only.
+// 0: the swap in a browser tab. A cursor opens the "you get" menu of every
+//    supported coin and picks a different one each time (film.ts loop).
+// 1: the site asks, your wallet signs. The keys stay in the wallet, with every
+//    coin BasicSwap supports rolling past in it.
+// 2: Desktop, Mobile and Web feeding one order book, drawn like the offers
+//    table in BasicSwap Desktop. Example figures.
+import { Image } from 'astro:assets';
+import Icon from '../Icon.astro';
+import { Film, type Step } from '../desktop/film';
+import { COIN_LIST } from '../../lib/coins';
+
+interface Props {
+  kind: number;
+}
+const { kind } = Astro.props;
+
+// Icons are named after the coin: "Bitcoin Cash" is bitcoin-cash-circle.png.
+const ICONS = import.meta.glob<{ default: ImageMetadata }>('../../assets/coins/*-circle.png', { eager: true });
+const NAME = Object.fromEntries(COIN_LIST.map((c) => [c.ticker, c.name]));
+const icon = (ticker: string) => ICONS[`../../assets/coins/${NAME[ticker].toLowerCase().replace(/ /g, '-')}-circle.png`].default;
+
+// Every supported coin, starting from Bitcoin.
+const start = COIN_LIST.findIndex((c) => c.ticker === 'BTC');
+const ALL = [...COIN_LIST.slice(start), ...COIN_LIST.slice(0, start)].map((c) => c.ticker);
+
+// ---- 0. the "you get" menu ----
+// Laid out in cqw of the window, so the cursor's stops line up at any size.
+// The menu is 6 x 2 logos, one per supported coin.
+const SEND = 'XMR';
+const PICKS = ['LTC', 'DASH', 'FIRO', 'PART', 'BTC']; // ends where it starts
+const P = 2.6; // seconds per pick
+const D = P * PICKS.length;
+const FIELD: [number, number] = [75.5, 18.5];
+// Each pick starts from and returns to the same resting point, and the last
+// pick puts back the coin the film opens on, so the end is the first frame.
+const REST: [number, number] = [62, 33];
+const cell = (ticker: string): [number, number] => {
+  const i = ALL.indexOf(ticker);
+  return [48 + 8.5 * (i % 6), 31 + 8.5 * Math.floor(i / 6)];
+};
+const film = new Film('.coin-pick', D);
+const path: [number, number, number][] = [[0, ...REST]];
+const clicks: number[] = [];
+PICKS.forEach((t, k) => {
+  const T = k * P;
+  path.push([T + 0.6, ...FIELD], [T + 0.9, ...FIELD], [T + 1.5, ...cell(t)], [T + 1.75, ...cell(t)], [T + 2.35, ...REST], [T + P, ...REST]);
+  clicks.push(T + 0.7, T + 1.6);
+  film.show(`hl${k}`, `.c-${t} .hl`, [[T + 1.35, T + 1.72]], 0.1);
+});
+film
+  .track('cursor', '.cursor', path.map(([t, x, y]): Step => [t, `translate:${x}cqw ${y}cqw`]), 'cubic-bezier(0.55, 0, 0.2, 1)')
+  .track('press', '.cursor svg', [[0, 'scale:1'], ...clicks.flatMap((c): Step[] => [[c - 0.1, 'scale:1'], [c, 'scale:0.8'], [c + 0.16, 'scale:1']])], 'ease-out');
+const open = PICKS.map((_, k): [number, number] => [k * P + 0.78, k * P + 1.72]);
+film.show('menu', '.menu', open, 0.12).show('ring', '.get .ring', open, 0.12);
+// what the field shows: BTC to begin with, then each pick until the next
+PICKS.forEach((t, k) => {
+  const from = k * P + 1.7;
+  const windows: [number, number][] = t === 'BTC' ? [[0, 1.7], [from, D]] : [[from, from + P]];
+  film.show(`v-${t}`, `.v-${t}`, windows, 0.12);
+});
+const css = kind === 0 ? film.css() : '';
+
+// ---- 2. the offers table ----
+const offers = [
+  { send: '0.0075', st: 'BTC', recv: '2.50', rt: 'XMR', m: 0.42 },
+  { send: '12.4', st: 'LTC', recv: '3.71', rt: 'XMR', m: -0.85 },
+  { send: '1,850', st: 'DOGE', recv: '0.0037', rt: 'BTC', m: 1.1 },
+  { send: '10.0', st: 'DASH', recv: '0.83', rt: 'XMR', m: -0.3 },
+];
+---
+
+<div class="vis" aria-hidden="true">
+  {
+    kind === 0 && (
+      <div class="tab">
+        <div class="win coin-pick">
+          <div class="bar">
+            <span class="dots">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span class="url data">
+              <Icon name="lock" size={10} />
+              any-site.example
+            </span>
+          </div>
+          <div class="swap">
+            <span class="field">
+              <Image src={icon(SEND)} alt="" width={48} height={48} loading="eager" />
+              <span class="data">{SEND}</span>
+            </span>
+            <span class="flip">
+              <Icon name="arrowRight" size={12} />
+            </span>
+            <span class="field get">
+              {PICKS.map((t) => (
+                <span class={`v v-${t}`}>
+                  <Image src={icon(t)} alt="" width={48} height={48} loading="eager" />
+                  <span class="data">{t}</span>
+                </span>
+              ))}
+              <Icon name="chevronDown" size={12} />
+              <span class="ring" />
+            </span>
+            <span class="go">Swap</span>
+          </div>
+          <div class="menu">
+            {ALL.map((t) => (
+              <span class={`c c-${t}`}>
+                <Image src={icon(t)} alt="" width={48} height={48} loading="eager" />
+                <span class="hl" />
+              </span>
+            ))}
+          </div>
+          <span class="cursor">
+            <svg viewBox="0 0 24 24">
+              <path d="M5 3l14 8.2-6.3 1.5L9.4 19z" />
+            </svg>
+          </span>
+        </div>
+        <div class="os data">
+          <span>Windows</span>
+          <span>macOS</span>
+          <span>Linux</span>
+        </div>
+      </div>
+    )
+  }
+  {
+    kind === 1 && (
+      <div class="keys">
+        <div class="box site">
+          <span class="lbl">
+            <Icon name="globe" size={15} />
+            Site
+          </span>
+          <span class="empty data">no coins</span>
+        </div>
+        <div class="ask">
+          <span class="ask-line" />
+          <span class="ask-chip data">sign?</span>
+          <span class="ask-line" />
+        </div>
+        <div class="box wallet">
+          <span class="lbl">
+            <Icon name="key" size={15} />
+            Your wallet
+          </span>
+          <div class="reel">
+            <ul class="reel-track" role="list">
+              {[0, 1].map(() =>
+                ALL.map((t) => (
+                  <li>
+                    <Image src={icon(t)} alt="" width={48} height={48} loading="eager" />
+                  </li>
+                )),
+              )}
+            </ul>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  {
+    kind === 2 && (
+      <div class="book">
+        <div class="apps data">
+          <span>
+            <Icon name="monitor" size={15} />
+            Desktop
+          </span>
+          <span>
+            <Icon name="phone" size={15} />
+            Mobile
+          </span>
+          <span class="web">
+            <Icon name="globe" size={15} />
+            Web
+          </span>
+        </div>
+        <svg class="merge" viewBox="0 0 300 36" preserveAspectRatio="none">
+          <path d="M50 0 C50 22 150 14 150 36 M150 0 V36 M250 0 C250 22 150 14 150 36" vector-effect="non-scaling-stroke" />
+        </svg>
+        <div class="ob">
+          <div class="ob-row ob-head data">
+            <span>Max send</span>
+            <span>Swap</span>
+            <span>Max recv</span>
+            <span class="mkt">+/-</span>
+            <span />
+          </div>
+          {offers.map(({ send, st, recv, rt, m }) => (
+            <div class="ob-row">
+              <span class="amt data">
+                <b>{send}</b> {st}
+              </span>
+              <span class="pair">
+                <Image src={icon(st)} alt="" width={40} height={40} loading="eager" />
+                <Icon name="arrowRight" size={10} />
+                <Image src={icon(rt)} alt="" width={40} height={40} loading="eager" />
+              </span>
+              <span class="amt data">
+                <b>{recv}</b> {rt}
+              </span>
+              <span class:list={['mkt', 'data', m > 0 ? 'up' : 'down']}>{m.toFixed(2)}%</span>
+              <span class="ob-go">Swap</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+</div>
+
+{css && <style is:inline set:html={css} />}
+
+<style>
+  .vis {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    font-size: var(--step--1);
+  }
+
+  .vis > div {
+    width: min(100%, 25rem);
+  }
+
+  .vis img {
+    display: block;
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .data {
+    color: var(--text);
+  }
+
+  /* ---- 0. the swap in a browser tab, picking coins ---- */
+  .tab {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  /* everything inside is sized in cqw, so the cursor's stops always land */
+  .win {
+    position: relative;
+    container-type: inline-size;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+    box-shadow: 0 18px 40px -20px hsl(var(--shadow-color) / 0.8);
+  }
+
+  .win > * {
+    font-size: 3.4cqw;
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 2.5cqw;
+    height: 9cqw;
+    padding: 0 3cqw;
+    border-bottom: 1px solid var(--border);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    background: var(--surface);
+  }
+
+  .dots {
+    display: flex;
+    gap: 1cqw;
+  }
+
+  .dots i {
+    width: 1.6cqw;
+    height: 1.6cqw;
+    border-radius: 50%;
+    background: var(--border-strong);
+  }
+
+  .url {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.2cqw;
+    flex: 1;
+    height: 5.4cqw;
+    padding: 0 2cqw;
+    border-radius: var(--radius-full);
+    background: var(--bg);
+    color: var(--text-subtle);
+    font-size: 3cqw;
+  }
+
+  .swap {
+    display: grid;
+    grid-template-columns: 1fr 6cqw 1fr;
+    gap: 3cqw 2cqw;
+    padding: 4cqw;
+  }
+
+  .field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 2cqw;
+    height: 11cqw;
+    padding: 0 2.5cqw;
+    border: 1px solid var(--border);
+    border-radius: 2.2cqw;
+    background: var(--surface);
+  }
+
+  .field img,
+  .v img {
+    width: 6cqw;
+    height: 6cqw;
+  }
+
+  /* the picked coin: one layer per pick, crossfaded by the film */
+  .get .v {
+    position: absolute;
+    left: 2.5cqw;
+    display: flex;
+    align-items: center;
+    gap: 2cqw;
+    opacity: 0;
+  }
+
+  .get .v-BTC {
+    opacity: 1;
+  }
+
+  .get > :global(svg) {
+    margin-left: auto;
+    color: var(--text-subtle);
+  }
+
+  .ring {
+    position: absolute;
+    inset: -1px;
+    border: 1px solid var(--brand);
+    border-radius: inherit;
+    box-shadow: 0 0 0 0.6cqw color-mix(in oklab, var(--brand) 25%, transparent);
+    opacity: 0;
+  }
+
+  .flip {
+    display: grid;
+    place-items: center;
+    color: var(--text-subtle);
+  }
+
+  .go {
+    display: grid;
+    grid-column: 1 / -1;
+    place-items: center;
+    height: 9cqw;
+    border-radius: 2.2cqw;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .menu {
+    position: absolute;
+    top: 25.5cqw;
+    right: 4cqw;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(6, 7cqw);
+    gap: 1.5cqw;
+    padding: 2cqw;
+    border: 1px solid var(--border-strong);
+    border-radius: 2.2cqw;
+    background: var(--surface);
+    box-shadow: 0 4cqw 8cqw -3cqw hsl(var(--shadow-color) / 0.8);
+    opacity: 0;
+  }
+
+  .c {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 7cqw;
+  }
+
+  .c img {
+    width: 5.6cqw;
+    height: 5.6cqw;
+  }
+
+  .hl {
+    position: absolute;
+    inset: -0.4cqw;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--brand) 22%, transparent);
+    box-shadow: inset 0 0 0 1px var(--brand);
+    opacity: 0;
+  }
+
+  .cursor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    width: 5cqw;
+    height: 5cqw;
+    margin: -0.6cqw 0 0 -1cqw;
+    translate: 62cqw 33cqw;
+  }
+
+  .cursor svg {
+    width: 100%;
+    height: 100%;
+    fill: #fff;
+    stroke: #111827;
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0.6cqw 0.8cqw rgb(0 0 0 / 0.45));
+    transform-origin: 20% 15%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .coin-pick :global(*) {
+      animation: none !important;
+    }
+
+    .cursor {
+      display: none;
+    }
+  }
+
+  .os {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+  }
+
+  .os span {
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--text-muted);
+    font-size: var(--step--2);
+  }
+
+  /* ---- 1. the site asks, your wallet signs ---- */
+  .keys {
+    display: grid;
+    grid-template-columns: 1fr auto 1.4fr;
+    align-items: center;
+  }
+
+  .box {
+    display: grid;
+    justify-items: center;
+    gap: 0.7rem;
+    padding: 0.9rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+  }
+
+  /* icon above the name, so the boxes stay narrow on phones */
+  .lbl {
+    display: grid;
+    justify-items: center;
+    gap: 0.3rem;
+    color: var(--text);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .site .lbl {
+    color: var(--text-muted);
+  }
+
+  .empty {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 2.5rem;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    color: var(--text-subtle);
+  }
+
+  .wallet {
+    border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
+    box-shadow: 0 12px 30px -14px color-mix(in oklab, var(--accent) 60%, transparent);
+  }
+
+  .wallet .lbl :global(svg) {
+    box-sizing: content-box;
+    padding: 0.4rem;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--accent) 22%, transparent);
+    color: color-mix(in oklab, var(--accent) 70%, var(--text));
+  }
+
+  .site .lbl :global(svg) {
+    padding: 0.4rem;
+    box-sizing: content-box;
+  }
+
+  /* Every coin rolls through the wallet, fading in and out at its edges.
+     The track holds the list twice, so sliding it by half loops cleanly. */
+  .reel {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 2.5rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+  }
+
+  .reel-track {
+    display: flex;
+    gap: 0.7rem;
+    width: max-content;
+    margin: 0;
+    padding: 0 0.7rem 0 0;
+    list-style: none;
+    animation: reel 30s linear infinite;
+  }
+
+  .reel-track li {
+    display: flex;
+    flex: none;
+  }
+
+  .reel-track img {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  @keyframes reel {
+    to {
+      translate: -50% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reel-track {
+      animation: none;
+    }
+  }
+
+  /* the site's request, passed to the wallet to sign */
+  .ask {
+    display: flex;
+    align-items: center;
+  }
+
+  .ask-line {
+    width: 0.6rem;
+    height: 1px;
+    background: var(--border-strong);
+  }
+
+  .ask-chip {
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--radius-full);
+    background: color-mix(in oklab, var(--brand) 18%, transparent);
+    color: var(--link);
+  }
+
+  /* ---- 2. three apps, one offers table ---- */
+  .apps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+  }
+
+  .apps span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg);
+    color: var(--text-muted);
+  }
+
+  .apps .web {
+    border-color: color-mix(in oklab, var(--brand) 60%, var(--border));
+    color: var(--link);
+  }
+
+  .merge {
+    display: block;
+    width: 100%;
+    height: 1.6rem;
+    fill: none;
+    stroke: color-mix(in oklab, var(--brand) 60%, var(--border));
+    stroke-width: 1;
+  }
+
+  /* The offers table as BasicSwap Desktop draws it: max send, the swap's
+     coins, max receive, how far the rate is from the market, and Swap. */
+  .book {
+    container-type: inline-size;
+  }
+
+  /* one grid for the whole table, so the heading lines up with the rows */
+  .ob {
+    display: grid;
+    grid-template-columns: auto auto auto auto auto;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--brand) 40%, var(--border));
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+    font-size: var(--step--2);
+  }
+
+  .ob-row {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: center;
+    column-gap: 0.7rem;
+    padding: 0.5rem 0.7rem;
+  }
+
+  .ob-row > :last-child {
+    justify-self: end;
+  }
+
+  .ob-row + .ob-row {
+    border-top: 1px solid var(--border);
+  }
+
+  .ob-head {
+    padding-block: 0.4rem;
+    background: var(--surface);
+    color: var(--text-subtle);
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .amt {
+    color: var(--text-subtle);
+    white-space: nowrap;
+  }
+
+  .amt b {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .pair {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    color: var(--text-subtle);
+  }
+
+  .pair img {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .mkt.up {
+    color: var(--success);
+  }
+
+  .mkt.down {
+    color: var(--destructive);
+  }
+
+  .ob-go {
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-md);
+    background: var(--brand);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* narrow cards drop the market column */
+  @container (max-width: 21rem) {
+    .ob {
+      grid-template-columns: auto auto auto auto;
+    }
+
+    .mkt {
+      display: none;
+    }
+  }
+</style>

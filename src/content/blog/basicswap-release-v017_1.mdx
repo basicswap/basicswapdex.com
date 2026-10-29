@@ -1,0 +1,161 @@
+---
+title: "BasicSwap v0.17.1: Light-Wallet Hardening, Automatic Key Migration, and AMM Fixes"
+seoTitle: "BasicSwap v0.17.1: Light-Wallet Hardening"
+date: 2026-07-12
+author: "BasicSwap Team"
+tags: ["News", "Release", "Security"]
+description: "BasicSwap v0.17.1 is a security and fixes release: Electrum light-wallet trust-boundary hardening, automatic migration of older imported keys to stronger encryption, Simplex connection hardening, and a batch of AMM v0.5.1 fixes. No coin cores and no database migration this cycle."
+seoDescription: "BasicSwap v0.17.1 hardens Electrum light wallets, moves older imported keys to stronger encryption automatically, and fixes SimpleX connections and the AMM."
+thumbnail: ./images/Medium_BSX_17_1.jpg
+banner: ./images/Blog_BSX_17_1.jpg
+---
+BasicSwap v0.17.1 is a follow-up to v0.17.0, focused on security hardening and fixes. The most important part is a set of light-wallet (Electrum) changes that tighten how much BasicSwap trusts a remote server, together with automatic migration of older imported keys to stronger encryption. The market maker moves to v0.5.1 with a round of fixes, and there are the usual smaller GUI and tooling improvements.
+
+If you imported keys in Electrum mode on an earlier version, you no longer need to re-import them. v0.17.1 moves them to the stronger format for you, which resolves the manual step we mentioned in the v0.17.0 post.
+
+<Callout type="success" title="Update to v0.17.1">
+v0.17.1 rolls up every change below. We recommend everyone update, especially light-wallet users. Installation steps are at the bottom of this post.
+</Callout>
+
+## Most Notable Updates 💡
+
+### Electrum Trust-Boundary Hardening 🔒
+
+If you run a coin in light-wallet (Electrum) mode, BasicSwap relies on a remote Electrum server for its view of the blockchain. That server sits outside the trust boundary: a malicious, compromised, or intercepted one can report things that are not true. v0.17.1 tightens what BasicSwap accepts from it. Full-node users get the same release but were not exposed to this class of issue.
+
+Three changes make up the bulk of it:
+
+*   Spends of a swap's chain-A lock output are now matched only against the exact spend and refund transaction ids the swap already computed. For Bitcoin, Litecoin, and other non-BCH coins, a spend the server reports that merely references the lock output is no longer treated as the refund, so a hostile server can no longer push a swap into a false pre-refund state. BCH keeps its existing fallback, because its transaction ids can change (commit [`b6789ac`](https://github.com/basicswap/basicswap/commit/b6789ac), [PR #548](https://github.com/basicswap/basicswap/pull/548)).
+*   A fee estimate from the server that sits above your configured `high_feerate` ceiling is now discarded in favour of the default rate, and the same ceiling is enforced when combining non-segwit inputs. This stops a hostile or misconfigured server from inflating your fees. An explicit `override_feerate` is left alone on purpose (commit [`b6789ac`](https://github.com/basicswap/basicswap/commit/b6789ac), [PR #548](https://github.com/basicswap/basicswap/pull/548)).
+*   BasicSwap now waits for a spend of a watched output to be reported as confirmed before acting on it in Electrum mode, which matches how it already behaves with a full node. The confirmation still comes from the server, so this closes the window where it reacted to an unconfirmed spend, rather than making that report as trustworthy as a full node's (commit [`75c164e`](https://github.com/basicswap/basicswap/commit/75c164e), [PR #549](https://github.com/basicswap/basicswap/pull/549)).
+
+<Callout type="warning" title="Light-wallet users: please update">
+If you use any coin in light-wallet (Electrum) mode, update to v0.17.1. Full-node users get the same fixes but were never exposed to these server-trust issues.
+</Callout>
+
+### Automatic Key Migration 🔑
+
+v0.17.0 started storing newly imported Electrum-mode private keys with authenticated encryption (AEAD, ChaCha20-Poly1305), and the v0.17.0 post asked anyone with older keys to re-import them. v0.17.1 removes that step. An imported key still in the old format is re-encrypted to AEAD automatically the next time BasicSwap uses it, with nothing for you to do (commit [`b6789ac`](https://github.com/basicswap/basicswap/commit/b6789ac), [PR #548](https://github.com/basicswap/basicswap/pull/548)).
+
+The migration happens per key, when that key is next used, rather than in one bulk pass at startup. A key you never touch stays readable in the old format until it is used, and either way nothing breaks.
+
+### Simplex Connection Hardening 🛡️
+
+BasicSwap can carry messages over Simplex. v0.17.1 hardens that path in two ways. Connection-request invitations received from a peer are now checked for type, length, and character set and are rate-limited before they are handed to the Simplex client. And a contact-connected event now only advances the route it belongs to, instead of every active route (commit [`75c164e`](https://github.com/basicswap/basicswap/commit/75c164e), [PR #549](https://github.com/basicswap/basicswap/pull/549)).
+
+### AMM v0.5.1 Fixes 🤖
+
+The market maker moves to v0.5.1 with a batch of fixes, most of them around editing templates.
+
+The biggest is a save-blocking bug from v0.17.0. A standing offer with a minimum balance of zero, or with none set, made the whole AMM config impossible to edit. Saving validated the entire file, the zero floor was rejected, and so every edit, enable, disable, delete, and add was refused. v0.17.1 treats a minimum balance of zero as a valid setting that means no reserve, sell until the wallet is empty, and rejects only negative values (commit [`0ad9d75`](https://github.com/basicswap/basicswap/commit/0ad9d75)).
+
+Saving templates is more forgiving too. The config page keeps a backup before an add, edit, enable, disable, or delete and restores it if the server rejects the save, so the screen no longer shows changes that were not actually stored. A rejected save now reports every failing template at once instead of only the first (commits [`34628e9`](https://github.com/basicswap/basicswap/commit/34628e9), [`0ad9d75`](https://github.com/basicswap/basicswap/commit/0ad9d75)).
+
+A few smaller fixes round it out. Duplicate template names are allowed again, since the offer generator already renames a clashing name to `name_2`, `name_3`, and so on when it loads (commit [`8436d6b`](https://github.com/basicswap/basicswap/commit/8436d6b), [PR #554](https://github.com/basicswap/basicswap/pull/554)). The edit form no longer blanks a stored minimum balance of zero, and it keeps fields it does not show. Starting the AMM no longer refuses to run because an enabled offer has a zero or unset minimum balance (commit [`0ad9d75`](https://github.com/basicswap/basicswap/commit/0ad9d75)).
+
+### GUI and Other Fixes 🎨
+
+The new-offer page gained a searchable send-from address dropdown. You can type a label or an address to filter it, and the list is capped at the 50 most recent addresses so the browser does not hang on a large wallet. The address you already have selected is always kept in view (commits [`4c486d8`](https://github.com/basicswap/basicswap/commit/4c486d8), [`0ad9d75`](https://github.com/basicswap/basicswap/commit/0ad9d75)). On the wallet page, the deposit-address button icon and the withdraw Type dropdown arrow were rendering as raw text, and now draw correctly (commits [`15af33b`](https://github.com/basicswap/basicswap/commit/15af33b), [`6fa91eb`](https://github.com/basicswap/basicswap/commit/6fa91eb)).
+
+There are three backend fixes as well. If the Electrum backend cannot return a chain-B lock transaction, the lookup now fails with a clear error instead of crashing (commit [`b6789ac`](https://github.com/basicswap/basicswap/commit/b6789ac)). The BCH mercy-transaction watch stays in place when an unrelated transaction pays the watched script, rather than being torn down (commit [`75c164e`](https://github.com/basicswap/basicswap/commit/75c164e)). And the queued-action processor now stops while the system is locked instead of trying to act (commit [`85bf901`](https://github.com/basicswap/basicswap/commit/85bf901), [PR #550](https://github.com/basicswap/basicswap/pull/550)).
+
+### Prepare and Tooling 🧹
+
+The prepare script that downloads and verifies coin binaries now imports release-signing keys into their own keyring under your data directory instead of your personal GPG keyring, and it imports each key before verifying a signature, which removes the "Signature made by unknown key" warnings (commits [`6f2b53a`](https://github.com/basicswap/basicswap/commit/6f2b53a), [`ec8c5c4`](https://github.com/basicswap/basicswap/commit/ec8c5c4), [PR #553](https://github.com/basicswap/basicswap/pull/553)). It also prints a clear per-file confirmation once a signature checks out (commit [`9e20984`](https://github.com/basicswap/basicswap/commit/9e20984)). None of this changes what is verified.
+
+On the testing side, the slower BCH and Litecoin integration tests now run only when their code changes, and the AMM config test was added to CI (commits [`3598158`](https://github.com/basicswap/basicswap/commit/3598158), [`4ac6135`](https://github.com/basicswap/basicswap/commit/4ac6135)).
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch.
+
+<Callout type="info" title="A drop-in update">
+v0.17.1 changes no coin daemons and no database schema, which stays at v37, so updating from v0.17.0 is a straight swap. Running the `--upgradecores` step downloads nothing this cycle, and there is no on-start migration. Follow the normal update flow, and back up your coindata directory first as always.
+</Callout>
+
+### Docker
+
+If you've installed BasicSwap following the Docker method:
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method:
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3. Execute the following command: `source ~/coinswaps/venv/bin/activate`
+4.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+5.  Execute the following command: `pip3 install .`,
+6.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/):
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+The full v0.17.1 changelog, grouped by area. It covers 11 pull requests (#543 to #550 and #552 to #554).
+
+### Security & Hardening
+
+*   Electrum: accept only the exact precomputed spend and refund transaction ids for a chain-A lock spend, on non-BCH coins [[b6789ac]](https://github.com/basicswap/basicswap/commit/b6789ac) / [PR #548](https://github.com/basicswap/basicswap/pull/548)
+*   Electrum: reject fee estimates above the `high_feerate` ceiling and enforce it when combining non-segwit inputs [[b6789ac]](https://github.com/basicswap/basicswap/commit/b6789ac) / [PR #548](https://github.com/basicswap/basicswap/pull/548)
+*   Electrum: act on a watched-output spend only once it has confirmed [[75c164e]](https://github.com/basicswap/basicswap/commit/75c164e) / [PR #549](https://github.com/basicswap/basicswap/pull/549)
+*   Auto-migrate legacy imported keys to AEAD (ChaCha20-Poly1305) on first use [[b6789ac]](https://github.com/basicswap/basicswap/commit/b6789ac) / [PR #548](https://github.com/basicswap/basicswap/pull/548)
+*   Simplex: validate and rate-limit connection-request invitations before passing them on [[75c164e]](https://github.com/basicswap/basicswap/commit/75c164e) / [PR #549](https://github.com/basicswap/basicswap/pull/549)
+*   Simplex: dispatch only the connected route's links on a contact-connected event [[75c164e]](https://github.com/basicswap/basicswap/commit/75c164e) / [PR #549](https://github.com/basicswap/basicswap/pull/549)
+
+### AMM (v0.5.1)
+
+*   Treat `min_coin_from_amt` of 0 as a valid wallet floor for standing offers and reject only negatives [[0ad9d75]](https://github.com/basicswap/basicswap/commit/0ad9d75)
+*   Fix the save that blocked editing templates when a standing offer had a zero minimum balance [[0ad9d75]](https://github.com/basicswap/basicswap/commit/0ad9d75)
+*   Keep a config backup and restore it if the server rejects a save [[34628e9]](https://github.com/basicswap/basicswap/commit/34628e9)
+*   Report every failing template on save, not just the first [[34628e9]](https://github.com/basicswap/basicswap/commit/34628e9) [[0ad9d75]](https://github.com/basicswap/basicswap/commit/0ad9d75)
+*   Allow duplicate template names again [[8436d6b]](https://github.com/basicswap/basicswap/commit/8436d6b) / [PR #554](https://github.com/basicswap/basicswap/pull/554)
+*   Preserve a stored minimum balance of 0 and fields not shown in the edit form [[0ad9d75]](https://github.com/basicswap/basicswap/commit/0ad9d75)
+*   AMM start wizard no longer requires a positive minimum balance [[0ad9d75]](https://github.com/basicswap/basicswap/commit/0ad9d75)
+*   Bump AMM to v0.5.1 [[3e8023c]](https://github.com/basicswap/basicswap/commit/3e8023c)
+
+### GUI
+
+*   New-offer page: searchable send-from address dropdown, capped at the 50 most recent addresses [[4c486d8]](https://github.com/basicswap/basicswap/commit/4c486d8) [[0ad9d75]](https://github.com/basicswap/basicswap/commit/0ad9d75)
+*   Wallet page: fix the button and type-to icons [[15af33b]](https://github.com/basicswap/basicswap/commit/15af33b) [[6fa91eb]](https://github.com/basicswap/basicswap/commit/6fa91eb)
+
+### Fixes
+
+*   Fail closed when the Electrum backend cannot return the chain-B lock transaction [[b6789ac]](https://github.com/basicswap/basicswap/commit/b6789ac)
+*   Keep the BCH mercy-tx watch alive when an unrelated transaction pays the watched script [[75c164e]](https://github.com/basicswap/basicswap/commit/75c164e)
+*   Do not attempt queued actions while the system is locked [[85bf901]](https://github.com/basicswap/basicswap/commit/85bf901) / [PR #550](https://github.com/basicswap/basicswap/pull/550)
+
+### Prepare / Tooling
+
+*   Use a separate gpg homedir under the data directory [[6f2b53a]](https://github.com/basicswap/basicswap/commit/6f2b53a) / [PR #553](https://github.com/basicswap/basicswap/pull/553)
+*   Import PGP pubkeys before verifying signatures [[ec8c5c4]](https://github.com/basicswap/basicswap/commit/ec8c5c4) / [PR #553](https://github.com/basicswap/basicswap/pull/553)
+*   Deduplicate the signature check and log a per-file verification confirmation [[9e20984]](https://github.com/basicswap/basicswap/commit/9e20984) / [PR #553](https://github.com/basicswap/basicswap/pull/553)
+
+### Tests / CI
+
+*   Run BCH and Litecoin tests only when their code changes [[3598158]](https://github.com/basicswap/basicswap/commit/3598158) / [PR #552](https://github.com/basicswap/basicswap/pull/552)
+*   Add `test_amm_config_api` to CI [[4ac6135]](https://github.com/basicswap/basicswap/commit/4ac6135) / [PR #554](https://github.com/basicswap/basicswap/pull/554)
+*   Expand `test_coins.py` [[41f00fc]](https://github.com/basicswap/basicswap/commit/41f00fc) / [PR #552](https://github.com/basicswap/basicswap/pull/552)
+*   Rearrange the tests folder [[7b3f2a9]](https://github.com/basicswap/basicswap/commit/7b3f2a9) / [PR #545](https://github.com/basicswap/basicswap/pull/545)
+
+You can inspect all changes by verifying the [v0.17.0 to v0.17.1 comparison page here](https://github.com/basicswap/basicswap/compare/v0.17.0...v0.17.1).
+
+## Stay Connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

@@ -1,0 +1,260 @@
+---
+// The homepage's illustrative XMR/LTC depth snapshot (the legacy page's
+// figures, rescaled from its XMR/BTC prices; labelled as illustrative in the
+// caption). A depth chart drawn
+// from the same figures sits above the tables; depth bars breathe and rows
+// flash in turn, as a live book would. All motion is CSS.
+const bids = [
+  ['2.9734', '12.40'],
+  ['2.9679', '8.15'],
+  ['2.9562', '21.02'],
+  ['2.9437', '5.60'],
+  ['2.9336', '33.18'],
+];
+const asks = [
+  ['2.9866', '9.74'],
+  ['2.9960', '14.30'],
+  ['3.0092', '6.88'],
+  ['3.0202', '27.45'],
+  ['3.0342', '11.07'],
+];
+const max = 33.18;
+
+// Depth chart: cumulative size by price, bids stepping left from the spread,
+// asks stepping right. Price 2.925 to 3.042 maps to x 0 to 400.
+const W = 400;
+const H = 96;
+const x = (p: number) => ((p - 2.925) / 0.117) * W;
+const total = Math.max(
+  bids.reduce((t, [, s]) => t + Number(s), 0),
+  asks.reduce((t, [, s]) => t + Number(s), 0),
+);
+const y = (cum: number) => H - (cum / total) * (H - 8);
+function steps(side: string[][], dir: 1 | -1) {
+  let cum = 0;
+  let d = `M${x(Number(side[0][0])).toFixed(1)} ${H}`;
+  for (const [price, size] of side) {
+    const px = x(Number(price)).toFixed(1);
+    d += ` L${px} ${y(cum).toFixed(1)}`;
+    cum += Number(size);
+    d += ` L${px} ${y(cum).toFixed(1)}`;
+  }
+  d += ` L${dir === -1 ? 0 : W} ${y(cum).toFixed(1)} L${dir === -1 ? 0 : W} ${H} Z`;
+  return d;
+}
+const bidPath = steps(bids, -1);
+const askPath = steps(asks, 1);
+---
+
+<figure class="book">
+  <header class="book-head">
+    <span class="pair data" data-parity="new">XMR / LTC</span>
+    <span class="kind">distributed order book</span>
+  </header>
+  <svg class="depth" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+    <path class="area bid" d={bidPath} />
+    <path class="area ask" d={askPath} />
+  </svg>
+  <div class="sides">
+    <div class="side bids">
+      <p class="side-label">bids &middot; buying XMR</p>
+      <table class="data">
+        <tbody>
+          {
+            bids.map(([price, size], k) => (
+              <tr style={`--depth:${(Number(size) / max) * 100}%;--k:${k}`}>
+                <td>
+                  <span class="price" data-parity="new">{price}</span>
+                </td>
+                <td>{size}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="side asks">
+      <p class="side-label">asks &middot; selling XMR</p>
+      <table class="data">
+        <tbody>
+          {
+            asks.map(([price, size], k) => (
+              <tr style={`--depth:${(Number(size) / max) * 100}%;--k:${k + 0.5}`}>
+                <td>
+                  <span class="price" data-parity="new">{price}</span>
+                </td>
+                <td>{size}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <figcaption>illustrative snapshot &middot; open the live dashboard for real-time depth</figcaption>
+</figure>
+
+<style>
+  .book {
+    overflow: hidden;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  .book-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pair {
+    color: var(--text);
+    font-size: var(--step-1);
+    font-weight: 600;
+  }
+
+  .kind,
+  .side-label {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  .sides {
+    display: grid;
+  }
+
+  .bids {
+    border-bottom: 1px solid var(--border);
+  }
+
+  @media (min-width: 30rem) {
+    .sides {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .bids {
+      border-bottom: 0;
+      border-right: 1px solid var(--border);
+    }
+  }
+
+  .side {
+    padding: var(--space-4) var(--space-5) var(--space-5);
+  }
+
+  .side-label {
+    margin-bottom: var(--space-3);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bids tr {
+    --bar: color-mix(in oklab, var(--success) 14%, transparent);
+  }
+
+  .asks tr {
+    --bar: color-mix(in oklab, var(--destructive) 14%, transparent);
+  }
+
+  td {
+    padding: 0.35rem 0.5rem;
+    color: var(--text-muted);
+  }
+
+  td:first-child {
+    color: var(--success);
+  }
+
+  .asks td:first-child {
+    color: var(--destructive);
+  }
+
+  td:last-child {
+    text-align: right;
+  }
+
+  figcaption {
+    padding: var(--space-3) var(--space-5);
+    border-top: 1px solid var(--border);
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  /* --- depth chart --- */
+  .depth {
+    display: block;
+    width: 100%;
+    height: 5.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .area {
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+    transform-box: view-box;
+    transform-origin: 50% 100%;
+    animation: breathe 7s var(--ease) infinite alternate;
+  }
+
+  .bid {
+    fill: color-mix(in oklab, var(--success) 16%, transparent);
+    stroke: var(--success);
+  }
+
+  .ask {
+    fill: color-mix(in oklab, var(--destructive) 16%, transparent);
+    stroke: var(--destructive);
+    animation-delay: -3.5s;
+  }
+
+  @keyframes breathe {
+    from { scale: 1 0.92; }
+    to { scale: 1 1.04; }
+  }
+
+  /* --- live-looking rows --- */
+  @property --wiggle {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+  }
+
+  tr {
+    background: linear-gradient(
+      to left,
+      var(--bar) calc(var(--depth) * var(--wiggle)),
+      transparent calc(var(--depth) * var(--wiggle))
+    );
+    animation: wiggle 5s var(--ease) infinite alternate;
+    animation-delay: calc(var(--k) * -1.3s);
+  }
+
+  @keyframes wiggle {
+    from { --wiggle: 0.86; }
+    to { --wiggle: 1.06; }
+  }
+
+  /* The flash hugs the digits, with a little room around them. */
+  .price {
+    margin-inline: -0.3em;
+    padding: 0.1em 0.3em;
+    border-radius: var(--radius-md);
+    animation: tick 10s linear infinite;
+    animation-delay: calc(var(--k) * 1.9s);
+  }
+
+  @keyframes tick {
+    0%, 3% { background: color-mix(in oklab, currentColor 22%, transparent); }
+    8%, 100% { background: transparent; }
+  }
+</style>

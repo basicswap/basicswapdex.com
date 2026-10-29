@@ -1,0 +1,157 @@
+---
+title: "BasicSwap v0.18.6 through v0.18.9: Swipe-Payout Recovery, Wallet Fixes, and WebSocket Hardening"
+seoTitle: "BasicSwap v0.18.6 to v0.18.9 Release Notes"
+date: 2026-09-16
+author: "BasicSwap Team"
+tags: ["News", "Release", "Security"]
+description: "Four BasicSwap releases that add swipe-payout recovery when no mercy transaction is sent, tighten WebSocket handling, fix wallet and Electrum edge cases, and update Litecoin and Particl Core."
+seoDescription: "BasicSwap v0.18.6 to v0.18.9 add swipe-payout recovery, tighten WebSocket handling, fix wallet and Electrum edge cases and update Litecoin and Particl Core."
+thumbnail: ./images/Medium_BSX_18_9.jpg
+banner: ./images/Blog_BSX_18_9.jpg
+---
+BasicSwap v0.18.6 through v0.18.9 continue the refund and mercy-path work from the first half of the v0.18 series. Most of it concerns the follower's payout after a failed adaptor-signature swap. v0.18.7 keeps affected payouts out of normal wallet coin selection while a mercy transaction is pending, and v0.18.8 adds automatic and manual recovery when no mercy transaction is sent. The four releases also clean up locked inputs after failed bids, fix wallet and Electrum behavior, improve Monero RPC connections through Tor, and limit what the WebSocket server will accept.
+
+This is a narrower rollup than v0.18.0 through v0.18.5, although it has one release quirk worth knowing about. v0.18.7 was tagged before its internal version number changed, so the tag still reports v0.18.6. The later tags report the correct versions. Litecoin Core moves to v0.21.5.8 and Particl Core to v27.2.5, so run the core update step when you upgrade.
+
+## Most notable updates
+
+### Finishing the swipe-payout path
+
+The mercy-path rework in v0.18.5 moved the follower's chain-B keyshare into a separate transaction. That mercy transaction spends the follower's chain-A swipe payout, which creates a coordination problem. If the payout goes straight to a normal wallet address, the wallet may select it for another payment before BasicSwap sends the mercy transaction.
+
+v0.18.7 removes that race on affected coins. The swipe pays a key derived for the swap instead of taking an address from the wallet's pool, so ordinary wallet coin selection cannot reach the output first. The mercy transaction then spends with that key and moves the remaining value into the wallet. Particl blind imports the key when it is ready to spend the output, rather than exposing it to the wallet earlier. Bitcoin Cash is the exception because its covenant still pays a wallet address, so BasicSwap locks that output until the mercy transaction spends it ([commit `323762b`](https://github.com/basicswap/basicswap/commit/323762b), [PR #706](https://github.com/basicswap/basicswap/pull/706)).
+
+Keeping the payout on a per-swap key also meant BasicSwap needed a way to recover it when no mercy transaction went out, and v0.18.8 adds that path. If altruistic recovery is off, or BasicSwap gives up on the mercy transaction, it sweeps the payout into the wallet without publishing the keyshare. Particl blind imports the per-swap key instead because its wallet needs the key and blinding data to recognize the output. Bitcoin Cash and swipe transactions created before v0.18.7 were not affected because their payouts already went to wallet-owned addresses ([commit `80b2e5a`](https://github.com/basicswap/basicswap/commit/80b2e5a), [PR #729](https://github.com/basicswap/basicswap/pull/729)).
+
+The automatic sweep requires the swipe output to be confirmed and unspent. If the output is not ready or the sweep fails for another reason, the bid records a warning that points to the debug page, where an operator can retry by bid ID. The manual action refuses to run while a mercy transaction is still queued, so the two recovery paths cannot spend the same output.
+
+<Callout type="info" title="Why v0.18.8 matters after v0.18.7">
+The v0.18.7 payout change protects the pending mercy transaction from wallet coin selection, but a failed swap that never sends a mercy transaction can leave the payout on the per-swap key. v0.18.8 adds automatic recovery and a manual fallback on the debug page. v0.18.9 includes both changes.
+</Callout>
+
+### Cleaner failure handling for bids and locked inputs
+
+v0.18.7 also releases inputs that could stay locked after a bid stopped progressing. Prefunded inputs are unlocked when a bid expires, while an adaptor-signature bid that fails after funding its chain-A lock transaction releases those inputs too ([commits `20e5775`](https://github.com/basicswap/basicswap/commit/20e5775), [`d6437ef`](https://github.com/basicswap/basicswap/commit/d6437ef), [PR #726](https://github.com/basicswap/basicswap/pull/726); [`a44568b`](https://github.com/basicswap/basicswap/commit/a44568b), [PR #719](https://github.com/basicswap/basicswap/pull/719)). BasicSwap now saves the accepted bid state and its message links inside one database savepoint, so an error cannot leave a partly accepted bid in the database ([commit `1898fc7`](https://github.com/basicswap/basicswap/commit/1898fc7), [PR #719](https://github.com/basicswap/basicswap/pull/719)).
+
+Bitcoin Cash gets a related safeguard because its covenant swipe pays a wallet-owned output. BasicSwap now locks that output while a mercy transaction is due, just as it does for an older swipe that paid a wallet address ([commit `89e8234`](https://github.com/basicswap/basicswap/commit/89e8234), [PR #721](https://github.com/basicswap/basicswap/pull/721)). If `smsgsend` fails without returning a response, BasicSwap also logs the original SecureMessaging error instead of raising another error that hides the cause ([commit `899889c`](https://github.com/basicswap/basicswap/commit/899889c), [PR #719](https://github.com/basicswap/basicswap/pull/719)).
+
+### Electrum and wallet reliability
+
+Electrum-backed wallets can now spend change created by their own unconfirmed transactions. BasicSwap trusts an unconfirmed output only when it pays one of the wallet's internal change addresses, so other zero-confirmation inputs still do not qualify. This lets a second transaction use change from the first without waiting for a confirmation ([commit `6d517e1`](https://github.com/basicswap/basicswap/commit/6d517e1), [PR #725](https://github.com/basicswap/basicswap/pull/725)).
+
+v0.18.6 also fixes two Electrum settings. BasicSwap now copies `electrum_poll_interval` into the active chain client instead of always using the default. The new `check_electrum_legacy_funds` option checks old Bitcoin and Litecoin addresses left by a full-node wallet migration, then shows a banner if any still hold funds. The check is off by default and only runs during a full wallet scan ([commit `822383a`](https://github.com/basicswap/basicswap/commit/822383a), [PR #708](https://github.com/basicswap/basicswap/pull/708)).
+
+When a Monero or Wownero wallet cannot be reached, the wallet page now keeps its last known balance instead of showing zero. Pending-balance badges also update only for their own coin, which stops one coin's refresh from making another coin's badge flicker ([commits `a7b95e8`](https://github.com/basicswap/basicswap/commit/a7b95e8), [`8706212`](https://github.com/basicswap/basicswap/commit/8706212), [PR #720](https://github.com/basicswap/basicswap/pull/720)).
+
+### Tor, browser, and WebSocket fixes
+
+Monero RPC calls through Tor no longer share one cached SOCKS connection across threads. Each call opens its own connection, which avoids the `Request-sent`, `Idle`, and broken-socket errors caused when two threads tried to reuse the same connection ([commit `44763a5`](https://github.com/basicswap/basicswap/commit/44763a5), [PR #713](https://github.com/basicswap/basicswap/pull/713)).
+
+An `allowed_hosts` entry written as `host:port`, such as `my.onion:12700`, now passes the Origin check for that host and port on either HTTP or HTTPS. Before v0.18.6, the Host check accepted the entry but a POST from the same address could still be rejected as cross-origin ([commit `c8dc9bd`](https://github.com/basicswap/basicswap/commit/c8dc9bd), [PR #715](https://github.com/basicswap/basicswap/pull/715)). Login and wallet-unlock pages now show the server's rejection reason, so a Host or Origin failure is no longer mislabeled as an invalid password ([commit `ee23f94`](https://github.com/basicswap/basicswap/commit/ee23f94), [PR #705](https://github.com/basicswap/basicswap/pull/705)).
+
+WebSocket handling changes in three of the four releases. v0.18.6 closes port scans, TLS hellos, and ordinary HTTP requests that arrive on the WebSocket port instead of throwing a traceback in the handler thread ([commit `6898bb0`](https://github.com/basicswap/basicswap/commit/6898bb0), [PR #714](https://github.com/basicswap/basicswap/pull/714)). v0.18.8 caps frames at 4 MiB, reads handshake lines in blocks of at most 4,096 bytes, accepts no more than 64 headers, and drops clients that disconnect without a close frame. The same backport rejects a wallet seed if it produces a BIP32 master key of zero or a value outside the secp256k1 group order, as BIP32 requires ([commit `6fa0dbb`](https://github.com/basicswap/basicswap/commit/6fa0dbb), [PR #730](https://github.com/basicswap/basicswap/pull/730)).
+
+v0.18.9 separates certificate-loading errors from client handshake failures. A missing or invalid server certificate still produces the `SSL failed` configuration warning and raises the error, while a remote client that fails the TLS handshake is logged at debug level and disconnected. A bad client connection no longer produces a warning about the server's key and certificate paths or a traceback ([commit `c24c08c`](https://github.com/basicswap/basicswap/commit/c24c08c), [PR #732](https://github.com/basicswap/basicswap/pull/732)).
+
+### Settings and coin-core updates
+
+BasicSwap now checks GitHub for a new release every four hours by default instead of once per day, and `check_updates_seconds` can be changed from the settings page. The backend accepts values from one hour to seven days, while the current menu offers one hour, four hours, 12 hours, and one day ([commit `9bf0657`](https://github.com/basicswap/basicswap/commit/9bf0657), [PR #710](https://github.com/basicswap/basicswap/pull/710)). The chain parameters now carry corrected block target times for Bitcoin Cash, Firo, and Litecoin, along with new values for Monero and Wownero ([commit `e8ba97a`](https://github.com/basicswap/basicswap/commit/e8ba97a), [PR #711](https://github.com/basicswap/basicswap/pull/711)).
+
+Two coin cores change in this range. v0.18.6 moves Litecoin Core from v0.21.5.6 to v0.21.5.7, and v0.18.7 moves it again to v0.21.5.8 ([commits `10d3afe`](https://github.com/basicswap/basicswap/commit/10d3afe), [`a2cdbf8`](https://github.com/basicswap/basicswap/commit/a2cdbf8), [PR #718](https://github.com/basicswap/basicswap/pull/718), [PR #727](https://github.com/basicswap/basicswap/pull/727)). v0.18.9 updates Particl Core from v27.2.4 to v27.2.5 ([commit `04580e6`](https://github.com/basicswap/basicswap/commit/04580e6), [PR #731](https://github.com/basicswap/basicswap/pull/731)). Run the core update step to fetch them.
+
+<Callout type="info" title="The v0.18.7 tag reports the wrong version">
+v0.18.7 was tagged before the internal BasicSwap version moved from 0.18.6, so that tag identifies itself as v0.18.6 in the UI and logs. The later tags are correct, and v0.18.9 contains every v0.18.7 change. If your checkout is on the v0.18.7 tag and still displays v0.18.6, update to v0.18.9.
+</Callout>
+
+## Install the latest BasicSwap update
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch.
+
+<Callout type="info" title="What to expect on upgrade">
+Run the `--upgradecores` step to fetch Litecoin Core v0.21.5.8 and Particl Core v27.2.5. The new `check_electrum_legacy_funds` scan is off unless you enable it, and update checks now run every four hours unless you change `check_updates_seconds`. Back up your coindata directory first as always.
+</Callout>
+
+### Docker
+
+If you installed BasicSwap with Docker:
+
+1. Shut down BasicSwap properly and stop the Docker image with `docker-compose stop`.
+2. From the BasicSwap folder, run `git pull`.
+3. In the `/docker` folder, run `docker-compose build --no-cache`.
+4. Run `docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --upgradecores`.
+5. When the core update finishes, launch BasicSwap again with `docker-compose up`.
+
+Depending on your Docker version, the command may be `docker compose` without the dash.
+
+### Non-Docker
+
+If you installed BasicSwap without Docker:
+
+1. Shut down BasicSwap properly.
+2. Run `export SWAP_DATADIR="$HOME/coinswaps"`.
+3. Run `source "$SWAP_DATADIR/venv/bin/activate"`.
+4. From `$SWAP_DATADIR/basicswap`, run `git pull`.
+5. Run `pip3 install --require-hashes -r requirements.txt`.
+6. Run `pip3 install .`.
+7. Run `basicswap-prepare --datadir="$SWAP_DATADIR" --upgradecores`.
+8. Launch BasicSwap as usual.
+
+### Install script
+
+If you installed BasicSwap with [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/), run `bsx-update`.
+
+## Changelog
+
+A single changelog for v0.18.6 through v0.18.9, grouped by area.
+
+### Swap recovery and bid state
+
+* On affected coins, keep the swipe payout on a per-swap key while a mercy transaction is pending, then move the value into the wallet when the mercy transaction is sent [[`323762b`](https://github.com/basicswap/basicswap/commit/323762b)] / [PR #706](https://github.com/basicswap/basicswap/pull/706) *(v0.18.7)*
+* Keep the Bitcoin Cash covenant payout locked while a mercy transaction is due [[`89e8234`](https://github.com/basicswap/basicswap/commit/89e8234)] / [PR #721](https://github.com/basicswap/basicswap/pull/721) *(v0.18.7)*
+* Recover the swipe payout when no mercy transaction is sent, and add a manual recovery action to the debug page [[`80b2e5a`](https://github.com/basicswap/basicswap/commit/80b2e5a)] / [PR #729](https://github.com/basicswap/basicswap/pull/729) *(v0.18.8)*
+* Unlock prefunded bid inputs when a bid expires [[`20e5775`](https://github.com/basicswap/basicswap/commit/20e5775)] [[`d6437ef`](https://github.com/basicswap/basicswap/commit/d6437ef)] / [PR #726](https://github.com/basicswap/basicswap/pull/726) *(v0.18.7)*
+* Unlock chain-A lock transaction inputs when adaptor-signature bid acceptance fails after funding [[`a44568b`](https://github.com/basicswap/basicswap/commit/a44568b)] / [PR #719](https://github.com/basicswap/basicswap/pull/719) *(v0.18.7)*
+* Save the accepted adaptor-signature bid state and its message links atomically [[`1898fc7`](https://github.com/basicswap/basicswap/commit/1898fc7)] / [PR #719](https://github.com/basicswap/basicswap/pull/719) *(v0.18.7)*
+* Remove the old compatibility search for mercy outputs embedded in swipe transactions [[`5ee43d2`](https://github.com/basicswap/basicswap/commit/5ee43d2)] / [PR #704](https://github.com/basicswap/basicswap/pull/704) *(v0.18.6)*
+
+### Network and security
+
+* Give each Monero RPC call through Tor its own SOCKS connection [[`44763a5`](https://github.com/basicswap/basicswap/commit/44763a5)] / [PR #713](https://github.com/basicswap/basicswap/pull/713) *(v0.18.6)*
+* Accept `host:port` entries in the Origin check, with the configured port enforced [[`c8dc9bd`](https://github.com/basicswap/basicswap/commit/c8dc9bd)] / [PR #715](https://github.com/basicswap/basicswap/pull/715) *(v0.18.6)*
+* Show Host and Origin rejection reasons on login and unlock pages instead of reporting an invalid password [[`ee23f94`](https://github.com/basicswap/basicswap/commit/ee23f94)] / [PR #705](https://github.com/basicswap/basicswap/pull/705) *(v0.18.6)*
+* Close non-WebSocket connections on the WebSocket port without a handler traceback [[`6898bb0`](https://github.com/basicswap/basicswap/commit/6898bb0)] / [PR #714](https://github.com/basicswap/basicswap/pull/714) *(v0.18.6)*
+* Limit WebSocket frames to 4 MiB, cap handshake lines and header counts, and close clients that disconnect without a close frame [[`6fa0dbb`](https://github.com/basicswap/basicswap/commit/6fa0dbb)] / [PR #730](https://github.com/basicswap/basicswap/pull/730) *(v0.18.8)*
+* Reject a seed that produces an invalid BIP32 master key [[`6fa0dbb`](https://github.com/basicswap/basicswap/commit/6fa0dbb)] / [PR #730](https://github.com/basicswap/basicswap/pull/730) *(v0.18.8)*
+* Separate server TLS configuration errors from remote-client handshake failures [[`c24c08c`](https://github.com/basicswap/basicswap/commit/c24c08c)] / [PR #732](https://github.com/basicswap/basicswap/pull/732) *(v0.18.9)*
+* Log the original SecureMessaging error when `smsgsend` returns no response [[`899889c`](https://github.com/basicswap/basicswap/commit/899889c)] / [PR #719](https://github.com/basicswap/basicswap/pull/719) *(v0.18.7)*
+
+### Wallets, Electrum, and UI
+
+* Apply the configured `electrum_poll_interval` instead of always using the default [[`822383a`](https://github.com/basicswap/basicswap/commit/822383a)] / [PR #708](https://github.com/basicswap/basicswap/pull/708) *(v0.18.6)*
+* Add the opt-in `check_electrum_legacy_funds` scan for migrated Bitcoin and Litecoin wallets [[`822383a`](https://github.com/basicswap/basicswap/commit/822383a)] / [PR #708](https://github.com/basicswap/basicswap/pull/708) *(v0.18.6)*
+* Let Electrum-backed wallets spend change from their own unconfirmed transactions [[`6d517e1`](https://github.com/basicswap/basicswap/commit/6d517e1)] / [PR #725](https://github.com/basicswap/basicswap/pull/725) *(v0.18.7)*
+* Keep the last known Monero or Wownero balance when its wallet cannot be reached, and stop pending-balance badges from flickering across coins [[`a7b95e8`](https://github.com/basicswap/basicswap/commit/a7b95e8)] [[`8706212`](https://github.com/basicswap/basicswap/commit/8706212)] / [PR #720](https://github.com/basicswap/basicswap/pull/720) *(v0.18.7)*
+* Change the default update-check interval from one day to four hours and expose it on the settings page [[`9bf0657`](https://github.com/basicswap/basicswap/commit/9bf0657)] / [PR #710](https://github.com/basicswap/basicswap/pull/710) *(v0.18.6)*
+* Correct block target times for Bitcoin Cash, Firo, and Litecoin, then add them for Monero and Wownero [[`e8ba97a`](https://github.com/basicswap/basicswap/commit/e8ba97a)] / [PR #711](https://github.com/basicswap/basicswap/pull/711) *(v0.18.6)*
+* Align mobile menu items [[`bfdf40f`](https://github.com/basicswap/basicswap/commit/bfdf40f)] / [PR #712](https://github.com/basicswap/basicswap/pull/712) *(v0.18.6)*
+
+### Coin cores and dependencies
+
+* Update Litecoin Core from v0.21.5.6 to v0.21.5.7, then to v0.21.5.8 [[`10d3afe`](https://github.com/basicswap/basicswap/commit/10d3afe)] [[`a2cdbf8`](https://github.com/basicswap/basicswap/commit/a2cdbf8)] / [PR #718](https://github.com/basicswap/basicswap/pull/718) / [PR #727](https://github.com/basicswap/basicswap/pull/727) *(v0.18.6, v0.18.7)*
+* Update Particl Core from v27.2.4 to v27.2.5 [[`04580e6`](https://github.com/basicswap/basicswap/commit/04580e6)] / [PR #731](https://github.com/basicswap/basicswap/pull/731) *(v0.18.9)*
+* Update `websocket-client` from v1.9.0 to v1.9.2 [[`0a64dff`](https://github.com/basicswap/basicswap/commit/0a64dff)] / [PR #724](https://github.com/basicswap/basicswap/pull/724) *(v0.18.7)*
+
+### Release note
+
+* v0.18.7 was tagged before the internal version changed, so the tag reports v0.18.6. v0.18.8 and v0.18.9 report the correct versions.
+
+You can inspect every change on the [v0.18.5 to v0.18.9 comparison page](https://github.com/basicswap/basicswap/compare/v0.18.5...v0.18.9).
+
+## Stay connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

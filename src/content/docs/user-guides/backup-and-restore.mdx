@@ -1,0 +1,73 @@
+---
+title: "Back up and restore"
+seoTitle: "Back Up and Restore a BasicSwap Wallet"
+description: "Keep the recovery phrase BasicSwap shows at setup, check your backup words, and restore each enabled coin's wallet, with restore heights for Monero and Wownero."
+published: 2026-10-15
+---
+BasicSwap's wallets for every coin come from one recovery phrase of 24 words, which `basicswap-prepare` prints once when it creates them. With that phrase and your Monero restore height, you can rebuild the wallets on any computer. This page covers what to keep, how to check your copy, and how to restore from it.
+
+## What to keep
+
+- **The recovery phrase.** BasicSwap doesn't store it anywhere, so the copy you wrote down at setup is the only one. Keep it offline, for example on paper or encrypted on a device that never goes online, and never type it into a website.
+- **The Monero restore height**, the block height printed at setup, which is the output of `echo $CURRENT_XMR_HEIGHT` in the install guide or the height the basicswap-bash installer shows. A Monero wallet restored from this height skips every block before it, so the scan finishes far sooner than one that starts at Monero's early years. Do the same for Wownero if you enabled it.
+- **A copy of the data folder**, if you want your history too. The phrase restores funds but not BasicSwap's database, the `db.sqlite` file in the data folder, which holds your offers, bids, swap history and the state of swaps in progress. Copy the whole folder, `~/coinswaps` or `/var/data/coinswaps` with Docker, while BasicSwap is stopped.
+
+<Callout type="caution" title="Finish swaps before you move">
+
+A swap that's in progress depends on the database, not the phrase. Let every swap complete or refund before you restore onto another computer or start from a fresh data folder.
+
+</Callout>
+
+## Check your backup words
+
+BasicSwap can't show the phrase again, but you can check that the words you wrote down are the right ones by comparing the key they produce with the key your Particl wallet uses. The commands below run in BasicSwap's RPC console and never send the words anywhere.
+
+1. With BasicSwap running, open `http://localhost:12700/rpc` and choose **Particl**.
+
+2. Run `extkey`, find the entry labelled "Master Key - bip44 derived." and note its `root_key_id`.
+
+3. Decode your words, keeping the empty quotes before them:
+
+   ```text
+   mnemonic decode "" "word1 word2 … word24"
+   ```
+
+   It returns a `master` key, which gives full control of your funds and should never be shared with anyone.
+
+4. Run `extkey` followed by that master key. If the `id` it prints matches the `root_key_id` from step 2, your words are correct.
+
+## Restore your wallets
+
+A restore is a new install that uses your phrase instead of creating one. Install BasicSwap as usual, then give `basicswap-prepare` the phrase and the Monero restore height you saved.
+
+<Tabs groupId="install-method">
+<TabItem value="bash" label="basicswap-bash" default>
+
+Run the installer and choose **Restore from Particl Seed**. It asks for the 24 words and then offers to take a Monero restore height, where you enter the one you saved.
+
+</TabItem>
+<TabItem value="docker" label="Docker">
+
+Follow the [Docker install](/docs/user-guides/install#install-with-docker) up to the configure step, then run this instead, with your own words and height:
+
+```bash
+docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --htmlhost="0.0.0.0" --wshost="0.0.0.0" --withcoins=monero --xmrrestoreheight=YOUR_HEIGHT --particl_mnemonic="word1 word2 … word24"
+```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+Follow the [source install](/docs/user-guides/install#install-from-source) up to the configure step, then run this instead, with your own words and height:
+
+```bash
+export SWAP_DATADIR=$HOME/coinswaps
+. $SWAP_DATADIR/venv/bin/activate
+basicswap-prepare --datadir=$SWAP_DATADIR --withcoins=monero --xmrrestoreheight=YOUR_HEIGHT --particl_mnemonic="word1 word2 … word24"
+```
+
+</TabItem>
+</Tabs>
+
+Enable the same coins as before, in `--withcoins`, or add them afterwards with `--addcoin`, and each coin's wallet comes back from the same phrase. If you created your Dash wallet with a Dash version before 21, add `--dashv20compatible` when you add Dash, so it derives the same keys as before. Your shell saves any command with your phrase in it to its history, so on a computer that others use, clear the history afterwards with `history -c` in Bash.
+
+Once BasicSwap starts and the coins finish syncing, the Wallets page shows your balances. As on any new install, PIVX, Dash, Firo and Bitcoin Cash wallets need a one-time reseed once their chains have synced, as described in [Manage enabled coins](/docs/user-guides/manage-enabled-coins#manage-wallets).

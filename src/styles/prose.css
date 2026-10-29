@@ -1,0 +1,182 @@
+/*
+ * Blog post body. Posts are Markdown, so their elements arrive unclassed;
+ * everything here is scoped to .prose. Components in posts (callouts,
+ * tables, galleries) carry their own styles.
+ */
+
+.prose {
+  min-width: 0;
+  color: color-mix(in oklab, var(--text) 88%, var(--text-muted));
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose > * + * {
+  margin-top: 1.25em;
+}
+
+/* ---- Headings: sections open with room above, sit close to their text ---- */
+
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  color: var(--text);
+  letter-spacing: var(--tracking-tight);
+}
+
+.prose h2 {
+  margin-top: 2.6em;
+  padding-top: 0.2em;
+  font-size: var(--step-3);
+  line-height: 1.2;
+}
+
+.prose h2::before {
+  content: '';
+  display: block;
+  width: 2rem;
+  height: 2px;
+  margin-bottom: 0.75em;
+  border-radius: 2px;
+  background: var(--gradient-extended);
+}
+
+.prose h3 {
+  margin-top: 2em;
+  font-size: var(--step-2);
+}
+
+.prose h4 {
+  margin-top: 1.8em;
+  font-size: var(--step-1);
+}
+
+.prose h5,
+.prose h6 {
+  margin-top: 1.6em;
+  font-size: var(--step-0);
+  letter-spacing: 0;
+}
+
+.prose :is(h2, h3, h4, h5, h6) + * {
+  margin-top: 0.7em;
+}
+
+.prose h2 + h3 {
+  margin-top: 1.2em;
+}
+
+/* ---- Text ---- */
+
+.prose strong {
+  color: var(--text);
+}
+
+.prose a {
+  color: var(--link);
+  text-decoration-color: color-mix(in oklab, var(--link) 45%, transparent);
+  overflow-wrap: anywhere;
+}
+
+.prose a:hover {
+  text-decoration-color: currentColor;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+
+.prose li + li,
+.prose li > ul,
+.prose li > ol {
+  margin-top: 0.45em;
+}
+
+.prose li > p + p {
+  margin-top: 0.6em;
+}
+
+.prose ul > li::marker {
+  color: var(--primary);
+}
+
+.prose ol > li::marker {
+  color: var(--text-subtle);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.prose blockquote {
+  padding: 0.2em 0 0.2em 1.25em;
+  border-left: 3px solid transparent;
+  border-image: linear-gradient(var(--brand), var(--accent)) 1;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.prose blockquote > * + * {
+  margin-top: 0.8em;
+}
+
+.prose hr {
+  margin-block: 3em;
+}
+
+/* ---- Media ---- */
+
+.prose img {
+  height: auto;
+  margin-inline: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.prose p:has(> img:only-child) {
+  margin-block: 2em;
+}
+
+.prose figure {
+  margin-block: 2.25em;
+}
+
+.prose figcaption {
+  margin-top: 0.75em;
+  color: var(--text-subtle);
+  font-size: var(--step--1);
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* ---- Code ---- */
+
+.prose :not(pre) > code {
+  font-size: 0.86em;
+}
+
+.prose pre {
+  margin-block: 1.75em;
+  font-size: var(--step--1);
+  line-height: 1.65;
+}
+
+/* Shiki emits both palettes as variables; each theme picks its own. */
+.prose pre.astro-code,
+.prose pre.astro-code span {
+  color: var(--shiki-dark);
+}
+
+:root[data-theme='light'] .prose pre.astro-code,
+:root[data-theme='light'] .prose pre.astro-code span {
+  color: var(--shiki-light);
+}
+
+.prose pre.astro-code {
+  background: var(--code-bg) !important;
+}

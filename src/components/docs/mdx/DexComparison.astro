@@ -1,0 +1,751 @@
+---
+// How BasicSwap compares with the other ways to swap Monero and Bitcoin, as a
+// real table (not an image) so search engines, screen readers and AI tools
+// read every cell. Every answer links to its source, numbered in the list
+// below the table.
+//
+// It follows the coin matrix on /desktop (CompatMatrix.astro): marks with a
+// legend, grouped columns and rows with heavier rules between groups, a
+// crosshair on the hovered cell, and below 48rem a list with one exchange
+// per row.
+//
+// Sources were checked on 15 October 2026. BasicSwap's answers link to its
+// code at the v0.19.0 tag. Update CHECKED when re-verifying.
+const CHECKED = '15 October 2026';
+import Logo from '../../Logo.astro';
+
+type Mark = 'y' | 'n' | 'w';
+interface Cell {
+  mark?: Mark;
+  text: string;
+  src: string[];
+}
+
+// id: [title, url]
+const SOURCES: Record<string, [string, string]> = {
+  'kraken-por': ['Kraken: Proof of Reserves', 'https://www.kraken.com/proof-of-reserves'],
+  'kraken-verify': ['Kraken: How to get verified on Kraken', 'https://support.kraken.com/gb/articles/360021973671-How-to-get-verified-on-Kraken'],
+  'kraken-fees': ['Kraken: How trading fees work on Kraken', 'https://support.kraken.com/articles/201893638-fee-schedule'],
+  'kraken-home': ['Kraken: home page (Kraken Pro, 600+ crypto pairs, web and mobile)', 'https://www.kraken.com/'],
+  'kraken-fiat': ['Kraken: How to deposit or withdraw fiat currencies', 'https://support.kraken.com/gb/articles/360000381846-How-to-deposit-or-withdraw-fiat-currencies-via-Kraken'],
+  'binance-xmr': ['Decrypt: Binance delists Monero (February 2024)', 'https://decrypt.co/215981/monero-binance-delists-xmr'],
+  'kraken-xmr': ['Decrypt: Kraken delists XMR for European customers (October 2024)', 'https://decrypt.co/284276/monero-kraken-delisting-xmr-european'],
+  'cn-kyc': ['ChangeNOW: AML/KYC Policy', 'https://changenow.io/terms-of-use/aml-kyc'],
+  'cn-faq': ['ChangeNOW: FAQ (deposit addresses, fees, buying with a card)', 'https://changenow.io/faq'],
+  'cn-home': ['ChangeNOW: home page (1000+ assets, iOS and Android apps)', 'https://changenow.io/'],
+  'cn-xmr': ['ChangeNOW: Monero (XMR) exchange', 'https://changenow.io/currencies/monero'],
+  'haveno-site': ['Haveno: home page', 'https://haveno.exchange/'],
+  'haveno-protocol': ['Haveno docs: Trade protocol', 'https://docs.haveno.exchange/overview/trade-protocol/'],
+  'haveno-docs': ['Haveno docs: payment methods', 'https://docs.haveno.exchange/'],
+  'haveno-fees': ['Haveno source: HavenoUtils.java (fee constants)', 'https://github.com/haveno-dex/haveno/blob/master/core/src/main/java/haveno/core/trade/HavenoUtils.java'],
+  'p2p-paper': ["Monero's Decentralized P2P Exchanges (arXiv, 2025)", 'https://arxiv.org/html/2505.02392v3'],
+  'bisq-faq': ['Bisq Wiki: Frequently asked questions', 'https://bisq.wiki/Frequently_asked_questions'],
+  'bisq-xmr': ['Bisq Wiki: Trading Monero', 'https://bisq.wiki/Xmr'],
+  'bisq-alts': ['Bisq Wiki: Altcoins', 'https://bisq.wiki/Altcoins'],
+  'eigen-site': ['eigenwallet: home page', 'https://eigenwallet.org/'],
+  'eigen-docs': ['eigenwallet docs: overview', 'https://docs.eigenwallet.org/'],
+  'eigen-readme': ['eigenwallet source: swap README (BTC to XMR only)', 'https://github.com/eigenwallet/core/blob/master/swap/README.md'],
+  'eigen-makers': ['eigenwallet docs: Market maker discovery', 'https://docs.eigenwallet.org/usage/market_maker_discovery'],
+  'thor-docs': ['THORChain docs: introduction', 'https://docs.thorchain.org/'],
+  'thor-pools': ['THORChain docs: Continuous liquidity pools', 'https://docs.thorchain.org/technical-documentation/thorchain-finance/continuous-liquidity-pools'],
+  'thor-fees': ['THORChain docs: Fees', 'https://docs.thorchain.org/technical-documentation/technical-deep-dive/fees'],
+  'thor-chains': ['THORChain dev docs: Chain clients', 'https://dev.thorchain.org/chain-clients/index.html'],
+  'thor-releases': ['THORNode releases v3.20.0 (Aug 2026) and v3.21.0 (Oct 2026)', 'https://gitlab.com/thorchain/thornode/-/releases'],
+  'thor-wallet-xmr': ['Cointelegraph: THORWallet integrates Monero (October 2026)', 'https://cointelegraph.com/press-releases/thorwallet-integrates-monero-bringing-native-xmr-support-to-the-app'],
+  'serai-site': ['Serai: home page', 'https://serai.exchange/'],
+  'serai-repo': ['Serai: README on GitHub', 'https://github.com/serai-dex/serai'],
+  'bsx-readme': ['BasicSwap v0.19.0: README', 'https://github.com/basicswap/basicswap/blob/v0.19.0/README.md'],
+  'bsx-install': ['BasicSwap v0.19.0: install guide', 'https://github.com/basicswap/basicswap/blob/v0.19.0/doc/install.md'],
+  'bsx-uth': ['BasicSwap docs: Under the Hood', '/docs/about/under-the-hood'],
+  'bsx-coins': ['BasicSwap Desktop: which coins swap with which', '/desktop#coins'],
+  'bsx-mobile': ['BasicSwap: Mobile', '/mobile'],
+};
+const SOURCE_IDS = Object.keys(SOURCES);
+const num = (id: string) => SOURCE_IDS.indexOf(id) + 1;
+
+const EXCHANGES = [
+  { id: 'cex', name: 'Centralized exchanges', eg: 'Kraken, Binance' },
+  { id: 'instant', name: 'Instant swap services', eg: 'ChangeNOW' },
+  { id: 'haveno', name: 'Haveno' },
+  { id: 'bisq', name: 'Bisq' },
+  { id: 'eigen', name: 'eigenwallet', eg: 'formerly UnstoppableSwap' },
+  { id: 'thor', name: 'THORChain' },
+  { id: 'serai', name: 'Serai DEX', eg: 'not live yet' },
+  { id: 'bsx', name: 'BasicSwap' },
+];
+const COL_GROUPS = [
+  { label: 'Centralized services', ids: ['cex', 'instant'] },
+  { label: 'Decentralized exchanges', ids: ['haveno', 'bisq', 'eigen', 'thor', 'serai'] },
+  { label: 'This DEX', ids: ['bsx'] },
+];
+const ORDER = COL_GROUPS.flatMap((g) => g.ids);
+const colStart = new Set(COL_GROUPS.slice(1).map((g) => g.ids[0]));
+
+// Cells in EXCHANGES order.
+const ROW_GROUPS: { label: string; rows: { label: string; cells: Cell[] }[] }[] = [
+  {
+    label: 'Trust',
+    rows: [
+      {
+        label: 'Who holds your coins',
+        cells: [
+          { mark: 'n', text: 'The exchange holds them', src: ['kraken-por'] },
+          { mark: 'w', text: 'Keeps no balances, but you send coins to its address for each swap', src: ['cn-kyc', 'cn-faq'] },
+          { mark: 'y', text: 'You, in a 2-of-3 multisig with the other trader and an arbitrator', src: ['haveno-protocol', 'haveno-site'] },
+          { mark: 'y', text: 'You, in a 2-of-2 multisig escrow with the other trader', src: ['bisq-faq'] },
+          { mark: 'y', text: 'You, in an atomic swap between two peers with no third party', src: ['eigen-docs', 'eigen-site'] },
+          { mark: 'w', text: 'Network vaults hold coins during a swap', src: ['thor-docs'] },
+          { mark: 'w', text: 'Planned, with validator-run threshold multisig', src: ['serai-repo'] },
+          { mark: 'y', text: 'You, with the coins locked on-chain between the two traders', src: ['bsx-readme', 'bsx-uth'] },
+        ],
+      },
+      {
+        label: 'Account or ID checks',
+        cells: [
+          { mark: 'n', text: 'Account and ID verification to deposit and trade', src: ['kraken-verify'] },
+          { mark: 'w', text: 'No account, but KYC in some countries or when a swap is flagged', src: ['cn-kyc'] },
+          { mark: 'y', text: 'None, only the desktop app', src: ['p2p-paper'] },
+          { mark: 'y', text: 'No registration or KYC', src: ['bisq-faq'] },
+          { mark: 'y', text: 'No accounts and no KYC', src: ['eigen-site'] },
+          { mark: 'y', text: 'Permissionless protocol', src: ['thor-docs'] },
+          { text: 'Not stated', src: ['serai-site'] },
+          { mark: 'y', text: 'No accounts', src: ['bsx-readme'] },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Trading',
+    rows: [
+      {
+        label: 'How trades are matched',
+        cells: [
+          { text: 'Order book', src: ['kraken-fees'] },
+          { text: 'Instant quote from pooled exchange liquidity', src: ['cn-faq'] },
+          { text: 'Offers between makers and takers', src: ['haveno-protocol'] },
+          { text: 'Offers between traders', src: ['bisq-faq'] },
+          { text: 'Makers listed in a public registry or found through rendezvous points', src: ['eigen-makers'] },
+          { text: 'Liquidity pools, no order book', src: ['thor-pools'] },
+          { text: 'Planned, with liquidity pools paired with SRI', src: ['serai-site'] },
+          { text: 'Decentralized order book', src: ['bsx-readme'] },
+        ],
+      },
+      {
+        label: 'What you can trade',
+        cells: [
+          { text: '600+ crypto pairs, fiat and stablecoins (Kraken)', src: ['kraken-home'] },
+          { text: '1,000+ crypto assets', src: ['cn-home'] },
+          { text: 'Monero against fiat and other crypto', src: ['haveno-site', 'p2p-paper'] },
+          { text: 'Bitcoin against fiat and altcoins such as XMR, ETH and LTC', src: ['bisq-faq', 'bisq-alts'] },
+          { text: 'One way only, BTC for XMR and never XMR back to BTC, where BasicSwap swaps both ways', src: ['eigen-readme', 'bsx-coins'] },
+          { text: 'Native coins on about 15 chains, including BTC, ETH and SOL', src: ['thor-chains'] },
+          { text: 'Planned for BTC, ETH, DAI and XMR', src: ['serai-repo'] },
+          { text: '12 coins, including BTC, XMR, LTC and DOGE', src: ['bsx-readme'] },
+        ],
+      },
+      {
+        label: 'Monero (XMR)',
+        cells: [
+          { mark: 'w', text: 'Delisted by Binance (2024) and by Kraken in the EEA (2024)', src: ['binance-xmr', 'kraken-xmr'] },
+          { mark: 'y', text: 'Yes', src: ['cn-xmr'] },
+          { mark: 'y', text: 'Every trade is against XMR', src: ['p2p-paper'] },
+          { mark: 'y', text: 'Yes, against BTC', src: ['bisq-xmr'] },
+          { mark: 'w', text: 'Partial integration, one side only. You can buy XMR with BTC, but not sell XMR back', src: ['eigen-docs', 'eigen-readme'] },
+          { mark: 'w', text: 'Rolling out, in node software since Aug 2026 with swaps still in testing', src: ['thor-releases', 'thor-wallet-xmr'] },
+          { mark: 'w', text: 'Planned', src: ['serai-repo'] },
+          { mark: 'y', text: 'Full integration, both sides. You can buy and sell native XMR against BTC and other coins', src: ['bsx-readme', 'bsx-coins'] },
+        ],
+      },
+      {
+        label: 'Fees',
+        cells: [
+          { text: '−0.02% to 0.80% per trade (Kraken)', src: ['kraken-fees'] },
+          { text: 'Built into the quoted rate', src: ['cn-faq'] },
+          { text: '0.15% maker, and 0.5% for crypto or 0.75% for fiat as taker', src: ['haveno-fees'] },
+          { text: '0.1% maker, 0.7% taker when paid in BTC', src: ['bisq-faq'] },
+          { text: 'Built into each maker\'s own rate', src: ['eigen-docs'] },
+          { text: 'Liquidity fee by trade size, plus an outbound fee', src: ['thor-fees'] },
+          { text: 'Planned, with swap fees paid to liquidity providers', src: ['serai-site'] },
+          { mark: 'y', text: 'None, only blockchain network fees', src: ['bsx-readme'] },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Access',
+    rows: [
+      {
+        label: 'Fiat money',
+        cells: [
+          { mark: 'y', text: 'Bank transfer and cards, by country', src: ['kraken-fiat'] },
+          { mark: 'w', text: 'Card purchases through partners', src: ['cn-faq'] },
+          { mark: 'y', text: 'Paid directly between traders (SEPA, Zelle, Revolut…)', src: ['haveno-docs', 'p2p-paper'] },
+          { mark: 'y', text: 'Paid directly between traders', src: ['bisq-faq'] },
+          { mark: 'w', text: 'Buy XMR with EUR by SEPA, in the EU only', src: ['eigen-site'] },
+          { mark: 'n', text: 'No, crypto pools only', src: ['thor-pools'] },
+          { mark: 'n', text: 'No, crypto only', src: ['serai-repo'] },
+          { mark: 'n', text: 'No, crypto only', src: ['bsx-readme'] },
+        ],
+      },
+      {
+        label: 'Runs on',
+        cells: [
+          { text: 'Web, mobile apps and API', src: ['kraken-home'] },
+          { text: 'Web, iOS and Android', src: ['cn-home'] },
+          { text: 'Desktop (Linux, macOS, Windows) through third-party networks', src: ['haveno-site'] },
+          { text: 'Desktop', src: ['bisq-faq'] },
+          { text: 'Desktop (Linux, macOS, Windows), with mobile announced', src: ['eigen-site'] },
+          { text: 'Third-party wallets and interfaces', src: ['thor-docs'] },
+          { text: 'Not live yet, with Cake Wallet named as a partner', src: ['serai-site'] },
+          { text: 'Desktop (Linux, macOS, Windows) and mobile, inside Nexus Wallet', src: ['bsx-install', 'bsx-mobile'] },
+        ],
+      },
+    ],
+  },
+];
+
+const WORD: Record<Mark, string> = { y: 'Yes', n: 'No', w: 'With conditions' };
+const byId = Object.fromEntries(EXCHANGES.map((e) => [e.id, e]));
+const cellOf = (cells: Cell[], id: string) => cells[EXCHANGES.findIndex((e) => e.id === id)];
+const rows = ROW_GROUPS.flatMap((g) => g.rows);
+const isExternal = (url: string) => /^https?:/.test(url);
+---
+
+<figure class="dex" data-dex>
+  <div class="legend">
+    <ul role="list">
+      <li><span class="mk mk-y" aria-hidden="true"></span> in your favour</li>
+      <li><span class="mk mk-w" aria-hidden="true"></span> with conditions</li>
+      <li><span class="mk mk-n" aria-hidden="true"></span> against you</li>
+    </ul>
+    <p class="axis">sources checked {CHECKED} &middot; numbers link to them</p>
+  </div>
+
+  <div class="scroller" tabindex="0" role="region" aria-label="Exchange comparison">
+    <table class="cmp">
+      <caption class="visually-hidden">
+        BasicSwap compared with centralized exchanges, instant swap services, Haveno, Bisq, eigenwallet, THORChain and Serai DEX on custody, account checks, matching, assets, Monero support, fees, fiat and platforms. Sources checked {CHECKED}.
+      </caption>
+      <thead>
+        <tr class="groups">
+          <td></td>
+          {COL_GROUPS.map((g, i) => <th scope="colgroup" colspan={g.ids.length} class:list={{ gs: i > 0, us: g.ids.includes('bsx') }}>{g.label}</th>)}
+        </tr>
+        <tr>
+          <td class="corner"></td>
+          {
+            ORDER.map((id, c) => (
+              <th scope="col" data-c={c} class:list={{ gs: colStart.has(id), us: id === 'bsx' }}>
+                {id === 'bsx' && <Logo mark height={20} class="bsx-mark" />}
+                <span class="name">{byId[id].name}</span>
+                {byId[id].eg && <span class="eg">({byId[id].eg})</span>}
+              </th>
+            ))
+          }
+        </tr>
+      </thead>
+      <tbody>
+        {
+          ROW_GROUPS.map((g, gi) =>
+            g.rows.map((row, k) => {
+              const r = rows.indexOf(row);
+              return (
+                <>
+                  {k === 0 && (
+                    <tr class:list={['row-group', { gs: gi > 0 }]}>
+                      <th scope="rowgroup" colspan={ORDER.length + 1}>{g.label}</th>
+                    </tr>
+                  )}
+                  <tr>
+                    <th scope="row" data-r={r}>{row.label}</th>
+                    {ORDER.map((id, c) => {
+                      const cell = cellOf(row.cells, id);
+                      return (
+                        <td data-r={r} data-c={c} class:list={{ gs: colStart.has(id), us: id === 'bsx' }}>
+                          {cell.mark && (
+                            <>
+                              <span class:list={['mk', `mk-${cell.mark}`]} aria-hidden="true" />
+                              <span class="visually-hidden">{WORD[cell.mark]}: </span>
+                            </>
+                          )}
+                          <span class="txt">{cell.text}</span>
+                          <sup class="cite">
+                            {cell.src.map((s, i) => (
+                              <>
+                                {i > 0 && ','}
+                                <a href={`#dex-src-${num(s)}`} aria-label={`source ${num(s)}: ${SOURCES[s][0]}`}>{num(s)}</a>
+                              </>
+                            ))}
+                          </sup>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </>
+              );
+            }),
+          )
+        }
+      </tbody>
+    </table>
+  </div>
+
+  {/* phones: one exchange per row, its answers inside */}
+  <ul class="by-dex" role="list">
+    {
+      ['bsx', ...ORDER.filter((id) => id !== 'bsx')].map((id) => (
+        <li>
+          <details open={id === 'bsx'}>
+            <summary>
+              {id === 'bsx' && <Logo mark height={22} />}
+              <span class="who">
+                <b>{byId[id].name}</b>
+                {byId[id].eg && <span>{byId[id].eg}</span>}
+              </span>
+            </summary>
+            <dl>
+              {rows.map((row) => {
+                const cell = cellOf(row.cells, id);
+                return (
+                  <div>
+                    <dt>{row.label}</dt>
+                    <dd>
+                      {cell.mark && <span class:list={['mk', `mk-${cell.mark}`]} aria-hidden="true" />}
+                      <span>
+                        {cell.text}
+                        <sup class="cite">
+                          {cell.src.map((s, i) => (
+                            <>
+                              {i > 0 && ','}
+                              <a href={`#dex-src-${num(s)}`}>{num(s)}</a>
+                            </>
+                          ))}
+                        </sup>
+                      </span>
+                    </dd>
+                  </div>
+                );
+              })}
+            </dl>
+          </details>
+        </li>
+      ))
+    }
+  </ul>
+
+  <figcaption class="sources">
+    <p class="sources-title">Sources, checked {CHECKED}</p>
+    <ol>
+      {
+        SOURCE_IDS.map((id, i) => (
+          <li id={`dex-src-${i + 1}`}>
+            <a href={SOURCES[id][1]} {...(isExternal(SOURCES[id][1]) ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+              {SOURCES[id][0]}
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </figcaption>
+</figure>
+
+<style>
+  .dex {
+    display: grid;
+    gap: var(--space-4);
+    margin-block: var(--space-6);
+  }
+
+  /* Wider than the reading column on desktop, into the free space beside it
+     (the page has no "On this page" rail), so every column shows at once. */
+  @media (min-width: 64rem) {
+    .dex {
+      width: min(76rem, calc(100vw - 17rem - 2 * clamp(1.5rem, 3vw, 3.5rem) - 1rem));
+    }
+  }
+
+  /* ---- marks, as on the coin matrix ---- */
+  .dex .mk {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 0.62rem;
+    height: 0.62rem;
+    vertical-align: middle;
+  }
+
+  .dex .mk-y {
+    border-radius: 50%;
+    background: var(--link);
+    box-shadow: 0 0 8px color-mix(in oklab, var(--link) 60%, transparent);
+  }
+
+  .dex .mk-w {
+    border: 2px solid var(--warning);
+    border-radius: 50%;
+  }
+
+  .dex .mk-n {
+    width: 0.9rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--destructive);
+    opacity: 0.75;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-6);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .legend ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .axis {
+    margin: 0;
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  /* ---- the table ---- */
+  .scroller {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+  }
+
+  .cmp {
+    width: 100%;
+    min-width: 60rem;
+    margin: 0;
+    border-collapse: collapse;
+    font-size: var(--step--2);
+    line-height: 1.4;
+  }
+
+  .cmp th,
+  .cmp td {
+    padding: 0.6rem 0.55rem;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+    vertical-align: top;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+
+  /* a heavier rule between the groups */
+  .cmp .gs:not(tr) {
+    border-left: 2px solid var(--border-strong);
+  }
+
+  .cmp tr.gs > * {
+    border-top: 2px solid var(--border-strong);
+  }
+
+  .groups th {
+    padding-block: 0.45rem;
+    background: color-mix(in oklab, var(--surface) 60%, var(--bg));
+    color: var(--text-subtle);
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .groups td,
+  .corner {
+    background: var(--surface);
+  }
+
+  thead th[scope='col'] {
+    width: 10.5%;
+    color: var(--text);
+    font-weight: 600;
+    background: var(--surface);
+    text-align: center;
+    vertical-align: bottom;
+  }
+
+  .name,
+  .eg {
+    display: block;
+  }
+
+  .eg {
+    color: var(--text-subtle);
+    font-weight: 400;
+  }
+
+  .dex :global(.bsx-mark) {
+    display: block;
+    margin: 0 auto 0.35rem;
+  }
+
+  .row-group th {
+    padding: 0.4rem var(--space-3);
+    border-right: 0;
+    background: color-mix(in oklab, var(--surface) 60%, var(--bg));
+    color: var(--text-subtle);
+    font-weight: 500;
+    text-align: left;
+  }
+
+  tbody th[scope='row'] {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    width: 9rem;
+    padding-inline: var(--space-3);
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    text-align: left;
+  }
+
+  tbody td {
+    color: var(--text-muted);
+  }
+
+  tbody td .mk {
+    margin-right: 0.4rem;
+    vertical-align: 0.05em;
+  }
+
+  .cite {
+    margin-left: 0.15rem;
+    font-size: 0.72em;
+    white-space: nowrap;
+  }
+
+  .cite a {
+    color: var(--link);
+    text-decoration: none;
+  }
+
+  .cite a:hover {
+    text-decoration: underline;
+  }
+
+  tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  /* BasicSwap's column, outlined in the brand blue */
+  .cmp .us {
+    background: color-mix(in oklab, var(--brand) 7%, var(--bg));
+    border-left: 2px solid color-mix(in oklab, var(--brand) 70%, transparent);
+    border-right: 2px solid color-mix(in oklab, var(--brand) 70%, transparent);
+  }
+
+  .cmp td.us {
+    color: var(--text);
+  }
+
+  thead th.us[scope='col'],
+  .groups th.us {
+    background: color-mix(in oklab, var(--brand) 16%, var(--surface));
+    color: var(--text);
+  }
+
+  /* the crosshair (set by the script) */
+  .cmp :global(td.x-row),
+  .cmp :global(td.x-col) {
+    background: color-mix(in oklab, var(--primary) 9%, transparent);
+  }
+
+  .cmp :global(th.x-row),
+  .cmp :global(th.x-col) {
+    background: color-mix(in oklab, var(--primary) 22%, var(--surface));
+  }
+
+  .cmp :global(td.x-cell) {
+    background: color-mix(in oklab, var(--primary) 18%, transparent);
+    box-shadow: inset 0 0 0 2px var(--primary);
+    color: var(--text);
+  }
+
+  /* ---- phones: the list ---- */
+  .by-dex {
+    display: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+  }
+
+  .by-dex > li {
+    margin: 0;
+  }
+
+  .by-dex > li + li {
+    border-top: 1px solid var(--border);
+  }
+
+  .by-dex summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .by-dex summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .by-dex summary::after {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-left: auto;
+    border-right: 2px solid var(--text-subtle);
+    border-bottom: 2px solid var(--text-subtle);
+    rotate: 45deg;
+    transition: rotate var(--dur) var(--ease);
+  }
+
+  .by-dex details[open] summary::after {
+    rotate: 225deg;
+  }
+
+  .who {
+    display: grid;
+  }
+
+  .who b {
+    color: var(--text);
+  }
+
+  .who span {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .by-dex dl {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  .by-dex dl > div {
+    display: grid;
+    gap: 0.15rem;
+    font-size: var(--step--1);
+  }
+
+  .by-dex dt {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+    font-weight: 600;
+  }
+
+  .by-dex dd {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin: 0;
+    color: var(--text);
+  }
+
+  .by-dex dd .mk {
+    flex: none;
+    translate: 0 -0.05em;
+  }
+
+  /* ---- sources ---- */
+  .sources {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: var(--step--2);
+    text-align: left;
+  }
+
+  .sources-title {
+    margin: 0 0 var(--space-2);
+    color: var(--text-subtle);
+    font-weight: 600;
+  }
+
+  .sources ol {
+    columns: 2 18rem;
+    column-gap: var(--space-6);
+    margin: 0;
+    padding-left: 1.6rem;
+  }
+
+  .sources li {
+    margin: 0 0 0.3rem;
+    break-inside: avoid;
+    scroll-margin-top: calc(var(--header-h) + var(--space-5));
+  }
+
+  .sources li::marker {
+    color: var(--link);
+    font-family: var(--font-mono);
+  }
+
+  .sources li:target {
+    color: var(--text);
+  }
+
+  .sources li:target a {
+    font-weight: 600;
+  }
+
+  .sources a {
+    color: var(--text-muted);
+    text-decoration-color: color-mix(in oklab, var(--text-muted) 40%, transparent);
+  }
+
+  .sources a:hover {
+    color: var(--text);
+  }
+
+  @media (max-width: 47.99rem) {
+    .scroller,
+    .legend .axis {
+      display: none;
+    }
+
+    .by-dex {
+      display: block;
+    }
+  }
+</style>
+
+<script>
+  // The crosshair: the hovered cell's row and column light up.
+  document.querySelectorAll<HTMLElement>('[data-dex] .cmp').forEach((table) => {
+    const clear = () => table.querySelectorAll('.x-row, .x-col, .x-cell').forEach((el) => el.classList.remove('x-row', 'x-col', 'x-cell'));
+    table.addEventListener('pointerover', (e) => {
+      const cell = (e.target as HTMLElement).closest<HTMLElement>('td[data-r]');
+      clear();
+      if (!cell) return;
+      const { r, c } = cell.dataset;
+      table.querySelectorAll(`[data-r="${r}"]`).forEach((el) => el.classList.add('x-row'));
+      table.querySelectorAll(`[data-c="${c}"]`).forEach((el) => el.classList.add('x-col'));
+      cell.classList.add('x-cell');
+    });
+    table.addEventListener('pointerleave', clear);
+  });
+</script>

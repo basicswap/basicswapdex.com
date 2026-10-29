@@ -1,0 +1,171 @@
+---
+title: "BasicSwap v0.17.6: Offer-Revoke Hardening, Smarter Login Sessions, and Electrum Transaction History"
+seoTitle: "BasicSwap v0.17.6: Login Sessions and More"
+date: 2026-07-28
+author: "BasicSwap Team"
+tags: ["News", "Release", "Security"]
+description: "BasicSwap v0.17.6 hardens the network against offer-revoke spam, replaces the fixed login timeout with activity-based sessions managed from a new Security settings tab, and brings transaction history to Electrum light wallets. No coin-core updates and no database migration this time."
+seoDescription: "BasicSwap v0.17.6 hardens the network against offer-revoke spam, adds activity-based login sessions with a Security tab and Electrum transaction history."
+thumbnail: ./images/Medium_BSX_17_6.jpg
+banner: ./images/Blog_BSX_17_6.jpg
+---
+BasicSwap v0.17.6 is a maintenance and hardening release from July 2026. It hardens the network against offer-revoke spam, replaces the fixed login timeout with sessions that follow your activity, and finally brings transaction history to Electrum light wallets, alongside a batch of swap-reliability fixes and a sturdier AMM.
+
+There are no coin-core updates and no database migration this time, so the upgrade is a light one. You can get it by [updating your BasicSwap client to the latest version](/docs/user-guides/update), and full instructions are at the bottom of this post.
+
+## Most Notable Updates 💡
+
+### Offer-Revoke Hardening 🛡️
+
+When a maker cancels an offer, their node broadcasts a small revoke message over the messaging network so everyone else can drop the offer from their books. Anyone can send such a message, which makes it a surface for spam, and v0.17.6 tightens it at both ends ([PR #625](https://github.com/basicswap/basicswap/pull/625)).
+
+On the receiving side, your node now does the cheap checks first and the expensive work last. A revoke aimed at an offer that is provably too old to still exist is discarded the moment it arrives, before it costs the node any database work, since offers live at most 48 hours. A revoke for an offer your node has not seen yet is only kept if its signature checks out, so junk revokes can no longer crowd real ones out of the waiting queue. And repeats of the same revoke are recognised and dropped, so a flood of copies no longer fills your log with noise.
+
+On the sending side, your node now refuses to broadcast revokes for offers that are missing, expired, or inactive, so well-behaved nodes stop contributing pointless traffic of their own.
+
+These are anti-spam changes, not fund-safety ones; the swap protocol itself is untouched. If you have seen revoke-related log spam recently, this update is what stops it.
+
+### Login Sessions That Follow Your Activity 🔐
+
+If you protect your web UI with a password, you have probably run into the old timeout. Exactly 60 minutes after logging in you were sent back to the login screen, even mid-click, because the timer was fixed and no amount of activity would extend it.
+
+v0.17.6 replaces that with activity-based sessions ([PR #608](https://github.com/basicswap/basicswap/pull/608)). While you are using the UI, a lightweight heartbeat keeps your session alive, and once you walk away it expires after an idle timeout, which now defaults to 15 minutes and can be set anywhere from one minute to a week.
+
+The settings page gains a Security tab to go with it. You can now enable, change, or disable the web-UI password and set the session timeout from the GUI, with no need to edit `basicswap.json` by hand. As a safety measure, disabling the password stays blocked while `allowed_hosts` is set to `"*"`, so you cannot strip both layers of protection at once by accident.
+
+Login also remembers where you were, so after re-authenticating you land back on the page you came from rather than on the offers page. The AMM no longer needs your password on disk either. When the GUI starts the market maker it now hands it a temporary token rather than writing your password into the AMM config file, so the manual auth field on the AMM page is gone. Standalone `createoffers.py` users can still set credentials in the config as before.
+
+### A Smarter Lock Screen 🔓
+
+The login and wallet-unlock screens were rebuilt on a shared template, and both picked up quality-of-life upgrades ([PR #605](https://github.com/basicswap/basicswap/pull/605), [PR #622](https://github.com/basicswap/basicswap/pull/622)). A status indicator now shows whether your BasicSwap node is reachable, and the form holds a login attempt back rather than firing it at an offline server and failing cryptically. A wrong password no longer reloads the page. Instead you get an inline error, the field clears, and you can try again immediately. The login screen also picks up the caps-lock warning, the show-password toggle, and the proper mobile scaling the unlock screen already had.
+
+### Transaction History for Electrum Wallets 📜
+
+Until now, running Bitcoin or Litecoin in Electrum light-wallet mode meant your wallet page showed no transaction history at all. v0.17.6 fixes that, and Electrum-backed wallets now list their history the way full-node wallets do ([PR #613](https://github.com/basicswap/basicswap/pull/613)).
+
+The history loads a page at a time as well. Rather than pulling a wallet's entire transaction list just to render one page, BasicSwap now fetches details only for the page you are viewing and briefly caches the rest, so flipping between pages stays fast ([PR #612](https://github.com/basicswap/basicswap/pull/612)).
+
+Wallet history also gained type filters. You can narrow the list to swap transactions, or to MWEB, blind and anon, or Spark transactions on the coins that have them (Litecoin, Particl and Firo respectively).
+
+### Swap Reliability Fixes ⚙️
+
+A failed adaptor-signature swap in which nothing was ever locked on the second chain is now cleanly closed out. Such a swap used to linger in the in-progress list indefinitely, re-checked on every pass without ever resolving, because the recovery logic was waiting on a lock transaction that did not exist ([PR #621](https://github.com/basicswap/basicswap/pull/621)). In the same spirit, Monero's "not enough money" error is now treated as a passing condition, since it usually means funds are briefly locked or unconfirmed, so the swap retries instead of failing hard ([PR #614](https://github.com/basicswap/basicswap/pull/614)).
+
+Wallet handling got steadier too. Starting up with only part of your wallets unlocked no longer confuses the UI into thinking the whole system is unlocked ([PR #611](https://github.com/basicswap/basicswap/pull/611)), and Litecoin's wallet unlock now shares Bitcoin's code path, including the MWEB wallet, which removes a spot where the two could drift apart ([PR #624](https://github.com/basicswap/basicswap/pull/624)). An Electrum wallet that is locked, still starting up, or briefly unresponsive also no longer has its deposit address regenerated by mistake. Before, BasicSwap read a wallet it could not query as one that did not own the address, and rotated it. Now it waits until the wallet can answer ([PR #609](https://github.com/basicswap/basicswap/pull/609)). Wownero picked up the same wallet-opening shortcut Monero already had ([PR #619](https://github.com/basicswap/basicswap/pull/619)).
+
+### Standing Offers and Automation 🤖
+
+Standing offers with a wallet floor no longer bog down the node. The balance check behind the floor used to run against every matching offer ever posted, including expired ones, and on coins like Monero, where each balance lookup briefly ties up the wallet, a node with hundreds of accumulated offers could fall behind and delay other work such as accepting bids. The check now looks only at live offers and asks each coin for its balance once per pass ([PR #617](https://github.com/basicswap/basicswap/pull/617), [PR #618](https://github.com/basicswap/basicswap/pull/618)).
+
+The `max_concurrent_bids` cap is now respected on reverse-ads offers as well. Accepted bids of that kind were not being counted against it, so automation could take on more simultaneous swaps than you configured ([PR #623](https://github.com/basicswap/basicswap/pull/623)).
+
+### AMM: Templates Tracked by ID 🏷️
+
+AMM offer and bid templates used to be tracked by name, which meant renaming one silently orphaned its runtime state, such as its sold-amount budget and its record of active offers. Templates now carry a stable internal id, existing configs are migrated automatically, and ids are generated for any template missing one, so renaming is safe ([PR #616](https://github.com/basicswap/basicswap/pull/616)).
+
+The AMM also stops showing the "inactive" pill on a template that has an active offer, and a bug that broke running `createoffers.py` on its own, outside the GUI, was fixed ([PR #606](https://github.com/basicswap/basicswap/pull/606)). The AMM is now at version 0.5.2.
+
+### Smaller Fixes 🧹
+
+A latent bug in the shared amount formatter could produce wrong decimal digits when a value was displayed at a different precision than it is stored at, so an amount like 1.2345 would have rendered as 1.6789. No current screen exercised that path, which makes this a proactive fix, and it is now pinned down with tests ([`68fc059`](https://github.com/basicswap/basicswap/commit/68fc0592)).
+
+The release also adds test coverage for the offer-revoke changes, covering sending, receiving, expiry guards, signature validation and deduplication, and for the AMM's new id tracking.
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch.
+
+<Callout type="info" title="A light upgrade this time">
+v0.17.6 ships no coin-core updates, and the database schema stays at v37, so there is no `--upgradecores` step and no on-start migration. Back up your coindata directory first as always.
+</Callout>
+
+### Docker
+
+If you've installed BasicSwap following the Docker method:
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method:
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3.  Execute the following command: `source ~/coinswaps/venv/bin/activate`
+4.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+5.  Execute the following command: `pip3 install .`,
+6.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/):
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+The full changelog for v0.17.6, grouped by area. It covers 17 pull requests, from #605 to #625, plus direct commits.
+
+### Offer-Revoke Hardening
+
+*   Don't broadcast revokes for missing, expired, or inactive offers [[b60c71f]](https://github.com/basicswap/basicswap/commit/b60c71fc) / [PR #625](https://github.com/basicswap/basicswap/pull/625)
+*   Drop incoming revokes for provably expired offer ids before any database access [[0a71012]](https://github.com/basicswap/basicswap/commit/0a710121) / [PR #625](https://github.com/basicswap/basicswap/pull/625)
+*   Verify revoke signatures before storing revokes for unknown offers, and grow the pending queue [[0a71012]](https://github.com/basicswap/basicswap/commit/0a710121) [[dbe8cb7]](https://github.com/basicswap/basicswap/commit/dbe8cb75) / [PR #625](https://github.com/basicswap/basicswap/pull/625)
+*   Skip repeated database reads for revokes on expired offers, log a pending revoke only once per offer, and log the sending address of invalid-signature revokes [[d4661b0]](https://github.com/basicswap/basicswap/commit/d4661bc0) [[dbe8cb7]](https://github.com/basicswap/basicswap/commit/dbe8cb75) [[277a85c]](https://github.com/basicswap/basicswap/commit/277a85c8) / [PR #625](https://github.com/basicswap/basicswap/pull/625)
+
+### Client Auth and Login
+
+*   Rebuild the login page on the unlock screen's template [[5313e58]](https://github.com/basicswap/basicswap/commit/5313e584) / [PR #605](https://github.com/basicswap/basicswap/pull/605)
+*   Redirect back to the previous page after login [[46bf969]](https://github.com/basicswap/basicswap/commit/46bf9697) / [PR #608](https://github.com/basicswap/basicswap/pull/608)
+*   Add a session heartbeat so activity extends the session instead of a fixed timeout [[883c6d5]](https://github.com/basicswap/basicswap/commit/883c6d56) / [PR #608](https://github.com/basicswap/basicswap/pull/608)
+*   Add client auth and session timeout to the settings UI [[9988b02]](https://github.com/basicswap/basicswap/commit/9988b021) / [PR #608](https://github.com/basicswap/basicswap/pull/608)
+*   Use a temporary token for the GUI-started AMM instead of storing the password in plaintext, and remove the auth field from the AMM page [[8de1037]](https://github.com/basicswap/basicswap/commit/8de10374) [[b1aa251]](https://github.com/basicswap/basicswap/commit/b1aa251a) / [PR #608](https://github.com/basicswap/basicswap/pull/608)
+*   Show server status on the lock screens and don't send login attempts to an offline server [[a6f6c2f]](https://github.com/basicswap/basicswap/commit/a6f6c2fe) / [PR #622](https://github.com/basicswap/basicswap/pull/622)
+*   Show bad-login errors inline without a page reload [[e049b1b]](https://github.com/basicswap/basicswap/commit/e049b1b7) / [PR #622](https://github.com/basicswap/basicswap/pull/622)
+
+### Wallets and Electrum
+
+*   Show transaction history for Electrum wallets, with swap and MWEB/blind/anon/Spark filtering [[f3ec415]](https://github.com/basicswap/basicswap/commit/f3ec4152) [[291d768]](https://github.com/basicswap/basicswap/commit/291d7681) / [PR #613](https://github.com/basicswap/basicswap/pull/613)
+*   Fetch Electrum transaction details per history page, chunk batch requests, and cache history metadata for pagination [[6d2d0f9]](https://github.com/basicswap/basicswap/commit/6d2d0f9e) / [PR #612](https://github.com/basicswap/basicswap/pull/612)
+*   Skip deposit-address regeneration when wallet ownership cannot be verified [[11ed8b7]](https://github.com/basicswap/basicswap/commit/11ed8b7e) / [PR #609](https://github.com/basicswap/basicswap/pull/609)
+*   Use Bitcoin's `unlockWallet` for Litecoin, with a shared seed unlock for MWEB to avoid drift [[c134a03]](https://github.com/basicswap/basicswap/commit/c134a03d) / [PR #624](https://github.com/basicswap/basicswap/pull/624)
+
+### Offers and Automation
+
+*   Only check balance floors on live, sent standing offers [[071a208]](https://github.com/basicswap/basicswap/commit/071a2089) / [PR #617](https://github.com/basicswap/basicswap/pull/617)
+*   Query each coin's spendable balance once per floor-check pass instead of once per offer [[2ad9522]](https://github.com/basicswap/basicswap/commit/2ad95226) / [PR #618](https://github.com/basicswap/basicswap/pull/618)
+*   Don't try to recover a coin-B lock that doesn't exist; cleanly remove such failed swaps from the in-progress list [[e2ccacc]](https://github.com/basicswap/basicswap/commit/e2ccacc6) / [PR #621](https://github.com/basicswap/basicswap/pull/621)
+*   Respect `max_concurrent_bids` on accepted reverse-ads offers [[856430b]](https://github.com/basicswap/basicswap/commit/856430b1) / [PR #623](https://github.com/basicswap/basicswap/pull/623)
+
+### AMM
+
+*   Track templates by id instead of name, migrate existing configs, and generate ids where missing [[a955857]](https://github.com/basicswap/basicswap/commit/a9558570) / [PR #616](https://github.com/basicswap/basicswap/pull/616)
+*   Fix `createoffers.py` standalone usage broken by the basicswap package import [[a9b22b8]](https://github.com/basicswap/basicswap/commit/a9b22b8f) / [PR #606](https://github.com/basicswap/basicswap/pull/606)
+
+### Fixes
+
+*   Startup: report the system as locked after a partial unlock [[12623c9]](https://github.com/basicswap/basicswap/commit/12623c9d) / [PR #611](https://github.com/basicswap/basicswap/pull/611)
+*   Monero: treat "not enough money" as a transient error [[3df965f]](https://github.com/basicswap/basicswap/commit/3df965fd) / [PR #614](https://github.com/basicswap/basicswap/pull/614)
+*   Wownero: inherit Monero's `openWallet` optimisation [[d2d9847]](https://github.com/basicswap/basicswap/commit/d2d98472) / [PR #619](https://github.com/basicswap/basicswap/pull/619)
+*   Fix `format_amount` when the display precision differs from the stored precision [[68fc059]](https://github.com/basicswap/basicswap/commit/68fc0592)
+
+### Tests
+
+*   Offer-revoke send/receive tests: expiry guards, signature validation, and deduplication [[b100ce4]](https://github.com/basicswap/basicswap/commit/b100ce49) / [PR #625](https://github.com/basicswap/basicswap/pull/625)
+*   AMM id-tracking state tests [[afbe38a]](https://github.com/basicswap/basicswap/commit/afbe38a5) / [PR #616](https://github.com/basicswap/basicswap/pull/616)
+
+You can inspect all changes by verifying the [v0.17.5 to v0.17.6 comparison page here](https://github.com/basicswap/basicswap/compare/v0.17.5...v0.17.6).
+
+## Stay Connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

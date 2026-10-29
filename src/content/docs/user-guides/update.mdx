@@ -1,0 +1,108 @@
+---
+title: "Update BasicSwap"
+sidebar: "Update"
+seoTitle: "Update BasicSwap and Its Coin Cores"
+description: "Update BasicSwap to the latest release with Docker, basicswap-bash or from source, then upgrade its coin cores with --upgradecores when a release needs it."
+published: 2025-03-14
+---
+An update usually has two parts. The first updates BasicSwap itself, and the second, needed only when a release moves to newer versions, upgrades the coin daemons it runs, which BasicSwap calls coin cores. Each part takes a few minutes, and you need to stop BasicSwap for both.
+
+## Before you update
+
+1. **Read the release notes** for the version you're updating to, on the [BasicSwap blog](/blog) or in the [repository](https://github.com/basicswap/basicswap/blob/master/doc/release-notes.md). They say whether the release upgrades any coin cores, changes the database, or needs a manual step.
+2. **Let swaps in progress finish**, or at least don't update in the middle of one you're watching closely. BasicSwap picks up where it left off after a restart, but there's no reason to add risk.
+3. **Stop BasicSwap cleanly.** Press `Ctrl + C` once in its terminal and wait until it has shut down every coin daemon and returned to the prompt, or run `docker-compose stop` in the `basicswap/docker` folder. Closing the terminal or killing the process can leave a coin's database needing a [reindex](/docs/user-guides/troubleshooting#a-coin-daemon-wont-start-or-its-chain-is-corrupt).
+4. **Back up the data folder**, `~/coinswaps` or `/var/data/coinswaps` with Docker, by copying it while BasicSwap is stopped. A new release may upgrade the database on its first start, and older versions aren't written for the upgraded database, so the copy is your way back to the version you had, as [Back up and restore](/docs/user-guides/backup-and-restore) describes.
+
+<Callout type="warning" title="Reaching the UI over a network">
+
+If you're updating from a version before 0.17.3 and open the web UI by a LAN address, hostname or reverse proxy, add the `allowed_hosts` setting by hand after updating, or the UI answers `403 Host not allowed`. Updating doesn't add it to an existing `basicswap.json`. Installs used only from the same machine, including the default Docker setup, are unaffected, and [Reaching BasicSwap over a network](/docs/user-guides/web-ui-authentication#reaching-basicswap-over-a-network) shows how to set it.
+
+</Callout>
+
+## Update
+
+<Tabs groupId="install-method">
+<TabItem value="bash" label="basicswap-bash" default>
+
+With BasicSwap stopped, run the update command:
+
+```bash
+bsx-update
+```
+
+It updates the basicswap-bash scripts, BasicSwap and its Python dependencies, then upgrades the coin cores, so all that's left is to start BasicSwap again with `basicswap-bash`.
+
+</TabItem>
+<TabItem value="docker" label="Docker">
+
+1. In the `basicswap/docker` folder, stop BasicSwap if it's still running, make sure the repository points at the official one, and download the update:
+
+   ```bash
+   docker-compose stop
+   git remote set-url origin https://github.com/basicswap/basicswap
+   git pull
+   ```
+
+2. Rebuild the image, with `--no-cache` so that any changed dependencies are installed as well:
+
+   ```bash
+   docker-compose build --no-cache
+   ```
+
+3. If the release notes mention new coin core versions, upgrade them, which updates every coin in your install at once:
+
+   ```bash
+   docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --upgradecores
+   ```
+
+4. Start BasicSwap again with the new image:
+
+   ```bash
+   docker-compose up
+   ```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+1. With BasicSwap stopped, set up the terminal and go to the source folder:
+
+   ```bash
+   export SWAP_DATADIR=$HOME/coinswaps
+   . $SWAP_DATADIR/venv/bin/activate
+   cd $SWAP_DATADIR/basicswap
+   ```
+
+2. Clear the old build, make sure the repository points at the official one, and download the update:
+
+   ```bash
+   rm -rf build
+   git remote set-url origin https://github.com/basicswap/basicswap
+   git pull
+   ```
+
+3. Install the new version into the virtual environment:
+
+   ```bash
+   pip3 install --require-hashes -r requirements.txt
+   pip3 install .
+   ```
+
+4. If the release notes mention new coin core versions, upgrade them, which updates every coin in your install at once:
+
+   ```bash
+   basicswap-prepare --datadir=$SWAP_DATADIR --upgradecores
+   ```
+
+5. Start BasicSwap again on the new version:
+
+   ```bash
+   basicswap-run --datadir=$SWAP_DATADIR
+   ```
+
+</TabItem>
+</Tabs>
+
+## After updating
+
+The first start after an update can take longer than usual while BasicSwap upgrades its database and the coin daemons start. Once it's up, the footer of the web UI shows the version now running, and if a coin daemon won't start, [Troubleshooting](/docs/user-guides/troubleshooting) covers the usual fixes.

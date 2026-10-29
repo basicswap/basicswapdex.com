@@ -1,0 +1,100 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PageHero from '../../../components/sections/PageHero.astro';
+import { BLOG_TITLE, formatDate, getPosts, postPath, tagIndex, tagPath } from '../../../lib/blog';
+import { SITE_URL } from '../../../config/site';
+
+const tags = tagIndex(await getPosts());
+const crumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+    { '@type': 'ListItem', position: 3, name: 'Tags', item: `${SITE_URL}/blog/tags` },
+  ],
+};
+---
+
+<BaseLayout title={`Blog Topics: Releases, Security and Reports | ${BLOG_TITLE}`} description="Browse the BasicSwap blog by topic, with releases, security fixes, monthly development reports, coin updates and longer reads on how atomic swaps work." path="/blog/tags" jsonLd={[crumbs]}>
+  <PageHero band="full" title="Browse the blog by topic">
+    <p>Browse all tags on the {BLOG_TITLE}.</p>
+  </PageHero>
+
+  <section class="container tags">
+    <ul role="list">
+      {
+        tags.map(({ tag, posts }) => (
+          <li>
+            <a class="tag" href={tagPath(tag)}>
+              <span class="name">{tag}</span>
+              <span class="count">{posts.length} {posts.length === 1 ? 'post' : 'posts'}</span>
+            </a>
+            <p class="newest">
+              Latest: <a href={postPath(posts[0])}>{posts[0].data.title}</a>
+              <span class="date">{formatDate(posts[0].data.date)}</span>
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .tags {
+    padding-block: var(--space-7) var(--section);
+  }
+
+  ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  .tag {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .name {
+    font-size: var(--step-1);
+    font-weight: 650;
+  }
+
+  .tag:hover .name {
+    color: var(--link);
+  }
+
+  .count {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .newest {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .date {
+    display: block;
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+</style>

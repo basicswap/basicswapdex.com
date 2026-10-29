@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Ribbon from '../components/Ribbon.astro';
+import pages from '../data/pages.json';
+---
+
+<BaseLayout {...pages['404']} noindex>
+  <section class="nf">
+    <Ribbon variant="hero" zone={1} />
+    <div class="container inner">
+      <p class="kicker">error 404</p>
+      <h1>Page not found.</h1>
+      <p class="lead">The page you were looking for has moved or never existed. The swap, however, is still on.</p>
+      <div class="actions-row">
+        <a class="btn btn-primary btn-lg" href="/">Back to home</a>
+        <a class="btn btn-outline btn-lg" href="/faq">Read the FAQ</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    align-items: center;
+    min-height: calc(100dvh - var(--header-h) - 10rem);
+    padding-block: var(--section);
+  }
+
+  .inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-5);
+    text-align: center;
+  }
+
+  h1 {
+    font-size: clamp(2.6rem, 1.4rem + 5vw, 5rem);
+    font-weight: 750;
+    letter-spacing: -0.035em;
+  }
+
+  .lead {
+    max-width: 34rem;
+  }
+
+  .actions-row {
+    justify-content: center;
+  }
+</style>

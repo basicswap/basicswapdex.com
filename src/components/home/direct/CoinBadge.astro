@@ -1,0 +1,50 @@
+---
+// A coin as a glass badge inside an SVG: soft halo in the coin's colour,
+// surface disc, lit rim, gentle float. Render inside an <svg>. `id` must be
+// unique on the page (it names the gradients).
+interface Props {
+  x?: number;
+  y?: number;
+  src: string;
+  id: string;
+  tint: string;
+  class?: string;
+}
+const { x = 0, y = 0, src, id, tint, class: className } = Astro.props;
+---
+
+<g transform={`translate(${x} ${y})`} class={className}>
+  <defs>
+    <radialGradient id={`${id}-halo`}>
+      <stop offset="0" stop-color={tint} stop-opacity="0.32" />
+      <stop offset="1" stop-color={tint} stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id={`${id}-rim`} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45" />
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.04" />
+      <stop offset="1" stop-color={tint} stop-opacity="0.35" />
+    </linearGradient>
+  </defs>
+  <g class="cb-float">
+    <circle r="54" fill={`url(#${id}-halo)`} />
+    <circle r="33" class="cb-disc" />
+    <circle r="33" fill="none" stroke={`url(#${id}-rim)`} stroke-width="1.5" />
+    <image href={src} x="-21" y="-21" width="42" height="42" />
+  </g>
+</g>
+
+<style>
+  .cb-disc {
+    fill: var(--surface);
+    stroke: color-mix(in oklab, var(--border-strong) 70%, transparent);
+  }
+
+  .cb-float {
+    animation: cb-float 6s ease-in-out infinite alternate;
+  }
+
+  @keyframes cb-float {
+    from { translate: 0 -2.5px; }
+    to { translate: 0 2.5px; }
+  }
+</style>

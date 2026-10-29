@@ -1,0 +1,118 @@
+---
+// "Verify before you build". BasicSwap ships as source with PGP-signed
+// release tags, so verification means checking the tag signature. The
+// fingerprint shown is checked against the latest tag at build time
+// (src/lib/release.ts); a mismatch fails the build.
+import CodeBlock from '../sections/CodeBlock.astro';
+import { SIGNING_KEY, formatFingerprint, type Release } from '../../lib/release';
+
+interface Props {
+  release: Release | null;
+}
+const { release } = Astro.props;
+const groups = formatFingerprint(SIGNING_KEY.fingerprint).split(' ');
+const tag = release?.tag ?? '<release-tag>';
+const commands = `curl -s ${SIGNING_KEY.keyUrl} | gpg --import
+git clone https://github.com/basicswap/basicswap.git && cd basicswap
+git checkout ${tag}
+git verify-tag ${tag}`;
+---
+
+<section class="verify" id="verify" data-parity="new" aria-labelledby="verify-title">
+  <div class="copy">
+    <p class="kicker">verify the release</p>
+    <h2 id="verify-title">Check the signature before you build.</h2>
+    <p>
+      BasicSwap ships as source code. Every release tag is signed with the maintainer's PGP key, so you can confirm the
+      code you build is the code that was released. <code>git verify-tag</code> should report a good signature from
+      this key.
+    </p>
+    <dl class="facts">
+      <div>
+        <dt>Signing key</dt>
+        <dd class="fpr data">
+          <span>{groups.slice(0, 5).join(' ')}</span>
+          <span>{groups.slice(5).join(' ')}</span>
+        </dd>
+      </div>
+      <div>
+        <dt>Signer</dt>
+        <dd><a href={SIGNING_KEY.keyUrl}>{SIGNING_KEY.owner}</a></dd>
+      </div>
+      {
+        release && (
+          <div>
+            <dt>Latest release</dt>
+            <dd>
+              <a class="data" href={release.url}>{release.tag}</a>
+            </dd>
+          </div>
+        )
+      }
+    </dl>
+  </div>
+  <CodeBlock label="verify" code={commands} />
+</section>
+
+<style>
+  .verify {
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--space-6);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xl);
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      var(--gradient-extended) border-box;
+    border-color: transparent;
+  }
+
+  .copy {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  h2 {
+    font-size: var(--step-3);
+  }
+
+  .copy > p {
+    color: var(--text-muted);
+  }
+
+  .facts {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .facts div {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  dt {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  .fpr {
+    display: grid;
+    color: var(--text);
+    font-size: var(--step-0);
+    letter-spacing: 0.02em;
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+
+  @media (min-width: 64rem) {
+    .verify {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: center;
+      padding: var(--space-7);
+    }
+  }
+</style>

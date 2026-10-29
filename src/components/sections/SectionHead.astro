@@ -1,0 +1,34 @@
+---
+// Kicker + heading + optional intro. `title` lines split on "\n" become <br>,
+// matching the legacy headings' deliberate line breaks.
+interface Props {
+  kicker?: string;
+  title: string;
+  as?: 'h1' | 'h2';
+  id?: string;
+  class?: string;
+}
+const { kicker, title, as: Tag = 'h2', id, class: className } = Astro.props;
+const lines = title.split('\n');
+---
+
+<header class:list={['section-head', className]}>
+  {kicker && <p class="kicker">{kicker}</p>}
+  <Tag id={id}>{lines.map((line, i) => (i > 0 ? [<br />, line] : line))}</Tag>
+  {Astro.slots.has('default') && <div class="intro flow"><slot /></div>}
+</header>
+
+<style>
+  .section-head {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 46rem;
+    margin-bottom: var(--space-7);
+  }
+
+  .intro {
+    color: var(--text-muted);
+    font-size: var(--step-1);
+    line-height: 1.55;
+  }
+</style>

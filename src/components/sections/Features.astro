@@ -1,0 +1,123 @@
+---
+// A grid of short items. Each sits on a hairline with the brand segment at
+// its left end. `body` is trusted HTML from our own pages (it may hold links).
+// `icon` is the inside of a 24 x 24 stroke icon, shown in a tile like the
+// Desktop page's features, for items that aren't a sequence.
+export interface Feature {
+  n?: string;
+  icon?: string;
+  title: string;
+  body: string;
+}
+interface Props {
+  items: Feature[];
+  columns?: 2 | 3 | 4;
+  class?: string;
+}
+const { items, columns = 3, class: className } = Astro.props;
+---
+
+<ul class:list={['features', `cols-${columns}`, className]} role="list">
+  {
+    items.map(({ n, icon, title, body }) => (
+      <li class:list={['feature', { 'has-icon': icon }]}>
+        {icon && <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24" set:html={icon} /></span>}
+        {n && <span class="n data">{n}</span>}
+        <h3>{title}</h3>
+        <p set:html={body} />
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .features {
+    display: grid;
+    gap: var(--space-7) var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .feature {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+  }
+
+  .feature::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 2rem;
+    height: 2px;
+    background: var(--brand);
+  }
+
+  .has-icon {
+    gap: var(--space-4);
+  }
+
+  .has-icon::before {
+    display: none;
+  }
+
+  .glyph {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid transparent;
+    border-radius: 0.8rem;
+    background:
+      linear-gradient(160deg, color-mix(in oklab, var(--brand) 24%, var(--bg)), var(--bg)) padding-box,
+      linear-gradient(150deg, color-mix(in oklab, var(--brand) 80%, white), color-mix(in oklab, var(--accent) 45%, transparent) 60%, var(--border)) border-box;
+    box-shadow: 0 10px 24px -12px color-mix(in oklab, var(--brand) 70%, transparent);
+    color: color-mix(in oklab, var(--brand) 55%, var(--text));
+  }
+
+  .glyph svg {
+    width: 55%;
+    height: 55%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .n {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  h3 {
+    font-size: var(--step-1);
+  }
+
+  p {
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 40rem) {
+    .cols-2,
+    .cols-3,
+    .cols-4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .cols-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .cols-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+  }
+</style>

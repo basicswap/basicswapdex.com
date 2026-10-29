@@ -1,0 +1,287 @@
+---
+title: "Install BasicSwap"
+sidebar: "Install"
+seoTitle: "Install BasicSwap on Linux, macOS, Windows"
+description: "Install BasicSwap with the basicswap-bash scripts, with Docker, or from source on Linux, macOS and Windows (WSL), then choose your coins and open the web UI."
+published: 2025-03-14
+---
+BasicSwap runs on your own computer and you use it through a web page it serves at `http://localhost:12700`. There are three ways to install it, and whichever you choose, you end up with the same app. It's made up of the coin daemons that BasicSwap downloads and manages, a wallet for each coin that comes from one recovery phrase, and the web UI that ties them together.
+
+## Choose how to install
+
+| Method | Runs on | What it does for you | Pick it if |
+|---|---|---|---|
+| [basicswap-bash](#install-with-basicswap-bash) | Linux, Windows (WSL) | Installs the dependencies, asks a few questions and sets everything up. Adds short commands such as `bsx-update` and `bsx-addcoin` for later. | You want the quickest setup and the simplest upkeep. Recommended for most people. |
+| [Docker](#install-with-docker) | Linux, Windows (WSL) | Builds BasicSwap into a container, so nothing but Docker touches your system. | You already use Docker, or you want BasicSwap kept apart from the rest of the machine. |
+| [From source](#install-from-source) | Linux, macOS | Every step by hand, in a Python virtual environment. | You want to see and control each step, or you're on macOS. |
+
+Whichever you pick, read the terminal output as you go. An error early on, such as a missing dependency or a failed download, usually stops BasicSwap from starting later, and it's far easier to fix at the step where it appears.
+
+<Callout type="note" title="Windows">
+
+On Windows, all three methods run inside the Windows Subsystem for Linux, WSL, or in the case of Docker, Docker Desktop's WSL 2 backend. Open a WSL terminal with `Windows + R`, type `wsl` and press `Enter`. There is also a community [Windows installer](https://github.com/gerlofvanek/basicswap-installation-GUI/releases), but its author marks it as unstable.
+
+</Callout>
+
+## Install with basicswap-bash
+
+[basicswap-bash](https://github.com/nahuhh/basicswap-bash) is a set of community scripts that installs BasicSwap and then manages it for you. It supports Debian, Ubuntu, Arch, Fedora and Windows through WSL. The scripts also detect macOS and install their dependencies with Homebrew, but the project doesn't list macOS as supported, so on a Mac the [source install](#install-from-source) is the safer choice.
+
+1. Install `curl` and `git`, which on Debian, Ubuntu and WSL takes one command:
+
+   ```bash
+   sudo apt install curl git
+   ```
+
+2. Download the scripts and run the installer:
+
+   ```bash
+   git clone https://github.com/nahuhh/basicswap-bash && cd basicswap-bash
+   ./basicswap-install.sh
+   ```
+
+3. Answer the installer's questions as they come up. The first ones ask whether to run BasicSwap over [Tor](/docs/user-guides/tor) and whether this is a new install or a restore from an existing recovery phrase. It then asks about the coins, offering [Electrum light wallets](/docs/user-guides/lightweight-modes) for Bitcoin and Litecoin and an optional Wownero wallet, and finally whether to connect to a Monero node you already run or let BasicSwap run its own, which needs about 90 GB more disk space.
+
+4. When setup finishes, it prints your 24-word recovery phrase and your Monero restore height. **Write both down and keep them offline.** The phrase restores the wallets of every coin you enable, and the height makes a Monero restore much faster, as [Back up and restore](/docs/user-guides/backup-and-restore) explains.
+
+5. Delete the downloaded copy of the scripts, which are now installed in `~/.local/bin`:
+
+   ```bash
+   cd .. && rm -rf basicswap-bash
+   ```
+
+6. Open a new terminal so it finds the new commands, then start BasicSwap:
+
+   ```bash
+   basicswap-bash
+   ```
+
+7. Wait for the coin daemons to start, then open `http://localhost:12700` in your browser.
+
+From then on, `basicswap-bash` starts BasicSwap, and these commands handle the common changes:
+
+| Command | What it does | Guide |
+|---|---|---|
+| `bsx-update` | Updates BasicSwap and its coin cores | [Update](/docs/user-guides/update) |
+| `bsx-addcoin`, `bsx-removecoin` | Enables or disables a coin | [Enable or disable coins](/docs/user-guides/enable-disable-coins) |
+| `bsx-enabletor`, `bsx-disabletor` | Turns Tor on or off | [Tor](/docs/user-guides/tor) |
+| `bsx-clientauth` | Sets, changes or removes the web UI password | [Web UI authentication](/docs/user-guides/web-ui-authentication) |
+| `bsx-staking` | Turns Particl staking on or off | [Manage enabled coins](/docs/user-guides/manage-enabled-coins) |
+
+## Install with Docker
+
+The Docker setup builds BasicSwap into an image called `i_swapclient` and keeps the coin data in a folder on your machine, `/var/data/coinswaps` unless you choose another. Docker doesn't run BasicSwap on macOS, so Mac users should follow the [source install](#install-from-source) instead.
+
+<Callout type="info" title="docker-compose or docker compose">
+
+Newer Docker versions spell the command `docker compose`, without the dash. If `docker-compose` isn't found, use `docker compose` in every command on this page.
+
+</Callout>
+
+### Install Docker
+
+<Tabs groupId="operating-systems">
+<TabItem value="linux" label="Linux" default>
+
+1. Check whether Docker is already installed on the machine:
+
+   ```bash
+   docker -v
+   ```
+
+   If this prints `Docker version` and a number, skip to the next step. Otherwise install Docker Engine by following [Docker's instructions for your distribution](https://docs.docker.com/engine/install/#server).
+
+2. Let your user run Docker without `sudo`, following Docker's [post-installation steps](https://docs.docker.com/engine/install/linux-postinstall/). If you skip this, put `sudo` in front of every `docker-compose` command below.
+
+</TabItem>
+<TabItem value="windows" label="Windows">
+
+1. Install the current [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/) and choose the WSL 2 backend when it asks. Docker's [WSL 2 backend page](https://docs.docker.com/desktop/features/wsl/) lists what Windows needs first, including turning on WSL 2.
+
+2. Docker needs hardware virtualization, and if Docker Desktop reports that it's turned off, restart the computer, open the BIOS or UEFI settings, usually with `F2`, `F12` or `Delete` during startup, turn on the option called "Virtualization Technology", "Intel VT-x" or "AMD-V", then save and restart.
+
+3. Open a WSL terminal and run the remaining steps there.
+
+</TabItem>
+</Tabs>
+
+### Build the image
+
+1. Install the few tools the setup relies on, Git, curl and jq:
+
+   ```bash
+   sudo apt update
+   sudo apt install --no-install-recommends git curl jq
+   ```
+
+2. Download BasicSwap and go to its Docker folder:
+
+   ```bash
+   git clone https://github.com/basicswap/basicswap.git
+   cd basicswap/docker
+   ```
+
+3. Copy the example settings file to the `.env` file Docker reads:
+
+   ```bash
+   cp example.env .env
+   ```
+
+4. To keep the coin data somewhere other than `/var/data/coinswaps`, open `.env` and change `COINDATA_PATH`. You can also set `TZ` to your time zone there, choosing a name from the list that `timedatectl list-timezones` prints. On Windows, a path inside the WSL file system is much faster than one on a Windows drive, and you can still reach it from Windows at `\\wsl$\Ubuntu`.
+
+   ```bash
+   nano .env
+   ```
+
+   Save with `Ctrl + X`, then `Y` and `Enter`.
+
+5. Build the image, from the `basicswap/docker` folder:
+
+   ```bash
+   docker-compose build
+   ```
+
+### Configure the container
+
+1. Look up Monero's current block height, which BasicSwap uses as the starting point of your new Monero wallet:
+
+   ```bash
+   CURRENT_XMR_HEIGHT=$(curl -s http://node2.monerodevs.org:18089/get_info | jq .height)
+   ```
+
+2. Run `basicswap-prepare` inside the container to create your settings and wallets. This example enables Monero and Bitcoin, alongside Particl, which is always enabled, and fills the Bitcoin chain from a recent snapshot.
+
+   ```bash
+   docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --withcoins=monero,bitcoin --usebtcfastsync --htmlhost="0.0.0.0" --wshost="0.0.0.0" --xmrrestoreheight=$CURRENT_XMR_HEIGHT
+   ```
+
+   Change `--withcoins` to the coins you want, and see [Prepare options](/docs/user-guides/prepare-options) for light wallets, a remote Monero node, a web UI password and the other choices. Keep `--htmlhost` and `--wshost` set to `0.0.0.0`. Inside the container BasicSwap has to listen on every interface to be reachable at all, and the default `.env` still publishes the port only to your own machine.
+
+3. **Write down the recovery phrase** that the command prints and keep it offline. It restores the wallets of every coin you enable.
+
+4. Write down your Monero restore height as well:
+
+   ```bash
+   echo $CURRENT_XMR_HEIGHT
+   ```
+
+### Start the container
+
+1. From the `basicswap/docker` folder, start the container:
+
+   ```bash
+   docker-compose up
+   ```
+
+2. Wait for the coin daemons to start, then open `http://localhost:12700` in your browser.
+
+To stop BasicSwap, press `Ctrl + C` in that terminal, or run `docker-compose stop` from the same folder in another one. Docker gives it up to five minutes to shut the coin daemons down cleanly, so let it finish.
+
+## Install from source
+
+A source install puts BasicSwap and its Python dependencies in a virtual environment inside `~/coinswaps`, which is also where it keeps the coin data.
+
+### Install the dependencies
+
+<Tabs groupId="operating-systems">
+<TabItem value="linux" label="Linux" default>
+
+On Debian, Ubuntu and WSL, one command installs everything the build needs:
+
+```bash
+sudo apt install --no-install-recommends git python3-venv libpython3-dev gnupg pkg-config gcc libc-dev curl jq
+```
+
+On an older distribution such as Debian 11, you may need a newer Python and SQLite first, which [Troubleshooting](/docs/user-guides/troubleshooting#use-a-different-python-version) explains how to set up.
+
+</TabItem>
+<TabItem value="macos" label="macOS">
+
+1. Open Terminal and install [Homebrew](https://brew.sh), the package manager the next step uses:
+
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+2. Install the dependencies through Homebrew:
+
+   ```bash
+   brew install python git gnupg pkg-config jq zeromq
+   ```
+
+3. Close Terminal and open a new window, so the new Python is the one it finds.
+
+</TabItem>
+</Tabs>
+
+### Build BasicSwap
+
+1. Create the virtual environment, activate it and download BasicSwap. Run the lines one at a time and check each for errors.
+
+   ```bash
+   export SWAP_DATADIR=$HOME/coinswaps
+   python3 -m venv "$SWAP_DATADIR/venv"
+   . $SWAP_DATADIR/venv/bin/activate && python3 -V
+   cd $SWAP_DATADIR
+   git clone https://github.com/basicswap/basicswap.git
+   cd $SWAP_DATADIR/basicswap
+   ```
+
+2. On macOS only, install the root certificates Python needs for secure downloads:
+
+   ```bash
+   sudo python3 bin/install_certifi.py
+   ```
+
+3. Install BasicSwap and its Python dependencies into the virtual environment:
+
+   ```bash
+   pip3 install --require-hashes -r requirements.txt
+   pip3 install .
+   ```
+
+### Configure BasicSwap
+
+These steps work in the terminal you built in or in a new one, and the first two lines take care of either case by setting the data folder and activating the virtual environment again.
+
+1. Set up the terminal and look up Monero's current block height:
+
+   ```bash
+   export SWAP_DATADIR=$HOME/coinswaps
+   . $SWAP_DATADIR/venv/bin/activate
+   CURRENT_XMR_HEIGHT=$(curl -s http://node2.monerodevs.org:18089/get_info | jq .height)
+   ```
+
+2. Run `basicswap-prepare` to create your settings and wallets. This example enables Monero and Bitcoin, alongside Particl, which is always enabled, and fills the Bitcoin chain from a recent snapshot.
+
+   ```bash
+   basicswap-prepare --datadir=$SWAP_DATADIR --withcoins=monero,bitcoin --usebtcfastsync --xmrrestoreheight=$CURRENT_XMR_HEIGHT
+   ```
+
+   Change `--withcoins` to the coins you want, and see [Prepare options](/docs/user-guides/prepare-options) for light wallets, a remote Monero node, a web UI password and the other choices. The web UI only listens on your own machine, at `127.0.0.1`, and reaching it from another device is covered in [Reaching BasicSwap over a network](/docs/user-guides/web-ui-authentication#reaching-basicswap-over-a-network).
+
+3. **Write down the recovery phrase** that the command prints and keep it offline. It restores the wallets of every coin you enable.
+
+4. Write down your Monero restore height as well:
+
+   ```bash
+   echo $CURRENT_XMR_HEIGHT
+   ```
+
+### Start BasicSwap
+
+1. In any terminal, set the data folder, activate the virtual environment and start BasicSwap:
+
+   ```bash
+   export SWAP_DATADIR=$HOME/coinswaps
+   . $SWAP_DATADIR/venv/bin/activate
+   basicswap-run --datadir=$SWAP_DATADIR
+   ```
+
+2. Wait for the coin daemons to start, which can take a few minutes, then open `http://localhost:12700` in your browser.
+
+To stop BasicSwap, press `Ctrl + C` once and wait until it has shut down every coin daemon and returned to the prompt.
+
+## After installing
+
+The coins you enabled now download their blockchains, which can take hours for a full node, and the [Wallets page shows their progress](/docs/user-guides/manage-enabled-coins) as they go. While they sync, you can [add coins](/docs/user-guides/enable-disable-coins), [set a password for the web UI](/docs/user-guides/web-ui-authentication), and read how to [make an offer](/docs/user-guides/make-offer) or [take one](/docs/user-guides/take-offer).

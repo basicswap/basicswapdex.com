@@ -1,0 +1,79 @@
+---
+// The blog's tags as links, each with its post count. `current` marks the
+// tag page being viewed; null marks "All Tags" (the blog's front page).
+import { tagPath } from '../../lib/blog';
+
+interface Props {
+  tags: { tag: string; posts: unknown[] }[];
+  total: number;
+  current: string | null;
+}
+const { tags, total, current } = Astro.props;
+---
+
+<nav class="tag-nav" aria-label="Tags">
+  <ul role="list">
+    <li>
+      <a href="/blog" aria-current={current === null ? 'page' : undefined}>All Tags <span class="count">{total}</span></a>
+    </li>
+    {
+      tags.map(({ tag, posts }) => (
+        <li>
+          <a href={tagPath(tag)} aria-current={current === tag ? 'page' : undefined}>
+            {tag} <span class="count">{posts.length}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.25rem;
+    padding: 0.3rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease);
+  }
+
+  a:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+
+  a[aria-current='page'] {
+    border-color: color-mix(in oklab, var(--primary) 60%, transparent);
+    background: color-mix(in oklab, var(--primary) 14%, transparent);
+    color: var(--text);
+  }
+
+  .count {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+    font-variant-numeric: tabular-nums;
+  }
+
+  a[aria-current='page'] .count {
+    color: var(--link);
+  }
+</style>

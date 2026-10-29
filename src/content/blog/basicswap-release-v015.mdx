@@ -1,0 +1,257 @@
+---
+title: "New BasicSwap Release (v0.15)"
+seoTitle: "BasicSwap v0.15: Multi-Network Support"
+date: 2025-10-17
+author: "BasicSwap Team"
+tags: ["News", "Release"]
+description: "A new version of BasicSwap is now available for download."
+seoDescription: "BasicSwap v0.15 adds multi-network support and network portals, live WebSocket balances, new key derivation paths and coin core updates, with update steps."
+thumbnail: ./images/Medium_BSX_15.jpg
+banner: ./images/Blog_BSX_15.jpg
+---
+BasicSwap's new 3.3.1 user interface and 0.15.0 codebase are now available, featuring a large range of improvements across the board.
+
+<Callout type="warning" title="IMPORTANT: This update is MANDATORY.">
+  This update is **MANDATORY** as it contains critical coin core upgrades, major performance improvements, and improved network capabilities. **Non-updated instances won't be able to see offers sent by updated ones.**. Additionally, **Firo users need to update their BasicSwap instance and upgrade their coins to version 0.14.14.3 (fixes a chainhalt) to be able to continue using the platform.**
+</Callout>
+
+<Gallery
+  images={[
+    { src: "./images/mandatory_basicswap_update_screenshot1.png", alt: "BasicSwap Update Screenshot 1", width: 2368, height: 3088 },
+    { src: "./images/mandatory_basicswap_update_screenshot2.jpg", alt: "BasicSwap Update Screenshot 2", width: 2412, height: 3080 },
+  ]}
+/>
+
+This substantial update represents weeks of dedicated effort, incorporating numerous improvements, bug fixes, new features, and significant refactors of different core components of the system. The changes stem from extensive testing by both contributors and community members, resulting in a significant step forward for user experience and platform stability.
+
+## Most Notable Updates 💡
+
+<Callout type="info" title="Noteworthy Updates">
+  While this update is massive in scope, many changes are backend changes to improve efficiency, stability, and cross-compatibility. However, several significant user experience enhancements are worth highlighting.
+</Callout>
+
+### Multi-Network Support & Network Portals 🌐
+
+<Callout type="warning" title="Backend Infrastructure">
+  The multi-network support improvements in this release represent important backend groundwork and architectural pieces of a larger puzzle. While the code is in place, the multi-net feature is not yet ready for general use as it won't automatically configure itself or download required components like the Simplex client. This is foundational work preparing for future user-facing features.
+</Callout>
+
+Building upon the multi-net infrastructure introduced in v0.14.4, this release brings significant incremental improvements to BasicSwap's network portal system. Network portals now enable swaps between users operating on entirely different networks, removing the previous requirement for all participants to be connected to the same messaging network. This architectural evolution represents a major step forward in decentralizing BasicSwap's infrastructure and improving its resilience.
+
+One of the most significant changes in this area is the migration of SMSG pubkey management directly into BasicSwap itself, rather than relying solely on Particl Core to handle this functionality. This gives BasicSwap greater control over its messaging infrastructure and reduces dependency on external systems. The system also now automatically sets the appropriate simplex mode per bid (when Simplex is used as the messaging layer), thus intelligently managing connections and ensuring optimal routing for each swap.
+
+Additionally, to maintain compatibility across the network during this transition period, extensive work has been done to ensure backwards compatibility with older SMSG payload versions. Indeed, the system now gracefully handles multiple active networks without throwing errors, making it possible to test and deploy new network configurations while maintaining existing functionality. This foundation sets the stage for future improvements in load balancing, network diversity, and overall platform resilience as BasicSwap continues to mature.
+
+### Real-Time Dynamic Balances with WebSockets and Other UX Improvements 💫
+
+The user experience has received a substantial upgrade with the introduction of real-time balance updates powered by WebSockets. WIth it, there's no need to manually refresh pages to see updated balance information anymore. Your wallet balances now update automatically in real-time as transactions occur. This creates a significantly more responsive and modern user experience that aligns with expectations set by contemporary web applications.
+
+Alongside the dynamic balance updates, the notification system has also been completely overhauled. The new Toasts notification system provides more dynamic and contextually useful alerts that appear seamlessly within the interface, keeping you informed about swap status changes, incoming bids, completed transactions, and system events without disrupting your workflow. A new notifications history page has also been added, allowing you to review past notifications and keep track of all important information even if you dismiss a notification too quickly.
+
+Under the hood, significant UX work has been done to improve WebSocket connection stability and prevent disconnections that could interrupt the real-time data flow. These improvements ensure that your connection remains active and responsive, with the system automatically reconnecting if any temporary network issues occur.
+
+### Multiple Critical Coin Core Updates 🪙
+
+This release includes several important cryptocurrency node upgrades that improve security, stability, and compatibility across the BasicSwap platform. Most notably, Particl Core has been updated to version 27.2.2.0, which addresses critical issues with ZMQ missing curve functions and fixes the `signmessage` functionality for v23 compatibility. These fixes ensure smooth integration with BasicSwap's latest messaging and cryptographic additions, preventing potential issues during the swap process.
+
+Monero has been upgraded to daemon version 0.18.4.3, accompanied by significant improvements to error handling. The system now correctly identifies additional transient errors (including request-sent, idle, and output distribution errors) and automatically retries when these temporary issues occur. This results in a reduction of the likelihood of failed swaps due to transient Monero network conditions, making XMR-based swaps more reliable and user-friendly.
+
+The Firo integration has been updated to version 0.14.14.3. Dash Core has been upgraded to version 22.1.3, while Wownero has received optimization improvements including reducing the unlock time to 4 confirmations and better efficiency through code reuse. Bitcoin integration now includes signature grinding for low-r value signatures to ensure compatibility with Bitcoin Core's current behavior.
+
+### Enhanced Key Derivation Paths & Wallet Portability 🔑
+
+BasicSwap v0.15.0 introduces updated default key derivation paths that significantly improve wallet interoperability and user sovereignty. These new derivation paths, which apply when using Bitcoin descriptor wallets, allow users to export and import keys generated within BasicSwap directly into other popular wallet software such as Electrum. This essentially removes previous barriers to wallet portability and gives users greater control over their private keys.
+
+The ability to use BasicSwap-generated keys across different wallet applications represents an important step toward better alignment with industry standards and best practices. Users are no longer locked into a single wallet implementation (BasicSwap's) and can freely move their keys between different wallets depending on their needs. Whether you want to use Electrum's light wallet features for certain transactions or prefer BasicSwap for others, your keys remain portable and accessible.
+
+Perhaps more importantly, this change is particularly significant as it represents the first step toward full Electrum compatibility, which is coming as one of our very next releases. Once complete, this integration will allow users to operate BasicSwap without running local blockchain nodes at all, dramatically reducing the hardware requirements and setup complexity. This is also why much of the SMSG key management and related functionality has been migrated from Particl Core into BasicSwap itself; by reducing dependencies on specific node implementations, BasicSwap gains the flexibility to work with lightweight wallet backends like Electrum while maintaining the full set of features.
+
+This architectural shift reflects BasicSwap's commitment to both user control and wallet sovereignty as well as usability and ease-of-use. By adopting more widely-compatible key derivation paths and reducing reliance on full node implementations, the platform ensures that users retain full control over their cryptocurrency holdings while gaining access to more flexible deployment options. It's worth noting that **this improvement specifically applies to descriptor wallets**, which represents the modern standard for Bitcoin wallet architecture.
+
+### Major UI/UX Refactor & Performance Overhaul 🚀
+
+Perhaps the most technically impressive, yet largely invisible, improvement in v0.15.0 is a massive refactoring of the user interface's backend architecture that eliminates numerous performance bottlenecks and dramatically improves page responsiveness. Previously, the UI operated in a largely sequential manner, where each task had to wait for the previous step to complete before proceeding. If you were loading a page that needed to fetch wallet data, then retrieve price information, then calculate values, each of these operations would queue up one after another, sometimes resulting in delays of several seconds or more before the page became interactive.
+
+This sequential architecture has been completely redesigned to enable parallel processing. Price fetching, historical data retrieval, volume calculations, and other similar processes, now run in their own dedicated background thread entirely within the backend, rather than being triggered by frontend JavaScript requests. The backend automatically pulls price data every 5 minutes, caches it both in memory and in the database, and serves it instantly through an API endpoint when the frontend requests it. This eliminates the scenario where opening a page would trigger slow API calls to external price services, leaving you staring at a loading spinner while the JavaScript waited for responses.
+
+Similarly, wallet information retrieval has been optimized through the implementation of an RPC connection pool (`rpc_pool`) that handles data fetching from cryptocurrency wallets without blocking other operations. Previously, requesting wallet information would lock up the interface while waiting for RPC responses from the various blockchain daemons. Now, these calls are managed through a pool that can handle multiple simultaneous requests efficiently, ensuring that checking one wallet's balance doesn't prevent you from viewing another wallet's transactions.
+
+As for the HTTP server itself, it has been refactored from a single-threaded design that queued all requests sequentially to a multi-threaded architecture capable of handling 5 or more simultaneous page loads without bottlenecking. Before this update, you could effectively only use one page at a time. Attempting to open multiple pages simultaneously would queue them up, with each page waiting for the previous one to finish loading. This meant that rapidly navigating through the interface felt sluggish and unresponsive. Now, you can open the offers page, navigate to your bids, check your wallet balances, and review swap history all in rapid succession without waiting for each page to fully load before opening the next.
+
+The refactor also included extensive code cleanup, removing deprecated code paths, eliminating redundant operations, and fixing multiple memory leaks that could cause performance degradation during extended usage. Specific bottlenecks on the offers page and bids page, where loading large amounts of data could slow the interface to a crawl, have been identified and eliminated. The CryptoCompare dependency for price data has been removed entirely in favor of the new background thread architecture, giving BasicSwap greater control over its data sources and reducing reliance on external services.
+
+While much of this work happens behind the scenes and may not be immediately obvious, the cumulative effect is going to be apparent. Pages load faster, navigation feels snappier, data appears without delays, and the entire interface responds more quickly to your actions. These improvements lay a solid foundation for future feature development, ensuring that as BasicSwap continues to grow and add functionality, the underlying architecture can support it without sacrificing performance.
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install the new update, which includes both the codebase and user interface updates, simply [update BasicSwap through the usual process](/docs/user-guides/update) and launch the DEX again.
+
+<YouTube videoId="obxcmEby64s" />
+
+### Docker
+
+If you've installed BasicSwap following the Docker method...
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method...
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+4.  Execute the following command: `pip3 install .`,
+5.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's Github installation script](https://github.com/nahuhh/basicswap-bash/)
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+### Coin(s)
+
+*   Dash — Upgraded Dash Core to version 22.1.3
+*   Firo — Upgraded Firo Core to version 0.14.14.3 (emergency release)
+*   Monero — Upgraded Monero daemon to version 0.18.4.3
+*   Monero — Add request-sent, idle, and output distribution to transient errors for better error handling
+*   Monero — Retry on transient error to improve swap reliability
+*   Wownero — Coins now unlock after 4 confirmations instead of 3
+*   Wownero — Reuse `threadPollXMRChainstate` & `monerod_proxy_config` for better efficiency
+*   Bitcoin — Grind for low-r value signatures to match Bitcoin Core behavior
+*   Particl — Updated Particl Core to version 27.2.2.0 (fixes ZMQ missing curve functions and `signmessage` for v23)
+*   Particl — Keep compatible with Particl 23.2.7
+*   Particl — Added `deprecatedrpc` line to `particl.conf`
+*   Particl — Explicitly set `messagemagic` string for Particl v27
+
+### AMM (Automated Market Maker)
+
+*   AMM bug fixes for improved stability
+*   Use float for `amount_step` instead of string to fix type errors
+*   Icon beside amount & consistent size of add/edit buttons for better UI consistency
+*   Use same rates for buying and selling to fix rate parity issues
+
+### Network & SMSG (Multi-Net Support)
+
+*   Add network portals to allow swaps between users on different networks
+*   Manage SMSG pubkeys within BasicSwap instead of Particl Core
+*   Store pubkeys in BSX if possible
+*   Automatically set direct simplex mode per bid
+*   Fix `add_to_outbox` parameter
+*   Add network portal data to database
+*   Add `message_nets` field to bids and offers
+*   Don't raise an error if multiple networks are active (for testing)
+*   Rename `smsg_plaintext_version` for clarity
+*   Set `smsg_payload_version` automatically if unset
+*   Make backwards compatible with smsg payload version 1
+*   Enable network logging category in prepare script
+*   Fix selection when no networks are specified
+*   Fix `verifyMessage` parameter order
+*   Add `ttl` parameter to `smsgEncrypt`
+
+### ZMQ
+
+*   Remove `time.sleep(0.1)` for improved performance
+*   Use `recv_multipart` and set server keypair in prepare script
+*   Use persistent client keypair for better connection stability
+*   Fix default ZMQ configuration
+*   Use ZMQ for Particl Core balances in the GUI
+
+### UI Code & Experience
+
+*   GUI version 3.3.1
+*   Dynamic balances using WebSockets — balances now update in real-time without page refresh
+*   Better notifications system using Toasts for more dynamic and useful GUI notifications
+*   Updated toasts and added notifications history page
+*   Fixed identity tooltips on bids page
+*   Removed bottleneck on offers page for better performance
+*   Major refactor and optimizations for improved memory efficiency
+*   Fix pricechart display when no price/historical data is available
+*   Fix getwalletinfo + various fixes
+*   Fix WebSockets connection stability to keep connections alive
+*   Removed CryptoCompare dependency + Added background thread for price fetching
+*   Fix small bug with changepassword required
+*   Show notification when new release of BSX is available
+*   Fix BTC chart loading even if BTC is not enabled
+*   Lint: eslints code quality improvements
+
+### Core Functionality
+
+*   Change default key derivation paths — allows users to import keys generated on BasicSwap into Electrum (only applies when using descriptor wallets)
+*   Fix rate tolerance calculations
+*   Fix Simplex SQLite duplicate server entries
+*   Allow relative paths in inputs for better flexibility
+*   Allow `lock-tx nLockTime` to be > `chain height + 2`
+*   Fix `force_db_upgrade` setting
+*   Fix backwards compatibility with older SMSG payload versions
+*   Timeout bids before the script coin lock tx is mined to prevent stuck swaps
+*   Backports from upstream improvements
+*   Adjust daemon startup log timing and types for better debugging
+*   Reuse Particl daemon when adding coins to improve efficiency
+*   Remove default values occluding error in scripts for better error reporting
+*   Refactor: remove unused code for cleaner codebase
+*   Refactor: deduplicate threads array
+*   Add an env var to switch core repositories in prepare script
+
+### Automation
+
+*   Set max concurrent incoming bids to 1 as a strategy improvement
+
+### Development
+
+*   Add pre-commit hooks to ensure code quality
+
+### Dependencies
+
+*   Bumped `python-gnupg` from 0.5.4 to 0.5.5
+*   Bumped `websocket-client` from 1.8.0 to 1.9.0
+*   Bumped `black` from 25.1.0 to 25.9.0
+
+### Tests
+
+*   Disable checking for updates in tests
+*   Updated `test_settings.py`
+
+### Build
+
+*   Raise version to 0.15.0
+*   Update `guix` packed version
+
+You can inspect all changes by verifying the [0.14.6 comparison page here](https://github.com/basicswap/basicswap/compare/v0.14.6...v0.15.0).
+
+## Contributors 🙏
+
+<Callout type="success" title="Community-Driven Development">
+  BasicSwap v0.15.0 represents the collective effort of talented developers from around the world who share a common vision: building a truly decentralized, privacy-preserving exchange platform. This release showcases the power of open-source collaboration and the dedication of our community.
+</Callout>
+
+We would like to extend our heartfelt gratitude to the following contributors who made this release possible:
+
+🏗️ **Tecnovert** — Lead developer and architect behind the core infrastructure, multi-network portal system, SMSG enhancements, and coin integrations.
+
+🎨 **Crz** ([@gerlof](https://twitter.com/gerlof)) — Frontend architect responsible for the comprehensive UI/UX refactor and performance overhaul.
+
+🔒 **Ofrnxmr** ([@ofrnxmr](https://twitter.com/ofrnxmr)) — Privacy coin specialist focusing on Monero and Wownero integration improvements as well as thorough testing and bug fixes.
+
+---
+
+**Thank you to all our contributors, testers, and community members for your continued support. Together, we're building the future of decentralized exchange—one commit at a time.** 🚀
+
+---
+
+## Stay Connected
+
+Stay connected with us on our social media channels for real-time updates, news, and more.
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

@@ -1,0 +1,85 @@
+---
+title: "Run BasicSwap over Tor"
+sidebar: "Tor"
+description: "Route BasicSwap and its coins through Tor, on a new or existing install, with basicswap-prepare or basicswap-bash, and what changes for remote Monero nodes."
+published: 2026-10-15
+---
+With Tor turned on, BasicSwap and the coin daemons it runs connect to the internet through a Tor proxy, so the peers and servers they talk to see a Tor exit or onion address instead of your IP address. You can turn it on when you install or at any time later, and turn it off again the same way.
+
+<Callout type="caution" title="Experimental">
+
+BasicSwap's own notes describe its Tor integration as experimental and say it shouldn't be relied on yet. Treat it as a way to reveal less about yourself rather than as a promise of anonymity.
+
+</Callout>
+
+## What turning it on changes
+
+`basicswap-prepare --enabletor` writes a Tor configuration to `tor/torrc` in your data folder, records the proxy in `basicswap.json`, and edits the config file of every enabled coin so its daemon uses the proxy. Prepare keeps the previous version of each file with `.last` added to its name. Later runs of prepare, such as adding a coin, download over Tor automatically once it's on.
+
+If your Monero or Wownero wallet uses a [remote node](/docs/user-guides/lightweight-modes#monero-remote-nodes), turning Tor on or off also resets the wallet's trust in that node to "auto", which means it trusts the node only when its address is on your local network. Adding `--trustremotenode` to the same command keeps it trusted.
+
+## With basicswap-bash
+
+The installer asks whether to use Tor, and if you want to change your answer later, stop BasicSwap and run one of these:
+
+```bash
+bsx-enabletor
+```
+
+```bash
+bsx-disabletor
+```
+
+`bsx-enabletor` installs Tor if your system doesn't have it, and `basicswap-bash` starts Tor with BasicSwap's configuration each time you run it.
+
+## From source
+
+1. Install Tor from your system's packages, for example `sudo apt install tor` or `brew install tor`.
+
+2. Stop BasicSwap and turn Tor on with the commands below. The `BSX_LOCAL_TOR=true` at the start keeps Tor's ports on your own machine, whereas without it the configuration listens on every network interface, which suits Docker but not a computer on a shared network.
+
+   ```bash
+   export SWAP_DATADIR=$HOME/coinswaps
+   . $SWAP_DATADIR/venv/bin/activate
+   BSX_LOCAL_TOR=true basicswap-prepare --datadir=$SWAP_DATADIR --enabletor
+   ```
+
+3. Start Tor with BasicSwap's configuration, then start BasicSwap as usual. `basicswap-run` doesn't start Tor for you, so do this each time.
+
+   ```bash
+   tor -f $SWAP_DATADIR/tor/torrc &
+   basicswap-run --datadir=$SWAP_DATADIR
+   ```
+
+   BasicSwap's Tor uses ports 9050, 9051 and 5353 on `127.0.0.1`. If the system's own Tor service already runs on 9050, stop it first with `sudo systemctl stop tor`.
+
+To turn Tor off, stop BasicSwap, run the same prepare command with `--disabletor` in place of `--enabletor`, and stop the Tor process you started.
+
+## With Docker
+
+Docker runs Tor in a second container, set up by `docker-compose_with_tor.yml` in the `basicswap/docker` folder. Use `docker compose -f docker-compose_with_tor.yml` in place of `docker-compose` for every command, including starting BasicSwap, from then on.
+
+1. Create Tor's configuration file before the first run, using the coin data folder from your `.env`, which is `/var/data/coinswaps` unless you changed it. Without this step, Docker would create a folder where the file should be.
+
+   ```bash
+   COINDATA_PATH=/var/data/coinswaps
+   mkdir -p $COINDATA_PATH/tor
+   echo 'SocksPort 0.0.0.0:9050' > $COINDATA_PATH/tor/torrc
+   ```
+
+2. Turn Tor on, then stop the containers so Tor loads its new configuration:
+
+   ```bash
+   docker compose -f docker-compose_with_tor.yml run --rm swapclient basicswap-prepare --datadir=/coindata --enabletor
+   docker compose -f docker-compose_with_tor.yml stop
+   ```
+
+3. Start BasicSwap through the Tor compose file:
+
+   ```bash
+   docker compose -f docker-compose_with_tor.yml up
+   ```
+
+On a new install you can download the coin daemons over Tor too. After step 1, run the [configure command](/docs/user-guides/install#configure-the-container) with `docker compose -f docker-compose_with_tor.yml` in place of `docker-compose` and `--usetorproxy` added, then continue with step 2. Some download servers refuse Tor connections, though, so if a download fails, run the configure command again without `--usetorproxy`.
+
+Turning Tor off works the same way, by running step 2 with `--disabletor` in place of `--enabletor`.

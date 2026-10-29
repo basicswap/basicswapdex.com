@@ -1,0 +1,102 @@
+---
+title: "Prepare options"
+seoTitle: "basicswap-prepare Options for Coins and Tor"
+description: "The basicswap-prepare options for an install: which coins to run, fast sync, Electrum light wallets, remote Monero nodes, Tor, passwords and network access."
+published: 2026-10-15
+---
+`basicswap-prepare` writes BasicSwap's settings, downloads the coin daemons you choose and creates your wallets. You run it once during [installation](/docs/user-guides/install), and again later to add a coin, change networks or upgrade the daemons. This page lists the options you're most likely to need, and `basicswap-prepare --help` prints the rest.
+
+## How to run it
+
+Run it only while BasicSwap is stopped. The options are the same on every kind of install, and only the start of the command changes between the tabs below:
+
+<Tabs groupId="install-method">
+<TabItem value="source" label="From source" default>
+
+```bash
+export SWAP_DATADIR=$HOME/coinswaps
+. $SWAP_DATADIR/venv/bin/activate
+basicswap-prepare --datadir=$SWAP_DATADIR --withcoins=monero
+```
+
+An environment variable goes in front of the command, as in `XMR_RPC_HOST="node.example.org" basicswap-prepare …`.
+
+</TabItem>
+<TabItem value="docker" label="Docker">
+
+Docker installs run it inside the container, from the `basicswap/docker` folder:
+
+```bash
+docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --htmlhost="0.0.0.0" --wshost="0.0.0.0" --withcoins=monero
+```
+
+An environment variable goes after `run --rm` as an `-e` option, as in `docker-compose run --rm -e XMR_RPC_HOST="node.example.org" swapclient basicswap-prepare …`.
+
+</TabItem>
+<TabItem value="bash" label="basicswap-bash">
+
+The installer asks for the common choices and runs `basicswap-prepare` for you, and the `bsx-*` commands cover the later changes. To pass an option yourself, set up the terminal as for a source install, using the same folder:
+
+```bash
+export SWAP_DATADIR=$HOME/coinswaps
+. $SWAP_DATADIR/venv/bin/activate
+basicswap-prepare --datadir=$SWAP_DATADIR --withcoins=monero
+```
+
+</TabItem>
+</Tabs>
+
+## Choose your coins
+
+| Option | What it does |
+|---|---|
+| `--withcoins=monero,bitcoin` | The coins to set up on a new install, as a comma-separated list. Particl is always included, and BasicSwap won't run without it. |
+| `--withoutcoins=…` | Leaves coins out of a new install. |
+| `--addcoin=litecoin` | Adds one coin to an existing install, or turns a disabled one back on, as [Enable or disable coins](/docs/user-guides/enable-disable-coins) describes. |
+| `--disablecoin=litecoin` | Turns one coin off on an existing install, keeping its data. |
+| `--usebtcfastsync` | Starts the Bitcoin blockchain from a recent snapshot, made with BTCPay Server's [FastSync](https://github.com/btcpayserver/btcpayserver-docker/blob/master/contrib/FastSync/README.md), instead of downloading and checking every block since 2009. |
+
+The coin names are `particl`, `bitcoin`, `litecoin`, `decred`, `namecoin`, `monero`, `wownero`, `pivx`, `dash`, `firo`, `bitcoincash` and `dogecoin`. `--withcoins` only works on a new install, so once `basicswap.json` exists, prepare stops with "basicswap.json exists", and you use `--addcoin` instead, one coin at a time.
+
+## Light wallets and remote nodes
+
+| Option | What it does |
+|---|---|
+| `--light` | Runs Bitcoin and Litecoin, if enabled, as Electrum light wallets instead of full nodes. |
+| `--btc-mode=electrum`, `--ltc-mode=electrum` | The same for one coin. `rpc` keeps a coin on a full node, so `--light --btc-mode=rpc` puts only Litecoin on Electrum. |
+| `--btc-electrum-server=host:port:ssl` | Uses your own Electrum server for Bitcoin, while `--ltc-electrum-server` does the same for Litecoin. |
+| `XMR_RPC_HOST`, `XMR_RPC_PORT` | Connects to a Monero node you choose instead of running one. `XMR_RPC_USER` and `XMR_RPC_PWD` add a login if the node needs one. Wownero uses `WOW_RPC_HOST` and `WOW_RPC_PORT`. |
+| `--trustremotenode` | Tells the Monero wallet to trust that node, a choice whose risks [Lightweight modes](/docs/user-guides/lightweight-modes#monero-remote-nodes) explains. |
+
+[Lightweight modes](/docs/user-guides/lightweight-modes) explains what each mode trades away, and which public servers BasicSwap uses by default.
+
+## Wallets and recovery
+
+| Option | What it does |
+|---|---|
+| `--xmrrestoreheight=n` | The Monero block height your Monero wallet starts scanning from. Use the current height on a new install and the height you wrote down when restoring. |
+| `--wowrestoreheight=n` | The same for Wownero. |
+| `--particl_mnemonic="word word …"` | Restores every wallet from your recovery phrase instead of creating a new one, following [Back up and restore](/docs/user-guides/backup-and-restore). |
+| `WALLET_ENCRYPTION_PWD` | Your wallet password, needed when you add a coin to an install whose wallets are encrypted. |
+
+## Access to the web UI
+
+| Option | What it does |
+|---|---|
+| `--client-auth-password=…` | Asks for a password before showing the web UI or answering the API, as set out in [Web UI authentication](/docs/user-guides/web-ui-authentication). |
+| `--disable-client-auth` | Removes that password. |
+| `--htmlhost=0.0.0.0` | The network interface the web UI listens on. The default, `127.0.0.1`, only accepts connections from the same machine, while Docker installs use `0.0.0.0` inside the container. Reaching it from another device also needs [allowed hosts](/docs/user-guides/web-ui-authentication#reaching-basicswap-over-a-network) and, ideally, a password. |
+| `--wshost=…` | The interface for the websocket that pushes live updates to the UI. It follows `--htmlhost` unless you set it, and `none` turns it off. |
+| `UI_HTML_PORT` | The web UI's port, `12700` unless you set another. |
+
+## Tor and message networks
+
+| Option | What it does |
+|---|---|
+| `--enabletor`, `--disabletor` | Routes BasicSwap and its coin daemons through Tor, or stops doing so, as the [Tor](/docs/user-guides/tor) guide describes. |
+| `--addnetwork=simplex` | Adds `smsg`, `simplex` or `nostr` as a network for offers and swap messages, covered in [Message networks](/docs/user-guides/message-networks). |
+| `--disablenetwork=…` | Removes a network, though prepare won't remove the last one left. |
+
+## Upgrading the coin daemons
+
+`--upgradecores` downloads the coin daemon versions that your BasicSwap version expects, for every coin in your install. The [update guide](/docs/user-guides/update) says when you need it.

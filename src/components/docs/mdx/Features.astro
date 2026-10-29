@@ -1,0 +1,15 @@
+---
+// A list of <Feature>s, one under another.
+---
+
+<ul class="features" role="list"><slot /></ul>
+
+<style>
+  .features {
+    display: grid;
+    gap: var(--space-5);
+    margin-block: var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+</style>

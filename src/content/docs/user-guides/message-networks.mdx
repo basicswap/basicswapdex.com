@@ -1,0 +1,57 @@
+---
+title: "Message networks"
+seoTitle: "SMSG, SimpleX and Nostr Message Networks"
+description: "Choose which networks carry BasicSwap's offers and swap messages, from SMSG to SimpleX and Nostr, run several at once and set relays and groups in Settings."
+published: 2026-10-15
+---
+BasicSwap has no server of its own, so offers, bids and the messages two traders exchange during a swap travel over peer-to-peer message networks instead. It can use three of them, SMSG, SimpleX and Nostr, and while a new install starts with SMSG, you can add the others alongside it or use them in its place.
+
+Whatever the network, BasicSwap encrypts bids and swap messages in its own format before they leave your computer, so the network only carries ciphertext. Offers work a little differently, in that BasicSwap encrypts them to a key every node shares, which keeps them off public view while still letting any node read them and build the order book.
+
+## The three networks
+
+| Network | How it carries messages | Runs as |
+|---|---|---|
+| **SMSG** | Particl's SecureMessaging network, relayed between Particl nodes, which sends offers to a shared channel and swap messages straight to the other trader's address. | The default, built into the Particl node BasicSwap always runs. |
+| **SimpleX** | [SimpleX Chat](https://simplex.chat), which posts offers to a shared `#bsx` group and sends bids and swap messages as direct chats, so the SimpleX server only ever sees encrypted data. | A `simplex-chat` program that prepare downloads and checks against SimpleX's release signature. |
+| **Nostr** | [Nostr](https://nostr.com) relays, which receive every message as a signed event, with each swap signing under a fresh key that isn't linked to your wallet or your other swaps. | Built into BasicSwap, needing only relay addresses. |
+
+Several can be on at once, in which case BasicSwap sends on each and reads from all of them, so you reach traders whichever network they use. Prepare also refuses to remove the last one, which keeps at least one network running.
+
+## Add or remove a network
+
+The easiest place is **Settings → Networks** in the web UI, where you can add Nostr, turn networks on and off, edit relays and SimpleX groups, and see each connection's status. BasicSwap picks up any change you make there the next time it starts.
+
+From a terminal, with BasicSwap stopped, use `--addnetwork` or `--disablenetwork` with `smsg`, `simplex` or `nostr`:
+
+```bash
+basicswap-prepare --datadir=$SWAP_DATADIR --addnetwork=simplex
+```
+
+```bash
+basicswap-prepare --datadir=$SWAP_DATADIR --disablenetwork=smsg
+```
+
+With Docker, the same commands start with `docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata …`, and [Prepare options](/docs/user-guides/prepare-options#how-to-run-it) shows the form for each install method.
+
+When more than one network is on, also set `"smsg_payload_version": 2` in `basicswap.json`, so BasicSwap recognises the same message arriving over two networks.
+
+## SimpleX settings
+
+By default BasicSwap joins the official BasicSwap group on SimpleX's `smp4.simplex.im` server. To run a private network, create your own group in `simplex-chat` and set its link in Settings or with the `SIMPLEX_GROUP_LINK` variable when you run prepare. BasicSwap always posts offers to `#bsx`, so the group has to be called `bsx` on your side.
+
+On macOS, `simplex-chat` may need Homebrew's OpenSSL, which `brew install openssl@3.0` provides. SimpleX's signed list for release 7.0.0, the version prepare downloads, only covers the Linux x86-64 build, so on other systems the signature check fails. There, install `simplex-chat` yourself at `bin/simplex/simplex-chat` in your data folder and add the network with `--nocores`, which skips the download.
+
+## Nostr settings
+
+BasicSwap starts with five public relays, `relay.primal.net`, `nos.lol`, `relay.damus.io`, `relay.momostr.pink` and `nostr.mom`. Change them in Settings, or set `NOSTR_RELAYS` to a comma-separated list of `wss://` addresses when you run prepare. A plain `ws://` relay used without Tor exposes your Nostr key and the timing of your messages to anyone watching the connection, so it's worth sticking to `wss://` relays.
+
+Each relay's status, including any it refuses, shows on the Settings page. A few relays require proof of work, which the `pow_target` setting adds to your messages at the cost of a delay on each send, so it's best left at 0 unless a relay asks for it.
+
+## Bridging networks
+
+A node that runs several networks can pass messages between them for other traders, which helps a SimpleX-only node and an SMSG-only node reach each other. **Network Bridging** under Settings → Networks turns this on, though you don't need it to trade on several networks yourself.
+
+## With Tor
+
+When BasicSwap [runs over Tor](/docs/user-guides/tor), SimpleX and Nostr connect through the same Tor proxy as the rest of BasicSwap.

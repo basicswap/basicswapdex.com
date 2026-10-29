@@ -1,0 +1,102 @@
+---
+title: "New BasicSwap Release (v0.15.1)"
+seoTitle: "BasicSwap v0.15.1: Firo Hardfork Update"
+date: 2025-11-15
+author: "BasicSwap Team"
+tags: ["News", "Release", "Hardfork", "Coin Update"]
+description: "A new version of BasicSwap is now available for download."
+seoDescription: "BasicSwap v0.15.1 upgrades Firo Core to 0.14.15.0 for its hardfork, fixes the update notification and tidies the UI. Here's what changed and how to update."
+thumbnail: ./images/Medium_15_1.png
+banner: ./images/Blog_15_1.png
+---
+BasicSwap's 0.15.1 codebase is now available, which notably includes a mandatory Firo Core update ahead of their scheduled hardfork.
+
+<Callout type="warning" title="This update is MANDATORY for Firo users.">
+  **Firo users need to update their BasicSwap instance and upgrade their coins to version 0.14.15.0 to be able to continue using the coin.**
+</Callout>
+
+<Gallery
+  images={[
+    { src: "./images/mandatory_basicswap_update_screenshot1.png", alt: "BasicSwap Update Screenshot 1", width: 2368, height: 3088 },
+    { src: "./images/mandatory_basicswap_update_screenshot2.jpg", alt: "BasicSwap Update Screenshot 2", width: 2412, height: 3080 },
+  ]}
+/>
+
+This minor (but mandatory for Firo users) update includes a variety of dependency updates, and bug fixes such as the version update notifier system.
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install the new update, which includes both the codebase and user interface updates, simply [update BasicSwap through the usual process](/docs/user-guides/update) and launch the DEX again.
+
+<YouTube videoId="obxcmEby64s" />
+
+### Docker
+
+If you've installed BasicSwap following the Docker method...
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Execute this commmand to update Firo: `basicswap-prepare --datadir=/coindata --upgradecores`,
+5.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method...
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+4.  Execute the following command: `pip3 install .`,
+5.  Execute the following command:  `basicswap-prepare --datadir=$HOME/coinswaps --upgradecores`,
+6.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's Github installation script](https://github.com/nahuhh/basicswap-bash/)
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+### Coin(s)
+
+*   Firo — Upgraded Firo Core to version 0.14.15.0 (hardfork release)
+*   Monero —  Remove `--non-interactive` flag (doesn't have any functionality on wallet)
+
+### UI Code & Experience
+
+*   BasicSwap version update notification bug fix
+*   Updated Monero icon
+*   Uniform padding on coin icons 
+*   Clarify `LOCK_TX_A_REFUND` event descriptions
+
+### Dependencies
+
+*   Bumped `guix` packed version
+*   Bumped `black` from 25.9.0 to 25.11.0
+*   Add `zeromq` to Mac dependencies
+
+### Build
+
+*   Raise version to 0.15.1
+*   ci: Don't run on documentation updates
+
+You can inspect all changes by verifying the [0.15.1 comparison page here](https://github.com/basicswap/basicswap/compare/v0.15.0...v0.15.1).
+
+---
+
+**Thank you to all our contributors, testers, and community members for your continued support. Together, we're building the future of decentralized exchange—one commit at a time.** 🚀
+
+---
+
+## Stay Connected
+
+Stay connected with us on our social media channels for real-time updates, news, and more.
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

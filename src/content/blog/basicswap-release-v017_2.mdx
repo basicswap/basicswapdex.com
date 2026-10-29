@@ -1,0 +1,143 @@
+---
+title: "BasicSwap v0.17.2: A Security Fix for Adaptor-Signature Swaps (Update Now)"
+seoTitle: "BasicSwap v0.17.2: Adaptor Signature Fix"
+date: 2026-07-14
+author: "BasicSwap Team"
+tags: ["News", "Release", "Security"]
+description: "BasicSwap v0.17.2 fixes a fund-safety race condition on the automatic refund path of adaptor-signature (Monero-style) swaps, along with watcher hardening, a BCH recovery fix, and AMM and bid-page fixes. Everyone should update before resuming swaps. No coin cores and no database migration this cycle."
+seoDescription: "BasicSwap v0.17.2 fixes a race on the automatic refund path of adaptor-signature swaps, hardens the swap watcher and fixes BCH recovery. Update soon."
+thumbnail: ./images/Medium_BSX_17_2.jpg
+banner: ./images/Blog_BSX_17_2.jpg
+---
+BasicSwap v0.17.2 is a security release. It fixes a fund-safety issue on the automatic refund path of adaptor-signature (Monero-style) swaps, and it is the patched release we asked everyone to wait for when we posted the advisory to pause swap activity. If you paused, thank you. The fix is here now.
+
+Everyone should update to v0.17.2 before resuming any swaps. The release also carries watcher hardening, a BCH recovery fix, and a set of AMM and bid-page fixes. No coin daemons changed and there is no database migration this cycle, so updating from an earlier 0.17.x is a straight swap.
+
+<Callout type="warning" title="Update to v0.17.2 before you resume swaps">
+This release fixes a fund-safety issue in adaptor-signature swaps. The fix only takes effect on v0.17.2, so please update before starting, resuming, or completing any swap. Installation steps are at the bottom of this post.
+</Callout>
+
+## Most Notable Updates 💡
+
+### The Security Fix: Adaptor-Signature Refund Path 🔒
+
+v0.17.2 closes a race condition on the automatic refund path of adaptor-signature (Monero-style) swaps.
+
+When such a swap fell back to a refund, the node could broadcast the coin-A lock-refund spend transaction before the lock-refund transaction it depends on had confirmed. That refund-spend transaction is what hands the refunding party's key share for the other coin to the counterparty, so releasing it before the refund was settled on chain left a narrow timing window in which a counterparty could, in certain situations, take funds from the swap. This is a targeted risk rather than an accident: only a counterparty deliberately running a modified client could use it, and two honest clients never create it. You cannot know in advance whether a counterparty is honest, so everyone should still update.
+
+v0.17.2 fixes this by requiring the lock-refund transaction to reach the coin's configured confirmation depth before the refund spend is broadcast, and it adds a matching confirmation gate on the coin-B refund-recovery path, so both sides only spend once the relevant lock transaction is deeply confirmed. The normal, successfully completed swap path was never affected (commits [`8b2a2d3`](https://github.com/basicswap/basicswap/commit/8b2a2d3), [`fc36042`](https://github.com/basicswap/basicswap/commit/fc36042), [PR #559](https://github.com/basicswap/basicswap/pull/559)).
+
+<Callout type="info" title="What to do">
+*   Update to BasicSwap v0.17.2.
+*   Once you are on v0.17.2, it is safe to bring your node back online.
+*   If you withdrew your offers, you can post them again.
+*   If you had a swap in progress or one that stalled, update first, then bring your node back up. It will now complete or refund safely. Please do not force manual refunds.
+*   The fix only takes effect on v0.17.2, so do not resume swaps until you have updated.
+</Callout>
+
+### More Watcher Hardening 🛡️
+
+v0.17.1 taught the Electrum-backed coins to act on a spend only once it has confirmed. v0.17.2 extends the same rule to the Particl spent-index watcher: a spend reported by `getspentinfo` is now ignored until it has a confirmed block height, so the swap state machine no longer reacts to a spend that is still sitting in the mempool (commit [`cd6df0f`](https://github.com/basicswap/basicswap/commit/cd6df0f), [PR #562](https://github.com/basicswap/basicswap/pull/562)).
+
+### BCH Recovery Fix: Mercy-Transaction Watch 🩹
+
+In a Bitcoin Cash to Monero adaptor-signature swap that goes to refund, the counterparty publishes a courtesy "mercy" transaction that carries the key share the other side needs to still recover its Monero. BasicSwap watches for that transaction, but the watch lived only in memory. If the node was restarted while the swap sat in the pre-refund state, before the mercy transaction arrived, the watch was not restored, so a mercy transaction that showed up after the restart could be missed and the node would not automatically recover its Monero.
+
+v0.17.2 re-arms the watch when in-progress swaps are reloaded on startup, limited to the party that is waiting for the key share and only while the swap is still pre-refund and not yet recovered (commit [`ca20b2c`](https://github.com/basicswap/basicswap/commit/ca20b2c), [PR #560](https://github.com/basicswap/basicswap/pull/560)).
+
+### AMM Offer Hygiene 🤖
+
+A few fixes make sure the AMM's offers on the network match what is actually available.
+
+*   Revoke requests are now sent as POST. The daemon has required POST for state-changing calls since v0.17.0, so the automation script's older GET-based revokes were being rejected and the offers stayed live. They are now actually withdrawn (commit [`fc6fde4`](https://github.com/basicswap/basicswap/commit/fc6fde4), [PR #556](https://github.com/basicswap/basicswap/pull/556)).
+*   For templates that track a remaining budget (fixed-total and one-time), once part of the budget is filled or is in-flight in an active swap, the script now revokes the outstanding offer and reposts it sized to what is actually left, so the advertised amount never overstates what is available (commit [`4762e2c`](https://github.com/basicswap/basicswap/commit/4762e2c), [PR #556](https://github.com/basicswap/basicswap/pull/556)).
+*   Disabling an offer in the AMM tables now revokes its network copy right away. Previously, disabling a template only stopped the automation from reposting it: the offer already published to the network was never revoked, and it stayed live until it expired (commit [`843370c`](https://github.com/basicswap/basicswap/commit/843370c), [PR #561](https://github.com/basicswap/basicswap/pull/561)).
+
+### Bid Page: Live Updates 📊
+
+The Bid page now updates live over WebSocket, so a swap's progress refreshes on its own rather than relying on the old countdown refresh. The state descriptions for adaptor-signature swaps were rewritten to be clearer, with new coverage for the lock-signature exchange and for completed and failed states, and both swap types now share clearer terminal-state messages. A small green dot shows when the live-update connection is active (commits [`bb2f1ef`](https://github.com/basicswap/basicswap/commit/bb2f1ef), [`24fed92`](https://github.com/basicswap/basicswap/commit/24fed92), [PR #557](https://github.com/basicswap/basicswap/pull/557)).
+
+### Smaller Fixes 🧹
+
+The Create Offer page's contract-lock presets now match the AMM: quick-picks of 4, 8, 12, and 24 hours (were 12, 24, 48, and 72), a default of 24 hours (was 32), and a 24-hour cap (was 96) (commit [`effd0b3`](https://github.com/basicswap/basicswap/commit/effd0b3), [PR #555](https://github.com/basicswap/basicswap/pull/555)). A stray 2-hour option that did not belong on the AMM template edit form was removed (commit [`27f32db`](https://github.com/basicswap/basicswap/commit/27f32db), [PR #558](https://github.com/basicswap/basicswap/pull/558)).
+
+No coin daemons changed in v0.17.2, and the database schema stays at v37, so there is nothing to re-download and no migration on the first launch after updating.
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch.
+
+<Callout type="info" title="A drop-in update">
+v0.17.2 changes no coin daemons and no database schema, which stays at v37, so updating from an earlier 0.17.x is a straight swap. Running the `--upgradecores` step downloads nothing this cycle, and there is no on-start migration. Follow the normal update flow, and back up your coindata directory first as always.
+</Callout>
+
+### Docker
+
+If you've installed BasicSwap following the Docker method:
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method:
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3. Execute the following command: `source ~/coinswaps/venv/bin/activate`
+4.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+5.  Execute the following command: `pip3 install .`,
+6.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/):
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+The full v0.17.2 changelog, grouped by area. It covers 8 pull requests (#555 to #562).
+
+### Security & Fund Safety
+
+*   Adaptor-sig swaps: confirm the coin-A lock-refund transaction to the configured depth before broadcasting the refund spend [[8b2a2d3]](https://github.com/basicswap/basicswap/commit/8b2a2d3) / [PR #559](https://github.com/basicswap/basicswap/pull/559)
+*   Adaptor-sig swaps: wait for the coin-B lock transaction to reach spendable depth before the follower's refund recovery [[fc36042]](https://github.com/basicswap/basicswap/commit/fc36042) / [PR #559](https://github.com/basicswap/basicswap/pull/559)
+*   Particl spent-index watcher: skip spends reported by `getspentinfo` until they are confirmed [[cd6df0f]](https://github.com/basicswap/basicswap/commit/cd6df0f) / [PR #562](https://github.com/basicswap/basicswap/pull/562)
+
+### Fixes
+
+*   BCH: re-arm the mercy-transaction watch when reloading in-progress swaps after a restart [[ca20b2c]](https://github.com/basicswap/basicswap/commit/ca20b2c) / [PR #560](https://github.com/basicswap/basicswap/pull/560)
+*   Create Offer: align the single-offer contract-lock presets with the AMM (4/8/12/24 h, default 24 h, max 24 h) [[effd0b3]](https://github.com/basicswap/basicswap/commit/effd0b3) / [PR #555](https://github.com/basicswap/basicswap/pull/555)
+*   AMM edit form: remove a stray lock-time option [[27f32db]](https://github.com/basicswap/basicswap/commit/27f32db) / [PR #558](https://github.com/basicswap/basicswap/pull/558)
+
+### AMM
+
+*   Send offer revoke messages as POST so revokes actually apply [[fc6fde4]](https://github.com/basicswap/basicswap/commit/fc6fde4) / [PR #556](https://github.com/basicswap/basicswap/pull/556)
+*   Revoke and repost fixed-total and one-time offers when their remaining budget changes [[4762e2c]](https://github.com/basicswap/basicswap/commit/4762e2c) / [PR #556](https://github.com/basicswap/basicswap/pull/556)
+*   Revoke an offer's network copy immediately when it is disabled in the AMM tables [[843370c]](https://github.com/basicswap/basicswap/commit/843370c) / [PR #561](https://github.com/basicswap/basicswap/pull/561)
+
+### GUI
+
+*   Bid page: live WebSocket updates and clearer adaptor-signature swap-state descriptions [[bb2f1ef]](https://github.com/basicswap/basicswap/commit/bb2f1ef) / [PR #557](https://github.com/basicswap/basicswap/pull/557)
+*   Bid page: show a green dot when live updates are connected [[24fed92]](https://github.com/basicswap/basicswap/commit/24fed92) / [PR #557](https://github.com/basicswap/basicswap/pull/557)
+
+### Tests
+
+*   BTC to XMR: regression test that the leader does not publish the lock-refund spend while the refund transaction is unconfirmed [[e0ce02c]](https://github.com/basicswap/basicswap/commit/e0ce02c) / [PR #559](https://github.com/basicswap/basicswap/pull/559)
+*   BCH to XMR: regression test that the mercy-transaction watch is re-armed after reload [[ca20b2c]](https://github.com/basicswap/basicswap/commit/ca20b2c) / [PR #560](https://github.com/basicswap/basicswap/pull/560)
+
+You can inspect all changes by verifying the [v0.17.1 to v0.17.2 comparison page here](https://github.com/basicswap/basicswap/compare/v0.17.1...v0.17.2).
+
+## Stay Connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

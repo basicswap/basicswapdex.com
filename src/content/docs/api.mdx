@@ -1,0 +1,129 @@
+---
+title: "JSON API"
+seoTitle: "BasicSwap JSON API Reference"
+description: "Call BasicSwap's JSON API to list wallets, create offers and bids, plan Smart Buys and follow swaps, with authentication and curl examples for each endpoint."
+published: 2026-10-15
+---
+Everything the web UI does goes through a JSON API that you can call yourself, from `curl` or a script. BasicSwap serves it on the same port as the UI, `http://localhost:12700`, under `/json/`. This page covers the endpoints you're most likely to need, and `GET /json/help` lists all of them.
+
+## Calling the API
+
+Most endpoints answer a GET with data, and take their options as a POST, either as JSON with `Content-Type: application/json` or as form fields. You can name coins by ticker, such as `btc` or `xmr`, or by BasicSwap's coin number. Amounts are decimal strings or numbers in whole coins.
+
+```bash
+curl http://localhost:12700/json/wallets
+```
+
+```bash
+curl --header "Content-Type: application/json" --request POST \
+     --data '{"coin_from":"btc","coin_to":"xmr"}' \
+     http://localhost:12700/json/offers
+```
+
+If you've [set a password](/docs/user-guides/web-ui-authentication), every call needs it, and the simplest way to supply it is HTTP Basic Auth with an empty username:
+
+```bash
+curl -u :YOUR_PASSWORD http://localhost:12700/json/wallets
+```
+
+When a call fails, the answer is a JSON object with an `error` field explaining why, as in `{"error": "…"}`.
+
+<Callout type="caution" title="Keep the API private">
+
+Anyone who can reach the API can spend your coins, so keep BasicSwap listening only on `127.0.0.1` unless it has a password, and reach it from other machines through an [SSH tunnel](/docs/user-guides/troubleshooting#reaching-basicswap-on-another-computer) rather than an open port.
+
+</Callout>
+
+## Wallets
+
+| Request | What it does |
+|---|---|
+| `GET /json/wallets` | Every wallet's balance, sync state and version. |
+| `GET /json/wallets/btc` | One wallet, by ticker. |
+| `POST /json/wallets/btc/withdraw` | Sends coins to `address`, for the amount in `value`, with `subfee` set to `true` to take the fee from that amount or `sweepall` to send everything. Particl also takes `type_from` and `type_to`, each `plain`, `blind` or `anon`. |
+| `POST /json/wallets/btc/nextdepositaddr` | A new deposit address. |
+| `POST /json/wallets/btc/reseed` | Reseeds the wallet from your recovery phrase, as the **Reseed wallet** button does. |
+| `POST /json/wallets/btc/rescan` | Rescans the wallet. |
+| `GET /json/walletbalances` | Just the balances. |
+| `POST /json/unlock`, `POST /json/lock` | Unlocks the wallets with `password`, or locks them. |
+
+## Offers
+
+| Request | What it does |
+|---|---|
+| `GET /json/offers` | The order book. POST to filter with `coin_from`, `coin_to`, `offset`, `limit`, `sort_by` and `sort_dir`, or `include_sent` to add your own. |
+| `GET /json/offers/OFFER_ID` | One offer. |
+| `GET /json/sentoffers` | Your offers. |
+| `POST /json/offers/new` | Creates an offer, with the fields listed below. |
+| `POST /json/revokeoffer/OFFER_ID` | Takes your offer off the order book. |
+
+`POST /json/offers/new` takes the same choices as [Make an offer](/docs/user-guides/make-offer):
+
+| Field | Meaning |
+|---|---|
+| `coin_from`, `amt_from` | The coin and amount you offer. |
+| `coin_to`, `amt_to` | The coin and amount you want, or `rate` instead of `amt_to`. |
+| `amt_bid_min` | The smallest bid accepted. |
+| `offer_mode` | `one_time`, `fixed_total` together with `total_to_sell`, or `standing` together with `min_wallet_reserve`. |
+| `amt_var`, `rate_var` | `true` to accept bids for part of the amount, or at another rate. |
+| `swap_type` | `xmr_swap` for adaptor signatures, or `seller_first` for a secret-hash swap. |
+| `validhrs` | How long the offer stays on the order book. |
+| `lockhrs`, `lockmins` or `lockseconds` | The contract lock time. |
+| `automation_strat_id` | An auto accept strategy's number from `GET /json/automationstrategies`, or nothing if you'd rather accept bids yourself. |
+
+```bash
+curl -u :YOUR_PASSWORD --header "Content-Type: application/json" --request POST \
+     --data '{"coin_from":"btc","coin_to":"xmr","amt_from":0.05,"amt_to":3.1,"offer_mode":"one_time","validhrs":1,"lockhrs":24}' \
+     http://localhost:12700/json/offers/new
+```
+
+Set `offer_mode` on every offer you create through the API, or the offer behaves like a standing one and keeps taking bids until it expires.
+
+## Bids
+
+| Request | What it does |
+|---|---|
+| `GET /json/bids` | Bids received. |
+| `GET /json/sentbids` | Bids you've sent. |
+| `POST /json/bids/new` | Bids on the offer in `offer_id` for `amount_from`, optionally with `amount_to` or `bid_rate`, `validmins` and `addr_from`. |
+| `GET /json/bids/BID_ID` | One bid, with more detail when you POST `show_extra` or `with_events`. |
+| `POST /json/bids/BID_ID` | With `{"accept": true}`, accepts a received bid. |
+
+```bash
+curl -u :YOUR_PASSWORD --header "Content-Type: application/json" --request POST \
+     --data '{"show_extra":true}' \
+     http://localhost:12700/json/bids/BID_ID
+```
+
+## Smart Buy
+
+[Smart Buy](/docs/user-guides/smart-buy) takes two calls, one to plan the fill and another to place its bids.
+
+`POST /json/bids/plan` finds the cheapest fill and places nothing. As on the Smart Buy page, `coin_from` is the coin you receive and `coin_to` the coin you pay. Give `receive_amount` or `spend_amount`, the most bids with `max_bids`, and the price cap with `anchor`, either `market` or `best`, and `slip_percent`:
+
+```bash
+curl -u :YOUR_PASSWORD --header "Content-Type: application/json" --request POST \
+     --data '{"coin_from":"xmr","coin_to":"btc","receive_amount":1.5,"max_bids":5,"anchor":"market","slip_percent":2}' \
+     http://localhost:12700/json/bids/plan
+```
+
+`POST /json/bids/bulk` places the bids, given the plan's `legs`, each an `offer_id` and an `amount`, together with `validmins` and `plan_leg_timeout` in minutes:
+
+```bash
+curl -u :YOUR_PASSWORD --header "Content-Type: application/json" --request POST \
+     --data '{"legs":[{"offer_id":"OFFER_ID_1","amount":"0.9"},{"offer_id":"OFFER_ID_2","amount":"0.6"}],"validmins":60,"plan_leg_timeout":10}' \
+     http://localhost:12700/json/bids/bulk
+```
+
+Bids placed this way carry the plan's `plan_id` in bid listings.
+
+## Other endpoints
+
+| Request | What it does |
+|---|---|
+| `GET /json/coins` | The coins BasicSwap knows and which are active. |
+| `POST /json/rates` | Market rates for `coin_from` and `coin_to` from each [price source](/docs/user-guides/price-data). |
+| `GET /json/networks` | The [message networks](/docs/user-guides/message-networks) and whether each is enabled and active. |
+| `GET /json/identities` | Traders you've swapped with, and their stats. |
+| `GET /json/automationstrategies` | The auto accept strategies and their numbers. |
+| `GET /json/help` | Every endpoint's name. |

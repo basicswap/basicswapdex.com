@@ -1,0 +1,25 @@
+---
+title: "Community tools and resources"
+sidebar: "Community Tools"
+seoTitle: "BasicSwap Community Tools and Resources"
+description: "Tools and resources around BasicSwap, including the basicswap-bash install scripts, the createoffers script, the markets dashboard and where to ask for help."
+published: 2026-10-15
+---
+BasicSwap is open source, and some of the most useful tools around it come from its community. This page collects them, along with the places to follow the project and ask for help.
+
+## Tools
+
+- **[basicswap-bash](https://github.com/nahuhh/basicswap-bash)** installs BasicSwap on Linux and on Windows through WSL after asking a few questions, and adds short commands for running and maintaining it, namely `basicswap-bash`, `bsx-update`, `bsx-addcoin`, `bsx-removecoin`, `bsx-enabletor`, `bsx-disabletor`, `bsx-clientauth` and `bsx-staking`. The [install guide](/docs/user-guides/install#install-with-basicswap-bash) recommends it for most people.
+- **[createoffers.py](https://github.com/basicswap/basicswap/blob/master/scripts/createoffers.py)**, in the BasicSwap repository, is the market-making script behind the [AMM page](/docs/user-guides/market-making). It reads offer and bid templates from a JSON file and keeps them posted through the [API](/docs/api), so it can also be run by hand with a configuration of your own.
+- **[BasicSwap Markets](https://markets.basicswapdex.com)** shows BasicSwap's live markets in a browser, without running BasicSwap, including the order book, pairs, liquidity and active makers it gathers from SMSG, Nostr and SimpleX.
+- **[The JSON API](/docs/api)** lets you build your own tools, and every action in the web UI, including wallets, offers, bids and Smart Buy, is open to scripts as well.
+
+## Follow and ask
+
+- **[Matrix](https://matrix.to/#/#basicswap:matrix.org)** is where users and developers talk. Ask there when something isn't covered in these docs, and bring the error from your terminal.
+- **[GitHub](https://github.com/basicswap/basicswap)** has the code, the [releases](https://github.com/basicswap/basicswap/releases) and the issue tracker for bugs.
+- **[The blog](/blog)** has release notes for every version and longer articles about how BasicSwap works.
+
+## Contribute
+
+BasicSwap charges no fees and runs on donations. You can help by reporting bugs with clear steps to reproduce them, improving these docs through the **Edit this page** link at the bottom of every page, [adding a coin](/docs/user-guides/integrate-coin), or [donating](/donations).

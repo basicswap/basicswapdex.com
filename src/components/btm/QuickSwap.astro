@@ -1,0 +1,823 @@
+---
+// The Bitcoin to Monero hero: a quick swap of XMR for BTC, played on a
+// stylized phone. The flow follows the Nexus wallet's BasicSwap screens that
+// the Mobile hero shows (components/mobile/nexusScreens.ts), redrawn in the
+// site's own look:
+//   New swap   2.5 typed in against XMR, the BTC quote appears, Get offers
+//   Request    waiting for an offer, then a Best rate offer is accepted
+//   Swap       BTC locked, XMR locked, BTC claimed
+//   Complete   the receipt
+// A 17 s chapter of SwapTour's shared loop (film.ts), which passes in where
+// it sits. At rest (reduced motion) it holds on the receipt. Example figures
+// throughout.
+import { Image } from 'astro:assets';
+import { Film, type Step } from '../desktop/film';
+import Logo from '../Logo.astro';
+import bitcoin from '../../assets/coins/bitcoin-circle.png';
+import monero from '../../assets/coins/monero-circle.png';
+
+interface Props {
+  /** Where this chapter starts on the shared loop, and the loop's length. */
+  offset: number;
+  loop: number;
+  modes: { when: string; delay: number; suffix: string }[];
+}
+const { offset, loop, modes } = Astro.props;
+
+const D = 17;
+const film = new Film('.qs', D, offset, loop, modes);
+
+// Each screen slides in from the right and out to the left.
+const screen = (name: string, a: number, b: number) =>
+  film.track(name, `.scr-${name}`, [
+    [0, 'opacity:0;translate:8% 0'],
+    [a - 0.35, 'opacity:0;translate:8% 0'],
+    [a, 'opacity:1;translate:0 0'],
+    [b, 'opacity:1;translate:0 0'],
+    [b + 0.35, 'opacity:0;translate:-8% 0'],
+  ]);
+const press = (name: string, sel: string, t: number) =>
+  film
+    .track(`press-${name}`, sel, [[t - 0.1, 'scale:1'], [t, 'scale:0.95'], [t + 0.2, 'scale:1']], 'ease-out')
+    .ripple(name, t);
+
+// 1. New swap
+screen('new', 0.35, 4.8);
+film
+  .show('caret', '.caret', [[0.45, 1.5]], 0.02)
+  .show('d0', '.d0', [[0.7, D]], 0.02)
+  .show('d1', '.d1', [[0.9, D]], 0.02)
+  .show('d2', '.d2', [[1.1, D]], 0.02)
+  .show('get-ph', '.get-ph', [[0, 1.5]], 0.15)
+  .show('get', '.get', [[1.5, D]], 0.2)
+  .show('sum', '.sum', [[1.7, D]], 0.3)
+  .track('flip', '.flip svg', [[0, 'rotate:0deg'], [1.3, 'rotate:0deg'], [1.8, 'rotate:180deg']])
+  .show('get-a', '.cta-get .cta-a', [[0, 2.75]], 0.08)
+  .show('get-b', '.cta-get .cta-b', [[2.75, D]], 0.08);
+press('get', '.cta-get', 2.6);
+
+// 2. Request: an offer arrives and is accepted
+screen('offer', 5.15, 8.8);
+film
+  .track('radar', '.radar', [[0, 'opacity:1;scale:1'], [6.3, 'opacity:1;scale:1'], [6.7, 'opacity:0.3;scale:0.85']])
+  .show('wait', '.wait', [[0, 6.4]], 0.2)
+  .track('card', '.offer', [[0, 'opacity:0;translate:0 30%'], [6.4, 'opacity:0;translate:0 30%'], [6.9, 'opacity:1;translate:0 0']], 'cubic-bezier(0.3, 1.4, 0.5, 1)')
+  .show('acc-a', '.cta-acc .cta-a', [[0, 7.75]], 0.08)
+  .show('acc-b', '.cta-acc .cta-b', [[7.75, D]], 0.08);
+press('acc', '.cta-acc', 7.6);
+
+// 3. Swap: three steps tick off as the bar fills
+screen('swap', 9.15, 13.2);
+const STEPS = [10.2, 11.2, 12.4];
+film.track('fill', '.fill', [[0, 'scale:0 1'], [9.4, 'scale:0 1'], ...STEPS.map((t, i): Step => [t, `scale:${(i + 1) / 3} 1`])]);
+STEPS.forEach((t, i) => {
+  film
+    .track(`tick${i}`, `.st${i} .tick`, [[0, 'opacity:0.25;scale:0.6'], [t - 0.15, 'opacity:0.25;scale:0.6'], [t, 'opacity:1;scale:1.2'], [t + 0.2, 'opacity:1;scale:1']], 'ease-out')
+    .track(`st${i}`, `.st${i}`, [[0, 'opacity:0.45'], [t - 0.1, 'opacity:0.45'], [t, 'opacity:1']], 'linear');
+});
+film.track('claim', '.c-btc', [[0, 'scale:1'], [12.3, 'scale:1'], [12.6, 'scale:1.18'], [12.9, 'scale:1']], 'ease-out');
+
+// 4. Complete
+screen('done', 13.55, 16.55);
+film
+  .track('burst', '.burst', [[0, 'opacity:0;scale:0.4'], [13.65, 'opacity:0;scale:0.4'], [14.05, 'opacity:1;scale:1.1'], [14.3, 'opacity:1;scale:1']], 'ease-out')
+  .track('sparks', '.sparks', [[0, 'opacity:0;scale:0.3'], [13.9, 'opacity:0;scale:0.3'], [14, 'opacity:1;scale:0.5'], [14.8, 'opacity:0;scale:1.35']], 'ease-out');
+['done-title', 'plus', 'minus'].forEach((k, i) => {
+  const t = 14.15 + i * 0.15;
+  film.track(k, `.${k}`, [[0, 'opacity:0;translate:0 0.6em'], [t, 'opacity:0;translate:0 0.6em'], [t + 0.35, 'opacity:1;translate:0 0']], 'ease-out');
+});
+
+const css = film.css();
+const CHECK = '<path d="M5 12.5 10 17.5 19 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>';
+const FLIP = '<path d="M8 4v15m0 0-3.5-3.5M8 19l3.5-3.5M16 20V5m0 0-3.5 3.5M16 5l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+---
+
+<div
+  class="quickswap"
+  role="img"
+  aria-label="A quick swap of 2.5 XMR for 0.00725 BTC on a phone: the amount is entered, an offer arrives and is accepted, Bitcoin and Monero are locked, the Bitcoin is claimed and the swap completes. Example figures.">
+  <div class="qs" aria-hidden="true">
+    <div class="screen">
+      <div class="status"><span>9:41</span><span class="island"></span><span class="bars"><i></i><i></i><i></i></span></div>
+
+      <!-- 1. New swap -->
+      <div class="scr scr-new">
+        <div class="scr-head"><p class="scr-title">Quick swap</p><Logo mark height={20} /></div>
+        <div class="field">
+          <span class="lbl">You send</span>
+          <div class="row">
+            <span class="amt"><span class="d0">2</span><span class="d1">.</span><span class="d2">5</span><span class="caret"></span></span>
+            <span class="pill"><Image src={monero} alt="" width={48} height={48} />XMR</span>
+          </div>
+          <span class="sub">Balance 12.8 XMR</span>
+        </div>
+        <span class="flip"><svg viewBox="0 0 24 24" set:html={FLIP} /></span>
+        <div class="field">
+          <span class="lbl">You get</span>
+          <div class="row">
+            <span class="amt stack"><span class="get-ph">0</span><span class="get">0.00725</span></span>
+            <span class="pill"><Image src={bitcoin} alt="" width={48} height={48} />BTC</span>
+          </div>
+          <span class="sub">No account, no custodian</span>
+        </div>
+        <dl class="sum">
+          <div><dt>Rate</dt><dd>1 XMR = 0.0029 BTC</dd></div>
+          <div><dt>Protocol fee</dt><dd class="free">None</dd></div>
+          <div><dt>Settles</dt><dd>On both chains</dd></div>
+        </dl>
+        <div class="cta cta-get">
+          <span class="cta-a">Get offers</span>
+          <span class="cta-b"><span class="spin"></span>Requesting…</span>
+          <span class="ripple rp-get"></span>
+        </div>
+      </div>
+
+      <!-- 2. Request -->
+      <div class="scr scr-offer">
+        <p class="scr-title">Request</p>
+        <div class="ask">
+          <Image src={monero} alt="" width={48} height={48} /><span>2.5 XMR</span>
+          <span class="to">→</span>
+          <Image src={bitcoin} alt="" width={48} height={48} /><span>BTC</span>
+        </div>
+        <div class="radar"><span class="ring"></span><span class="ring r2"></span><span class="core"><Image src={monero} alt="" width={96} height={96} /></span></div>
+        <p class="wait">Waiting for an offer</p>
+        <div class="offer">
+          <span class="badge">Best rate</span>
+          <div class="row"><Image src={bitcoin} alt="" width={48} height={48} /><b>0.00725 BTC</b></div>
+          <span class="sub">for 2.5 XMR · reliability 98</span>
+          <div class="cta cta-acc">
+            <span class="cta-a">Accept</span>
+            <span class="cta-b"><span class="spin"></span>Accepting…</span>
+            <span class="ripple rp-acc"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Swap in progress -->
+      <div class="scr scr-swap">
+        <p class="scr-title">Swap in progress</p>
+        <div class="duel">
+          <span class="c c-xmr"><Image src={monero} alt="" width={96} height={96} /></span>
+          <span class="track"><span class="fill"></span><span class="pulse"></span></span>
+          <span class="c c-btc"><Image src={bitcoin} alt="" width={96} height={96} /></span>
+        </div>
+        <ol class="steps">
+          <li class="st0"><span class="tick"><svg viewBox="0 0 24 24" set:html={CHECK} /></span>BTC locked</li>
+          <li class="st1"><span class="tick"><svg viewBox="0 0 24 24" set:html={CHECK} /></span>XMR locked</li>
+          <li class="st2"><span class="tick"><svg viewBox="0 0 24 24" set:html={CHECK} /></span>BTC claimed</li>
+        </ol>
+        <p class="note">Nobody holds the coins in between</p>
+      </div>
+
+      <!-- 4. Complete -->
+      <div class="scr scr-done">
+        <div class="burst">
+          <span class="sparks">{Array.from({ length: 10 }, (_, i) => <i style={`--a:${i * 36}deg`}></i>)}</span>
+          <span class="seal"><svg viewBox="0 0 24 24" set:html={CHECK} /></span>
+        </div>
+        <p class="done-title">Swap complete</p>
+        <p class="plus">+ 0.00725 BTC</p>
+        <p class="minus">− 2.5 XMR</p>
+        <p class="powered">Powered by <Logo height={14} /></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<style>
+  .quickswap {
+    --btc: #f7b500;
+    --xmr: #ff6600;
+    --qs-ink: #f9fafb;
+    --qs-dim: #6b7280;
+    --qs-muted: #9ca3af;
+    --qs-field: rgb(255 255 255 / 0.05);
+    --qs-line: rgb(255 255 255 / 0.09);
+    --qs-screen-a: #111827;
+    --qs-screen-b: #0b1020;
+    --qs-chip: rgb(255 255 255 / 0.08);
+    --qs-raise-a: #1e2638;
+    --qs-raise-b: #141a2a;
+    --qs-flip: #1b2333;
+    --qs-good: #34d399;
+    --logo-word: #fff;
+    height: 100%;
+    aspect-ratio: 9 / 19;
+  }
+
+  /* the light theme's version of the same app; the phone itself stays dark */
+  :global(html[data-theme='light']) .quickswap {
+    --qs-ink: #111827;
+    --qs-dim: #9ca3af;
+    --qs-muted: #6b7280;
+    --qs-field: #ffffff;
+    --qs-line: rgb(15 23 42 / 0.1);
+    --qs-screen-a: #f5f8ff;
+    --qs-screen-b: #eef2f8;
+    --qs-chip: rgb(15 23 42 / 0.06);
+    --qs-raise-a: #ffffff;
+    --qs-raise-b: #f8fafc;
+    --qs-flip: #ffffff;
+    --qs-good: #059669;
+    --logo-word: #212121;
+  }
+
+  /* ---- the phone: dark glass with a blue edge ---- */
+  .qs {
+    position: relative;
+    height: 100%;
+    padding: 2.6%;
+    border-radius: 13% / 6.2%;
+    background: linear-gradient(160deg, #1f2937, #0b1120 55%, #151a2e);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.08),
+      0 40px 80px -30px hsl(var(--shadow-color) / 0.9),
+      0 0 0 1px color-mix(in oklab, var(--brand) 25%, transparent);
+  }
+
+  .qs::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    border-radius: inherit;
+    background: linear-gradient(150deg, var(--brand), rgb(255 255 255 / 0.12) 40%, rgb(255 255 255 / 0.06) 60%, #60a5fa);
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    pointer-events: none;
+  }
+
+  .screen {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    container-type: inline-size;
+    border-radius: 11% / 5.2%;
+    background:
+      radial-gradient(90% 40% at 50% 0%, color-mix(in oklab, var(--brand) 22%, transparent), transparent 70%),
+      linear-gradient(var(--qs-screen-a), var(--qs-screen-b));
+    color: var(--qs-ink);
+    font-family: var(--font-sans);
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4.5cqw 8cqw 0;
+    font-size: 4.2cqw;
+    font-weight: 600;
+  }
+
+  .island {
+    width: 26cqw;
+    height: 7cqw;
+    border-radius: 99px;
+    background: #000;
+  }
+
+  .bars {
+    display: flex;
+    align-items: end;
+    gap: 0.9cqw;
+  }
+
+  .bars i {
+    width: 1.2cqw;
+    border-radius: 1px;
+    background: var(--qs-ink);
+  }
+
+  .bars i:nth-child(1) {
+    height: 1.6cqw;
+  }
+
+  .bars i:nth-child(2) {
+    height: 2.4cqw;
+  }
+
+  .bars i:nth-child(3) {
+    height: 3.2cqw;
+  }
+
+  /* ---- the screens, stacked; at rest only the receipt shows ---- */
+  .scr {
+    position: absolute;
+    inset: 15cqw 6cqw 6cqw;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5cqw;
+    opacity: 0;
+  }
+
+  .scr-done {
+    opacity: 1;
+  }
+
+  .scr-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2cqw;
+  }
+
+  .scr-head :global(.logo) {
+    width: auto;
+    height: 7cqw;
+  }
+
+  .powered {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.6cqw;
+    margin-top: 10cqw;
+    color: var(--qs-muted);
+    font-size: 3.8cqw;
+  }
+
+  .powered :global(.logo) {
+    width: auto;
+    height: 5.4cqw;
+  }
+
+  .scr-title {
+    margin-bottom: 2cqw;
+    font-size: 7cqw;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .field {
+    display: grid;
+    gap: 2cqw;
+    padding: 4.5cqw 5cqw;
+    border: 1px solid var(--qs-line);
+    border-radius: 5cqw;
+    background: var(--qs-field);
+  }
+
+  .lbl,
+  .sub {
+    color: var(--qs-muted);
+    font-size: 4.2cqw;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3cqw;
+  }
+
+  .amt {
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.2em;
+    font-size: 10cqw;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stack {
+    display: inline-grid;
+  }
+
+  .stack > * {
+    grid-area: 1 / 1;
+  }
+
+  .get-ph {
+    color: var(--qs-dim);
+  }
+
+  .caret {
+    width: 0.6cqw;
+    height: 0.9em;
+    margin-left: 0.6cqw;
+    background: var(--link);
+    opacity: 0;
+  }
+
+  .pill {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 1.8cqw;
+    padding: 1.4cqw 3cqw 1.4cqw 1.4cqw;
+    border-radius: 99px;
+    background: var(--qs-chip);
+    font-size: 4cqw;
+    font-weight: 700;
+  }
+
+  .pill :global(img),
+  .ask :global(img),
+  .offer .row :global(img) {
+    width: 6.4cqw;
+    height: 6.4cqw;
+  }
+
+  .flip {
+    display: grid;
+    place-items: center;
+    width: 11cqw;
+    height: 11cqw;
+    margin: -6.5cqw auto;
+    z-index: 1;
+    border: 1px solid var(--qs-line);
+    border-radius: 99px;
+    background: var(--qs-flip);
+    color: var(--link);
+    box-shadow: 0 0 0 1.5cqw var(--qs-screen-a);
+  }
+
+  .flip svg {
+    width: 5.5cqw;
+    height: 5.5cqw;
+  }
+
+  .sum {
+    display: grid;
+    gap: 2.6cqw;
+    margin-top: 2cqw;
+    padding-inline: 2cqw;
+    font-size: 4.2cqw;
+  }
+
+  .sum div {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .sum dt {
+    color: var(--qs-muted);
+  }
+
+  .sum dd {
+    font-weight: 600;
+  }
+
+  .sum .free {
+    color: var(--qs-good);
+  }
+
+  /* ---- buttons ---- */
+  .cta {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 13cqw;
+    margin-top: auto;
+    overflow: hidden;
+    border-radius: 4cqw;
+    background: var(--primary);
+    box-shadow: 0 8px 24px -8px color-mix(in oklab, var(--brand) 80%, transparent);
+    font-size: 4.4cqw;
+    font-weight: 700;
+  }
+
+  .cta > span:not(.ripple) {
+    display: inline-flex;
+    grid-area: 1 / 1;
+    align-items: center;
+    gap: 2cqw;
+  }
+
+  .cta-b {
+    opacity: 0;
+  }
+
+  .spin {
+    width: 3.6cqw;
+    height: 3.6cqw;
+    border: 0.7cqw solid rgb(255 255 255 / 0.35);
+    border-top-color: #fff;
+    border-radius: 99px;
+  }
+
+  .ripple {
+    position: absolute;
+    width: 30cqw;
+    height: 30cqw;
+    border-radius: 99px;
+    background: rgb(255 255 255 / 0.35);
+    opacity: 0;
+  }
+
+  /* ---- request ---- */
+  .ask {
+    display: flex;
+    align-items: center;
+    gap: 1.8cqw;
+    padding: 3cqw 4cqw;
+    border: 1px solid var(--qs-line);
+    border-radius: 99px;
+    background: var(--qs-field);
+    font-size: 4cqw;
+    font-weight: 600;
+  }
+
+  .ask .to {
+    margin-inline: 1cqw;
+    color: var(--qs-muted);
+  }
+
+  .radar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 44cqw;
+    margin-top: 4cqw;
+  }
+
+  .ring {
+    position: absolute;
+    width: 24cqw;
+    height: 24cqw;
+    border: 1px solid color-mix(in oklab, var(--xmr) 70%, transparent);
+    border-radius: 99px;
+    opacity: 0;
+  }
+
+  .core {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 20cqw;
+    height: 20cqw;
+    border-radius: 99px;
+    box-shadow: 0 0 30px -4px color-mix(in oklab, var(--xmr) 80%, transparent);
+  }
+
+  .core :global(img) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .wait {
+    color: var(--qs-muted);
+    font-size: 4cqw;
+    text-align: center;
+  }
+
+  .offer {
+    position: absolute;
+    inset: auto 0 0;
+    display: grid;
+    gap: 2.5cqw;
+    padding: 5cqw;
+    border: 1px solid color-mix(in oklab, var(--btc) 35%, var(--qs-line));
+    border-radius: 6cqw;
+    background: linear-gradient(160deg, var(--qs-raise-a), var(--qs-raise-b));
+    box-shadow: 0 -10px 40px -12px rgb(0 0 0 / 0.35), 0 0 40px -16px color-mix(in oklab, var(--btc) 60%, transparent);
+    opacity: 0;
+  }
+
+  .badge {
+    justify-self: start;
+    padding: 1cqw 2.6cqw;
+    border-radius: 99px;
+    background: color-mix(in oklab, var(--success) 20%, transparent);
+    color: var(--qs-good);
+    font-size: 3.8cqw;
+    font-weight: 700;
+  }
+
+  .offer .row {
+    justify-content: start;
+    gap: 2.4cqw;
+    font-size: 7cqw;
+  }
+
+  .offer .cta {
+    margin-top: 2cqw;
+  }
+
+  /* ---- swap in progress ---- */
+  .duel {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 3cqw;
+    margin-block: 8cqw 6cqw;
+  }
+
+  .c {
+    display: grid;
+    place-items: center;
+    width: 17cqw;
+    height: 17cqw;
+    border-radius: 99px;
+  }
+
+  .c :global(img) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .c-xmr {
+    box-shadow: 0 0 28px -4px color-mix(in oklab, var(--xmr) 75%, transparent);
+  }
+
+  .c-btc {
+    box-shadow: 0 0 28px -4px color-mix(in oklab, var(--btc) 75%, transparent);
+  }
+
+  .track {
+    position: relative;
+    height: 1.6cqw;
+    overflow: hidden;
+    border-radius: 99px;
+    background: var(--qs-chip);
+  }
+
+  .fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--xmr), var(--btc));
+    transform-origin: left;
+  }
+
+  /* a light that slides along the bar: translate keeps it on the GPU */
+  .pulse {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 30%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.85), transparent);
+    opacity: 0;
+  }
+
+  .steps {
+    display: grid;
+    gap: 3.4cqw;
+    padding: 5cqw;
+    border: 1px solid var(--qs-line);
+    border-radius: 5cqw;
+    background: var(--qs-field);
+    list-style: none;
+  }
+
+  .steps li {
+    display: flex;
+    align-items: center;
+    gap: 3cqw;
+    color: var(--qs-ink);
+    font-size: 4.4cqw;
+    font-weight: 600;
+  }
+
+  .tick {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 6.4cqw;
+    height: 6.4cqw;
+    border-radius: 99px;
+    background: var(--success);
+    color: #fff;
+  }
+
+  .tick svg {
+    width: 4.2cqw;
+    height: 4.2cqw;
+  }
+
+  .note {
+    margin-top: auto;
+    color: var(--qs-muted);
+    font-size: 4.2cqw;
+    text-align: center;
+  }
+
+  /* ---- complete ---- */
+  .scr-done {
+    align-items: center;
+    justify-content: center;
+    gap: 2cqw;
+    text-align: center;
+  }
+
+  .burst {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 32cqw;
+    height: 32cqw;
+    margin-bottom: 5cqw;
+  }
+
+  .seal {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 99px;
+    background: radial-gradient(circle at 35% 30%, #34d399, var(--success) 60%, #047857);
+    box-shadow:
+      0 0 0 3cqw color-mix(in oklab, var(--success) 18%, transparent),
+      0 0 60px -6px color-mix(in oklab, var(--success) 80%, transparent);
+    color: #fff;
+  }
+
+  .seal svg {
+    width: 50%;
+    height: 50%;
+  }
+
+  .sparks {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+
+  .sparks i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2.4cqw;
+    height: 2.4cqw;
+    margin: -1.2cqw;
+    border-radius: 99px;
+    background: var(--btc);
+    transform: rotate(var(--a)) translateY(-34cqw);
+  }
+
+  .sparks i:nth-child(even) {
+    background: var(--link);
+  }
+
+  .done-title {
+    font-size: 7.4cqw;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .plus {
+    color: var(--btc);
+    font-size: 8.4cqw;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .minus {
+    color: var(--qs-muted);
+    font-size: 4.6cqw;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- small loops of their own ---- */
+  .ring {
+    animation: qs-ring 2s ease-out infinite;
+  }
+
+  .ring.r2 {
+    animation-delay: 1s;
+  }
+
+  .spin {
+    animation: qs-spin 0.8s linear infinite;
+  }
+
+  .pulse {
+    animation: qs-pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes qs-ring {
+    from {
+      opacity: 0.9;
+      scale: 0.8;
+    }
+    to {
+      opacity: 0;
+      scale: 1.9;
+    }
+  }
+
+  @keyframes qs-spin {
+    to {
+      rotate: 1turn;
+    }
+  }
+
+  @keyframes qs-pulse {
+    0% {
+      translate: -100% 0;
+      opacity: 0;
+    }
+    20%,
+    80% {
+      opacity: 1;
+    }
+    100% {
+      translate: 333% 0;
+      opacity: 0;
+    }
+  }
+
+</style>

@@ -1,0 +1,277 @@
+---
+// "How a swap works" as a rail. A hairline runs from step 01 to step 04.
+// Once per 5 s loop a comet travels it while a
+// brand fill grows behind; each node ignites as the comet reaches it, then
+// stays lit as completed, and each title brightens with its step. The scene
+// holds, then resets softly. At rest (reduced motion) every step is lit.
+//
+// Timing: the comet shoots node to node, arriving inside node i at 14%,
+// 34% and 54% of the loop, where the node pulses on impact. Everything holds
+// until 88% and fades back by 96%.
+import type { Step } from './types';
+
+interface Props {
+  items: Step[];
+}
+const { items } = Astro.props;
+---
+
+<ol class="rail-steps" role="list">
+  <li class="rail" aria-hidden="true">
+    <span class="fill"></span>
+    <span class="comet"><span class="trail"></span><span class="head"></span></span>
+  </li>
+  {
+    items.map(({ n, title, body }, i) => (
+      <li class={`step s${i}`}>
+        <span class="node">
+          <span class="data">{n}</span>
+        </span>
+        <h3>{title}</h3>
+        <p set:html={body} />
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  @property --lit {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+  }
+
+  @property --flash {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 0;
+  }
+
+  .rail-steps {
+    --node: 2.75rem;
+    --gap: var(--space-6);
+    position: relative;
+    display: grid;
+    gap: var(--space-7);
+    padding: 0;
+    list-style: none;
+  }
+
+  /* ---------- steps ---------- */
+  .step {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    animation-duration: 5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .s0 { animation-name: rail-lit-0; }
+  .s1 { animation-name: rail-lit-1; }
+  .s2 { animation-name: rail-lit-2; }
+  .s3 { animation-name: rail-lit-3; }
+
+  .node {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: var(--node);
+    height: var(--node);
+    margin-bottom: var(--space-3);
+    border-radius: 50%;
+    border: 1px solid color-mix(in oklab, var(--brand) calc(var(--lit) * 85%), var(--border-strong));
+    background:
+      radial-gradient(circle at 50% 30%, color-mix(in oklab, var(--brand) calc(var(--lit) * 22%), transparent), transparent 70%),
+      var(--surface);
+    color: color-mix(in oklab, var(--link) calc(var(--lit) * 100%), var(--text-subtle));
+    font-size: var(--step--1);
+    box-shadow:
+      0 0 calc(var(--flash) * 30px) calc(var(--flash) * 2px) color-mix(in oklab, var(--brand) 60%, transparent),
+      inset 0 1px 0 color-mix(in oklab, white 8%, transparent);
+    scale: calc(1 + var(--flash) * 0.1);
+  }
+
+  /* a fine inner ring, like a lens */
+  .node::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    border: 1px solid color-mix(in oklab, var(--brand) calc(var(--lit) * 30%), transparent);
+  }
+
+  h3 {
+    font-size: var(--step-1);
+    color: color-mix(in oklab, var(--text) calc(55% + var(--lit) * 45%), var(--text-subtle));
+  }
+
+  p {
+    color: var(--text-muted);
+  }
+
+  /* ---------- rail (wide screens) ---------- */
+  .rail {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .rail-steps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--gap);
+    }
+
+    /* From the first node's centre to the last node's centre. */
+    .rail {
+      position: absolute;
+      top: calc(var(--node) / 2);
+      left: calc(var(--node) / 2);
+      right: calc((100% - 3 * var(--gap)) / 4 - var(--node) / 2);
+      display: block;
+      height: 1px;
+      background: var(--border-strong);
+      /* Constant deceleration: speed falls in a straight line from 1.4x to
+         0.6x the average across each hop (position 1.4t - 0.4t^2, exactly),
+         so the dot shoots out and still hits the next node with momentum. */
+      --shoot: cubic-bezier(0.3333, 0.4667, 0.6667, 0.8);
+    }
+
+    .fill {
+      position: absolute;
+      inset: -0.5px 0;
+      background: linear-gradient(90deg, #0073ff, #3b82f6 60%, #a855f7);
+      box-shadow: 0 0 10px color-mix(in oklab, #3b82f6 60%, transparent);
+      right: auto;
+      width: 100%;
+      animation:
+        rail-fill-move 5s var(--shoot) infinite,
+        rail-fill-fade 5s linear infinite;
+    }
+
+    .comet {
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      animation:
+        rail-comet-move 5s var(--shoot) infinite,
+        rail-comet-fade 5s linear infinite;
+    }
+
+    .trail {
+      position: absolute;
+      right: 0;
+      top: -1px;
+      width: 8rem;
+      height: 3px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, transparent, color-mix(in oklab, #93c5fd 80%, transparent));
+      filter: blur(0.5px);
+    }
+
+    .head {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 10px 2px #3b82f6, 0 0 24px 6px color-mix(in oklab, #a855f7 50%, transparent);
+    }
+
+    :global(html[data-theme='light']) .head {
+      background: var(--brand);
+    }
+  }
+
+  /* ---------- vertical connector (narrow screens) ---------- */
+  @media (max-width: 63.99rem) {
+    .step {
+      padding-left: calc(var(--node) + var(--space-5));
+    }
+
+    .node {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      top: var(--node);
+      bottom: calc(-1 * var(--space-7));
+      left: calc(var(--node) / 2 - 0.5px);
+      width: 1px;
+      background: linear-gradient(
+        color-mix(in oklab, var(--brand) calc(var(--lit) * 80%), var(--border-strong)),
+        var(--border)
+      );
+    }
+  }
+
+  /* ---------- timelines, 5 s ---------- */
+  /* The dot shoots node to node: each hop travels for 14% of the loop to the
+     next node's centre (passing behind it), then rests inside it for 6%
+     before launching again. The node ignites on arrival (14%, 34%, 54%),
+     the impact. The fill follows the same path. */
+  @keyframes rail-comet-move {
+    0% { left: 0%; }
+    14%, 20% { left: calc(100% / 3); }
+    34%, 40% { left: calc(200% / 3); }
+    54%, 100% { left: 100%; }
+  }
+
+  @keyframes rail-comet-fade {
+    0% { opacity: 0; }
+    2%, 54% { opacity: 1; }
+    58%, 100% { opacity: 0; }
+  }
+
+  @keyframes rail-fill-move {
+    0% { width: 0%; }
+    14%, 20% { width: calc(100% / 3); }
+    34%, 40% { width: calc(200% / 3); }
+    54%, 100% { width: 100%; }
+  }
+
+  @keyframes rail-fill-fade {
+    0%, 88% { opacity: 1; }
+    96%, 100% { opacity: 0; }
+  }
+
+  @keyframes rail-lit-0 {
+    0% { --lit: 0; --flash: 0; }
+    1% { --lit: 1; --flash: 1; }
+    8% { --flash: 0; }
+    88% { --lit: 1; }
+    96%, 100% { --lit: 0; --flash: 0; }
+  }
+
+  @keyframes rail-lit-1 {
+    0%, 13.9% { --lit: 0; --flash: 0; }
+    14% { --lit: 1; --flash: 1; }
+    20% { --flash: 0; }
+    88% { --lit: 1; }
+    96%, 100% { --lit: 0; --flash: 0; }
+  }
+
+  @keyframes rail-lit-2 {
+    0%, 33.9% { --lit: 0; --flash: 0; }
+    34% { --lit: 1; --flash: 1; }
+    40% { --flash: 0; }
+    88% { --lit: 1; }
+    96%, 100% { --lit: 0; --flash: 0; }
+  }
+
+  @keyframes rail-lit-3 {
+    0%, 53.9% { --lit: 0; --flash: 0; }
+    54% { --lit: 1; --flash: 1; }
+    60% { --flash: 0; }
+    88% { --lit: 1; }
+    96%, 100% { --lit: 0; --flash: 0; }
+  }
+</style>

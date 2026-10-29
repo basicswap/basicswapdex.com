@@ -1,0 +1,271 @@
+---
+// An atomic swap drawn step by step, each step on the side of the trader
+// who takes it: Alice on the left, Bob on the right. An optional setup row
+// sits above, and the unhappy path (refunds) below. Titles and notes may
+// carry <em> for the protocol's variables.
+interface Step {
+  /** Who acts: "a" (left) or "b" (right). */
+  side: 'a' | 'b';
+  /** Where it happens: a chain name, or "off-chain". */
+  chain: string;
+  title: string;
+  note: string;
+}
+interface Props {
+  alice: string;
+  bob: string;
+  setup?: string;
+  steps: Step[];
+  unhappy: string;
+  caption: string;
+}
+const { alice, bob, setup, steps, unhappy, caption } = Astro.props;
+const tone = (chain: string) => ({ Bitcoin: 'btc', Monero: 'xmr', Litecoin: 'ltc' })[chain] ?? 'off';
+---
+
+<figure class="swap">
+  <div class="panel">
+    <div class="parties">
+      <span class="party a">{alice}</span>
+      <span class="party b">{bob}</span>
+    </div>
+
+    {
+      setup && (
+        <div class="setup">
+          <p class="setup-label">Setup · off-chain</p>
+          <p>{setup}</p>
+        </div>
+      )
+    }
+
+    <ol class="steps" role="list">
+      {
+        steps.map((step, i) => (
+          <li class:list={['step', `side-${step.side}`]}>
+            <div class="step-top">
+              <span class="n">{i + 1}</span>
+              <span class:list={['chain', tone(step.chain)]}>{step.chain}</span>
+            </div>
+            <p class="step-title" set:html={step.title} />
+            <p class="step-note" set:html={step.note} />
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="unhappy">
+      <span class="refund" aria-hidden="true">↻</span>
+      <div>
+        <p class="unhappy-label">Unhappy path</p>
+        <p>{unhappy}</p>
+      </div>
+    </div>
+  </div>
+  <figcaption>{caption}</figcaption>
+</figure>
+
+<style>
+  .swap {
+    margin-block: var(--space-7);
+  }
+
+  .panel {
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(120% 60% at 0% 0%, color-mix(in oklab, var(--brand) 9%, transparent), transparent 70%),
+      radial-gradient(120% 60% at 100% 0%, color-mix(in oklab, var(--accent) 9%, transparent), transparent 70%),
+      var(--surface);
+  }
+
+  .parties {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .party {
+    justify-self: center;
+    padding: 0.2rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: var(--step--1);
+    font-weight: 650;
+  }
+
+  .party.a {
+    background: color-mix(in oklab, var(--brand) 16%, transparent);
+    color: color-mix(in oklab, var(--brand) 55%, var(--text));
+  }
+
+  .party.b {
+    background: color-mix(in oklab, var(--accent) 16%, transparent);
+    color: color-mix(in oklab, var(--accent) 55%, var(--text));
+  }
+
+  .setup {
+    margin-bottom: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    text-align: center;
+  }
+
+  .setup-label,
+  .unhappy-label {
+    margin: 0;
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+    font-weight: 600;
+  }
+
+  .setup p,
+  .unhappy p {
+    margin: 0;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3) var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .step {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+  }
+
+  .side-a {
+    grid-column: 1;
+    border-left: 2px solid var(--brand);
+  }
+
+  .side-b {
+    grid-column: 2;
+    border-right: 2px solid var(--accent);
+  }
+
+  .step-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+
+  .n {
+    display: grid;
+    place-items: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: var(--step--2);
+    font-weight: 700;
+  }
+
+  .chain {
+    --tone: var(--gray-400);
+    padding: 0.1rem 0.5rem;
+    border: 1px solid color-mix(in oklab, var(--tone) 35%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in oklab, var(--tone) 12%, transparent);
+    color: color-mix(in oklab, var(--tone) 70%, var(--text));
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .chain.btc { --tone: #f7931a; }
+  .chain.xmr { --tone: #ff6600; }
+  .chain.ltc { --tone: #a5b4c8; }
+
+  .step-title {
+    margin: 0;
+    color: var(--text);
+    font-size: var(--step--1);
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  /* the protocol's variables: upright in titles, italic in notes */
+  .step-title :global(em) {
+    font-style: normal;
+  }
+
+  .step-note {
+    margin: 0.2rem 0 0;
+    color: var(--text-muted);
+    font-size: var(--step--2);
+    line-height: 1.5;
+  }
+
+  .unhappy {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid color-mix(in oklab, var(--warning) 35%, transparent);
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--warning) 8%, transparent);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .unhappy-label {
+    color: color-mix(in oklab, var(--warning) 75%, var(--text));
+  }
+
+  .refund {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--warning) 18%, transparent);
+    color: var(--warning);
+  }
+
+  figcaption {
+    margin-top: var(--space-3);
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+    text-align: center;
+  }
+
+  @media (max-width: 36rem) {
+    .steps {
+      grid-template-columns: 1fr;
+    }
+
+    .side-a,
+    .side-b {
+      grid-column: 1;
+    }
+
+    .side-b {
+      margin-left: var(--space-5);
+    }
+
+    .side-a {
+      margin-right: var(--space-5);
+    }
+  }
+</style>

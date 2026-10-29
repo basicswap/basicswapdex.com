@@ -1,0 +1,163 @@
+---
+// Light nodes, as "headers only". Each block is a small header and a large
+// body of transactions. The light client lifts just the headers off the
+// chain and stacks them, linked, on the phone; the bodies stay behind.
+// 8 s loop.
+// At rest (reduced motion): the headers stacked on the phone.
+const blocks = [14, 66, 118];
+const TOP = 40;
+const W = 44;
+const HH = 12;
+const SCALE = 30 / W;
+const SLOT_X = 188;
+const slotsY = [88, 70, 52];
+const body = [34, 26, 30, 20, 28];
+const heads = blocks.map((x, k) => {
+  const dx = SLOT_X - x;
+  const dy = slotsY[k] - TOP;
+  const s = 10 + k * 11;
+  return { x, k, dx, dy, s };
+});
+// one keyframe set per header: lift, fly to its slot, hold, clear
+const css = heads
+  .map(
+    ({ k, dx, dy, s }) => `
+@keyframes l2-head-${k} {
+  0% { translate: 0 0; scale: 1; opacity: 0; }
+  4%, ${s}% { translate: 0 0; scale: 1; opacity: 1; }
+  ${s + 4}% { translate: 0 -7px; scale: 1; opacity: 1; animation-timing-function: cubic-bezier(0.5, 0, 0.2, 1); }
+  ${s + 14}%, 90% { translate: ${dx}px ${dy}px; scale: ${SCALE.toFixed(3)}; opacity: 1; }
+  97%, 100% { translate: ${dx}px ${dy}px; scale: ${SCALE.toFixed(3)}; opacity: 0; }
+}
+.l2 .head-${k} { animation-name: l2-head-${k}; }`,
+  )
+  .join('');
+---
+
+<svg viewBox="0 0 240 140" fill="none" class="l2">
+  <defs>
+    <linearGradient id="l2-head" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0073ff" />
+      <stop offset="1" stop-color="#3b82f6" />
+    </linearGradient>
+  </defs>
+
+  <!-- the phone, behind everything that lands on it -->
+  <rect class="phone" x="180" y="22" width="46" height="96" rx="10" />
+  <rect class="screen" x="185" y="30" width="36" height="80" rx="4" />
+  {slotsY.slice(0, -1).map((y, i) => <path class="link" d={`M203 ${slotsY[i + 1] + HH * SCALE} V${y}`} pathLength="1" />)}
+
+  {
+    heads.map(({ x, k }) => (
+      <g class="block">
+        {k < 2 && <path class="ptr" d={`M${x + W} ${TOP + 6} H${x + 52}`} />}
+        <rect class="slot" x={x + 0.5} y={TOP + 0.5} width={W - 1} height={HH - 1} rx="3" />
+        <g class="body">
+          <rect class="frame" x={x} y={TOP + HH + 2} width={W} height="58" rx="4" />
+          {body.map((w, i) => <rect class="tx" x={x + 6} y={TOP + HH + 10 + i * 9.5} width={w * (0.8 + ((k + i) % 3) * 0.1)} height="3" rx="1.5" />)}
+        </g>
+      </g>
+    ))
+  }
+
+  {
+    heads.map(({ x, k, dx, dy }) => (
+      <g class={`head head-${k}`} style={`translate:${dx}px ${dy}px;scale:${SCALE.toFixed(3)}`}>
+        <rect x={x} y={TOP} width={W} height={HH} rx="3" fill="url(#l2-head)" />
+        {[0, 1, 2, 3].map((j) => <rect class="hash" x={x + 6 + j * 7} y={TOP + 4.5} width="4" height="3" rx="1" />)}
+      </g>
+    ))
+  }
+</svg>
+
+<style is:inline set:html={css}></style>
+
+<style>
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .phone {
+    fill: var(--surface);
+    stroke: var(--link);
+    stroke-width: 1.4;
+  }
+
+  .screen {
+    fill: color-mix(in oklab, var(--brand) 6%, var(--bg));
+  }
+
+  .ptr {
+    stroke: color-mix(in oklab, var(--link) 60%, var(--border-strong));
+  }
+
+  .slot {
+    stroke: var(--border-strong);
+    stroke-dasharray: 2 2;
+  }
+
+  .frame {
+    fill: var(--surface);
+    stroke: var(--border-strong);
+  }
+
+  .tx {
+    fill: var(--text-subtle);
+    opacity: 0.55;
+  }
+
+  .hash {
+    fill: #fff;
+    opacity: 0.7;
+  }
+
+  .head {
+    transform-box: fill-box;
+    transform-origin: 0 0;
+    animation-duration: 8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: var(--ease);
+    filter: drop-shadow(0 2px 6px color-mix(in oklab, #0073ff 40%, transparent));
+  }
+
+  .link {
+    stroke: var(--green);
+    stroke-width: 1.4;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  .body {
+    opacity: 0.35;
+  }
+
+  /* ---- the loop, 8 s ---- */
+  .link, .body, .screen {
+    animation-duration: 8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: var(--ease);
+  }
+
+  .link { animation-name: l2-link; }
+  .body { animation-name: l2-body; }
+  .screen { animation-name: l2-screen; }
+
+  @keyframes l2-link {
+    0%, 50% { stroke-dashoffset: 1; opacity: 1; }
+    58%, 90% { stroke-dashoffset: 0; opacity: 1; }
+    97%, 100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  /* The bulk of the chain stays behind, dimmed. */
+  @keyframes l2-body {
+    0%, 40% { opacity: 1; }
+    52%, 90% { opacity: 0.35; }
+    97%, 100% { opacity: 1; }
+  }
+  @keyframes l2-screen {
+    0%, 52% { fill: color-mix(in oklab, var(--brand) 6%, var(--bg)); }
+    58%, 90% { fill: color-mix(in oklab, var(--green) 14%, var(--bg)); }
+    97%, 100% { fill: color-mix(in oklab, var(--brand) 6%, var(--bg)); }
+  }
+</style>

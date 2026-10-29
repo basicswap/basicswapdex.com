@@ -1,0 +1,97 @@
+---
+// A list of development tasks, each done or not, with its status.
+import Icon from '../../Icon.astro';
+import StatusPill from './StatusPill.astro';
+
+interface Item {
+  id: string;
+  text: string;
+  completed: boolean;
+  status?: string;
+}
+interface Props {
+  items: Item[];
+}
+const { items } = Astro.props;
+---
+
+<section class="checklist">
+  <h3 class="heading">Development Tasks</h3>
+  <ul role="list">
+    {
+      items.map((item) => (
+        <li class:list={{ done: item.completed }}>
+          <span class="box" aria-hidden="true">{item.completed && <Icon name="check" size={13} />}</span>
+          <span class="text">
+            {item.text}
+            <span class="visually-hidden">{item.completed ? '(done)' : '(not done)'}</span>
+          </span>
+          {item.status && <StatusPill status={item.status} />}
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .checklist {
+    margin-block: var(--space-6);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  .heading {
+    margin: 0 0 var(--space-3);
+    font-size: var(--step-0);
+    letter-spacing: 0;
+  }
+
+  ul {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--border);
+  }
+
+  li:first-child {
+    border-top: 0;
+  }
+
+  .box {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    color: #fff;
+  }
+
+  .done .box {
+    border-color: var(--success);
+    background: var(--success);
+  }
+
+  .text {
+    flex: 1;
+    color: var(--text);
+  }
+
+  .done .text {
+    color: var(--text-subtle);
+    text-decoration: line-through;
+  }
+</style>

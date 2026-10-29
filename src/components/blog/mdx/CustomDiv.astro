@@ -1,0 +1,20 @@
+---
+// A plain styled box. The old blog took Tailwind classes here; the one post
+// using it asked for a soft green panel, which is what this draws.
+interface Props {
+  class?: string;
+}
+---
+
+<div class="custom-div"><slot /></div>
+
+<style>
+  .custom-div {
+    margin-block: var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid color-mix(in oklab, var(--success) 35%, transparent);
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--success) 10%, transparent);
+    color: color-mix(in oklab, var(--success) 55%, var(--text));
+  }
+</style>

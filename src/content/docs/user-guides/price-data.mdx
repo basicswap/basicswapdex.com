@@ -1,0 +1,40 @@
+---
+title: "Price data and the CoinGecko key"
+sidebar: "Price data"
+seoTitle: "Price Data and CoinGecko API Key"
+description: "Where BasicSwap gets market prices and why charts stay empty without a CoinGecko key, with steps to add a Demo or Pro key under Settings, Charts Configuration."
+published: 2026-10-15
+---
+BasicSwap shows market prices next to offers, fills in "Use market rate" when you make an offer, and draws price charts on the order book. It takes those prices from public price services, which it calls oracles. Trading itself doesn't depend on them, and a swap goes through at the rate the two traders agreed, whatever the oracles say.
+
+## Add a CoinGecko key
+
+CoinGecko is the first oracle BasicSwap asks and the only source of chart history, and it needs an API key of your own, which BasicSwap doesn't ship. Without a key CoinGecko refuses the requests, so the charts stay empty, and prices come from the other oracles instead.
+
+1. Create a key on [CoinGecko's API page](https://www.coingecko.com/en/api/pricing). The free Demo plan is enough for one BasicSwap, and you get a key by choosing **Create Free Account**, opening the **Developer Dashboard**, going to **API Keys** and adding one, though a paid Pro key works just as well.
+2. In BasicSwap, open **Settings** and the **Charts Configuration** section.
+3. Set **CoinGecko Plan** to match your key, Demo or Pro.
+4. Paste the key into **CoinGecko API Key**.
+5. Click **Apply Changes**, and the next price update uses the key.
+
+Keep the key to yourself, too, or several people sharing one Demo key will run it out of its monthly allowance for all of them.
+
+## Choose the oracles
+
+The **Oracles** list in Charts Configuration has seven sources, which BasicSwap tries in this order, using the first enabled one with a recent price for each coin:
+
+| Oracle | Covers |
+|---|---|
+| CoinGecko | Every coin except Wownero, with your key |
+| Kraken, KuCoin | BTC, LTC, DCR, XMR, DASH, BCH and DOGE |
+| MEXC | Adds PART, PIVX, FIRO and DCR |
+| CoinLore | Used for PIVX only |
+| CoinPaprika | A further fallback |
+| neroswap | WOW |
+
+Untick any source you'd rather BasicSwap didn't contact, and if you run BasicSwap over [Tor](/docs/user-guides/tor), the remaining requests go through Tor as well.
+
+## The other chart settings
+
+- **Show Charts** turns the order book's price chart on or off.
+- **Enabled Coins** chooses which coins get price data. Leave it blank for the coins you've enabled, enter `all` for every coin BasicSwap knows, or list tickers separated by commas.

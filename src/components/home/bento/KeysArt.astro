@@ -1,0 +1,170 @@
+---
+// Bento art for "Fully non-custodial": your keys stay on your device.
+// A glass device tile holds the key inside a secure perimeter of three
+// hairline rings. A light wave rolls outward through the rings, two points
+// orbit inside the perimeter, and a glint crosses the tile now and then.
+// Decorative SVG; at rest (reduced motion) it is a still, lit composition.
+const C = 150;
+const rings = [
+  { s: 128, rx: 30 },
+  { s: 182, rx: 40 },
+  { s: 238, rx: 52 },
+];
+const rr = (s: number, rx: number) => {
+  const h = s / 2;
+  return `M${C - h + rx} ${C - h} H${C + h - rx} A${rx} ${rx} 0 0 1 ${C + h} ${C - h + rx} V${C + h - rx} A${rx} ${rx} 0 0 1 ${C + h - rx} ${C + h} H${C - h + rx} A${rx} ${rx} 0 0 1 ${C - h} ${C + h - rx} V${C - h + rx} A${rx} ${rx} 0 0 1 ${C - h + rx} ${C - h} Z`;
+};
+const orbit = rr(rings[1].s, rings[1].rx);
+---
+
+<svg viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice" fill="none" class="keys-art">
+  <defs>
+    <pattern id="ka-dots" width="12" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.9" class="dot" />
+    </pattern>
+    <radialGradient id="ka-fade">
+      <stop offset="0" stop-color="#fff" stop-opacity="1" />
+      <stop offset="1" stop-color="#fff" stop-opacity="0" />
+    </radialGradient>
+    <mask id="ka-mask"><rect width="300" height="300" fill="url(#ka-fade)" /></mask>
+    <radialGradient id="ka-glow">
+      <stop offset="0" stop-color="#0073ff" stop-opacity="0.35" />
+      <stop offset="1" stop-color="#0073ff" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="ka-tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" class="tile-top" />
+      <stop offset="1" class="tile-bottom" />
+    </linearGradient>
+    <linearGradient id="ka-edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60a5fa" />
+      <stop offset="1" stop-color="#a855f7" stop-opacity="0.6" />
+    </linearGradient>
+    <linearGradient id="ka-key" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#60a5fa" />
+      <stop offset="1" stop-color="#c084fc" />
+    </linearGradient>
+    <linearGradient id="ka-ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6" />
+      <stop offset="1" stop-color="#a855f7" />
+    </linearGradient>
+    <linearGradient id="ka-glint" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0" />
+      <stop offset="0.5" stop-color="#fff" stop-opacity="0.22" />
+      <stop offset="1" stop-color="#fff" stop-opacity="0" />
+    </linearGradient>
+    <clipPath id="ka-tile-clip"><rect x="108" y="108" width="84" height="84" rx="22" /></clipPath>
+  </defs>
+
+  <rect width="300" height="300" fill="url(#ka-dots)" mask="url(#ka-mask)" />
+  <circle cx={C} cy={C} r="120" fill="url(#ka-glow)" />
+
+  <!-- secure perimeter -->
+  {rings.map(({ s, rx }, i) => <path class="ring" d={rr(s, rx)} style={`--i:${i}`} />)}
+  {rings.map(({ s, rx }, i) => <path class="ring-wave" d={rr(s, rx)} style={`--i:${i}`} />)}
+
+  <!-- points orbiting inside the perimeter -->
+  {[0, 1].map((k) => <circle class="orbiter" r="2.6" style={`offset-path: path('${orbit}'); --k:${k}`} />)}
+
+  <!-- the device -->
+  <rect class="tile-shadow" x="108" y="114" width="84" height="84" rx="22" />
+  <rect x="108" y="108" width="84" height="84" rx="22" fill="url(#ka-tile)" />
+  <rect x="108" y="108" width="84" height="42" rx="22" class="tile-sheen" />
+  <rect x="108.5" y="108.5" width="83" height="83" rx="21.5" stroke="url(#ka-edge)" class="tile-edge" />
+  <g clip-path="url(#ka-tile-clip)">
+    <rect class="glint" x="60" y="100" width="40" height="100" fill="url(#ka-glint)" />
+  </g>
+  <g transform="translate(150 150) scale(2.15) translate(-12 -12)" stroke="url(#ka-key)" class="key">
+    <circle cx="8" cy="15" r="4" />
+    <path d="m11 12 8-8m-3 3 2 2m-4 0 2 2" />
+  </g>
+</svg>
+
+<style>
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .dot {
+    fill: color-mix(in oklab, var(--text-subtle) 45%, transparent);
+  }
+
+  .tile-top {
+    stop-color: color-mix(in oklab, var(--brand) 22%, var(--surface));
+  }
+
+  .tile-bottom {
+    stop-color: color-mix(in oklab, var(--brand) 6%, var(--bg));
+  }
+
+  .tile-shadow {
+    fill: #0073ff;
+    opacity: 0.25;
+    filter: blur(14px);
+  }
+
+  .tile-sheen {
+    fill: #ffffff;
+    opacity: 0.05;
+  }
+
+  .tile-edge {
+    stroke-width: 1;
+  }
+
+  .key {
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 6px color-mix(in oklab, #3b82f6 70%, transparent));
+  }
+
+  .ring {
+    stroke: color-mix(in oklab, var(--brand) 30%, var(--border));
+    stroke-width: 1;
+    stroke-dasharray: 2 6;
+    opacity: calc(0.9 - var(--i) * 0.22);
+  }
+
+  /* A light wave rolls outward through the perimeter, ring by ring. */
+  .ring-wave {
+    stroke: url(#ka-ring);
+    stroke-width: 1.5;
+    opacity: 0;
+    animation: ka-wave 3.6s var(--ease) infinite;
+    animation-delay: calc(var(--i) * 0.45s);
+  }
+
+  @keyframes ka-wave {
+    0% { opacity: 0; }
+    12% { opacity: calc(0.85 - var(--i) * 0.2); }
+    45%, 100% { opacity: 0; }
+  }
+
+  .orbiter {
+    fill: #ffffff;
+    filter: drop-shadow(0 0 4px #3b82f6);
+    offset-rotate: 0deg;
+    animation: ka-orbit 9s linear infinite;
+    animation-delay: calc(var(--k) * -4.5s);
+  }
+
+  :global(html[data-theme='light']) .orbiter {
+    fill: var(--brand);
+  }
+
+  @keyframes ka-orbit {
+    from { offset-distance: 0%; }
+    to { offset-distance: 100%; }
+  }
+
+  .glint {
+    animation: ka-glint 6s var(--ease) infinite;
+  }
+
+  @keyframes ka-glint {
+    0%, 70% { translate: 0 0; }
+    85%, 100% { translate: 160px 0; }
+  }
+</style>

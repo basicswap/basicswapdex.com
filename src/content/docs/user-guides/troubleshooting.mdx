@@ -1,0 +1,114 @@
+---
+title: "Troubleshooting"
+seoTitle: "Troubleshooting BasicSwap"
+description: "Fixes for common BasicSwap problems: reindexing a coin, running on older Python versions, installing natively on Windows and reaching a node over an SSH tunnel."
+published: 2026-10-15
+---
+This page collects fixes for problems that come up when installing or running BasicSwap, most of them from the project's own notes. If yours isn't here, ask in the [BasicSwap Matrix room](https://matrix.to/#/#basicswap:matrix.org) with the error from your terminal.
+
+## A coin daemon won't start or its chain is corrupt
+
+A crash or a full disk can leave a coin's blockchain database damaged, so its daemon stops at startup. Rebuilding the database with `-reindex` usually fixes it. With BasicSwap stopped, start only that coin with the extra option, and let it finish:
+
+<Tabs groupId="install-method">
+<TabItem value="source" label="From source" default>
+
+```bash
+export SWAP_DATADIR=$HOME/coinswaps
+. $SWAP_DATADIR/venv/bin/activate
+basicswap-run --datadir=$SWAP_DATADIR --startonlycoin=litecoin --extracoinopts="-reindex"
+```
+
+</TabItem>
+<TabItem value="docker" label="Docker">
+
+```bash
+docker-compose run --rm swapclient basicswap-run --datadir=/coindata --startonlycoin=litecoin --extracoinopts="-reindex"
+```
+
+</TabItem>
+</Tabs>
+
+Reindexing reads the whole chain again and can take hours. When the daemon has caught up, stop it with `Ctrl + C` and start BasicSwap as usual.
+
+To leave a broken coin out for now and trade the others, start BasicSwap with `--withoutcoin=` and that coin's name, or with `--withcoin=` and the list of coins to run. With Docker, add `--service-ports` so the web UI is still reachable:
+
+```bash
+docker-compose run --rm --service-ports swapclient basicswap-run --datadir=/coindata --withcoin=monero
+```
+
+## Use a different Python version
+
+On an older distribution such as Debian 11, the system Python and its SQLite can be too old for BasicSwap. [uv](https://github.com/astral-sh/uv) can create the virtual environment with a newer Python instead. In the [source install](/docs/user-guides/install#build-basicswap), replace the `python3 -m venv` line with:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
+uv venv -p 3.10 "$SWAP_DATADIR/venv" --seed
+```
+
+then carry on with the remaining steps as written. The basicswap-bash installer already uses uv on its own whenever it finds it installed.
+
+## Reaching BasicSwap on another computer
+
+The safest way to use a BasicSwap that runs on another machine, such as a home server, is an SSH tunnel, which keeps the web UI private to that machine and lets SSH carry it to yours. Run this on the computer you browse on:
+
+```bash
+ssh -N -L 5555:localhost:12700 -L 11700:localhost:11700 user@BASICSWAP_HOST
+```
+
+Then open `http://localhost:5555` in your browser. The first port can be any free one, but the second, `11700`, carries the websocket that pushes live updates and has to match `wsport` in the server's `basicswap.json`.
+
+To expose the web UI on the network directly instead, see [Reaching BasicSwap over a network](/docs/user-guides/web-ui-authentication#reaching-basicswap-over-a-network), which also explains the `403 Host not allowed` error.
+
+## Using your own Monero node on another machine
+
+You can point BasicSwap at a Monero node you run elsewhere, with or without an SSH tunnel. Stop BasicSwap and set these values under `chainclients.monero` in `basicswap.json`:
+
+| Setting | Value |
+|---|---|
+| `connection_type` | `rpc` |
+| `manage_daemon` | `false` |
+| `manage_wallet_daemon` | `true` |
+| `rpchost` | The node's address, or `localhost` through a tunnel |
+| `rpcport` | The node's RPC port, for example `18089` |
+| `rpcuser`, `rpcpassword` | The node's RPC login, if it has one |
+
+On the node, a restricted RPC port with a login looks like this in `monerod.conf`, and the port needs to be open in the node's firewall as well:
+
+```text
+rpc-login=USER:PASSWORD
+rpc-restricted-bind-port=18089
+rpc-restricted-bind-ip=0.0.0.0
+```
+
+To keep the RPC port closed and use a tunnel instead, set `rpchost` to `localhost` and run this on the BasicSwap machine:
+
+```bash
+ssh -N -L 18089:localhost:18089 user@NODE_HOST
+```
+
+Test the connection from the BasicSwap machine with:
+
+```bash
+curl http://NODE_HOST:18089/json_rpc -u USER:PASSWORD --digest -d '{"jsonrpc":"2.0","id":"0","method":"get_info"}' -H 'Content-Type: application/json'
+```
+
+[Lightweight modes](/docs/user-guides/lightweight-modes#monero-remote-nodes) covers public remote nodes and when to trust one.
+
+## Installing on Windows without WSL
+
+You can install BasicSwap natively on Windows, but the project doesn't support it, and the [install guide](/docs/user-guides/install)'s WSL methods are the ones to use. If you still want to try, install [Git for Windows](https://gitforwindows.org) and [Python](https://www.python.org/downloads/windows/), open Git Bash as administrator, and run:
+
+```bash
+python -m venv c:\bsx_venv
+c:/bsx_venv/scripts/activate
+git clone https://github.com/basicswap/basicswap.git
+cd basicswap
+pip3 install -r requirements.txt --require-hashes && pip3 install .
+basicswap-prepare.exe --help
+```
+
+## Errors during installation
+
+Read the terminal output at each step. A step that fails, such as a missing package, a download that times out or a signature check that doesn't pass, rarely fixes itself later, and carrying on with the next steps anyway only makes the cause harder to find. Fix the first error you see, then run that step again.

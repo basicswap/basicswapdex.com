@@ -1,0 +1,435 @@
+---
+// "How a swap works on your phone" on the Mobile page: three steps, each
+// over a small phone showing that moment in a wallet with BasicSwap built in
+// (styled after the Litecoin Nexus Wallet): the home screen with its Swap
+// button, the swap screen, and the swap settling. The frames are graphite in
+// both themes and the screens follow the theme. Example figures.
+import { Image } from 'astro:assets';
+import Icon from '../Icon.astro';
+import Logo from '../Logo.astro';
+import litecoin from '../../assets/coins/litecoin-circle.png';
+import bitcoin from '../../assets/coins/bitcoin-circle.png';
+
+const steps = [
+  {
+    title: 'Tap Swap in your wallet',
+    body: 'Open a wallet with BasicSwap built in, like the Litecoin Nexus Wallet, and tap Swap.',
+  },
+  {
+    title: 'Pick an amount and an offer',
+    body: 'Enter what you want to swap, and the wallet finds offers on the shared order book.',
+  },
+  {
+    title: 'Let it settle in the background',
+    body: 'Both coins lock on their own chains, then the swap completes. It runs in the background, so you can leave the app.',
+  },
+];
+const progress = [
+  { label: 'Offer accepted', done: true },
+  { label: 'LTC locked', done: true },
+  { label: 'BTC locked', done: true },
+  { label: 'BTC received', done: false },
+];
+---
+
+<ol class="how" role="list">
+  <li>
+    <div class="phone" aria-hidden="true">
+      <div class="screen">
+        <span class="island"></span>
+        <p class="app">Wallet</p>
+        <div class="balance">
+          <Image src={litecoin} alt="" width={48} height={48} loading="eager" />
+          <p class="data">12.48 LTC</p>
+          <p class="sub data">$1,123.20</p>
+        </div>
+        <div class="actions">
+          <span><i><Icon name="arrowRight" size={12} /></i>Send</span>
+          <span><i class="rx"><Icon name="arrowRight" size={12} /></i>Receive</span>
+          <span class="hot"><i><Logo mark height={12} /></i>Swap</span>
+        </div>
+        <span class="row"></span>
+        <span class="row short"></span>
+        <span class="home"></span>
+      </div>
+    </div>
+    <p class="n data">01</p>
+    <h3>{steps[0].title}</h3>
+    <p class="body">{steps[0].body}</p>
+  </li>
+
+  <li>
+    <div class="phone" aria-hidden="true">
+      <div class="screen">
+        <span class="island"></span>
+        <p class="app">Swap</p>
+        <div class="field">
+          <span class="lbl">You send</span>
+          <span class="val"><Image src={litecoin} alt="" width={40} height={40} loading="eager" /><b class="data">2.40</b> <span class="data">LTC</span></span>
+        </div>
+        <span class="flip"><Icon name="arrowRight" size={10} /></span>
+        <div class="field">
+          <span class="lbl">You get</span>
+          <span class="val"><Image src={bitcoin} alt="" width={40} height={40} loading="eager" /><b class="data">0.0022</b> <span class="data">BTC</span></span>
+        </div>
+        <p class="offer data">best offer · 3 traders</p>
+        <span class="go">Swap</span>
+        <span class="home"></span>
+      </div>
+    </div>
+    <p class="n data">02</p>
+    <h3>{steps[1].title}</h3>
+    <p class="body">{steps[1].body}</p>
+  </li>
+
+  <li>
+    <div class="phone" aria-hidden="true">
+      <div class="screen">
+        <span class="island"></span>
+        <p class="app">Swapping</p>
+        <ul class="ticks" role="list">
+          {
+            progress.map(({ label, done }) => (
+              <li class:list={{ done }}>
+                <span class="tick">{done && <Icon name="check" size={10} />}</span>
+                {label}
+              </li>
+            ))
+          }
+        </ul>
+        <span class="bar"><i></i></span>
+        <p class="keep">Runs in the background</p>
+        <span class="home"></span>
+      </div>
+    </div>
+    <p class="n data">03</p>
+    <h3>{steps[2].title}</h3>
+    <p class="body">{steps[2].body}<span class="ast" aria-hidden="true">*</span></p>
+  </li>
+</ol>
+<p class="foot"><span aria-hidden="true">* </span>Background services can be less reliable on iOS. On an iPhone, open the app now and then until the swap completes.</p>
+
+<style>
+  .how {
+    display: grid;
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .how > li {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    text-align: center;
+  }
+
+  .ast {
+    color: var(--link);
+    font-weight: 600;
+  }
+
+  /* the note the asterisk on step 3 points to */
+  .foot {
+    max-width: 40rem;
+    margin: var(--space-7) auto 0;
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+    text-align: center;
+  }
+
+  .n {
+    margin-top: var(--space-4);
+    color: var(--link);
+    font-size: var(--step--1);
+  }
+
+  h3 {
+    font-size: var(--step-1);
+  }
+
+  .body {
+    max-width: 19rem;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 56rem) {
+    .how {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-6);
+    }
+  }
+
+  /* ---- the phone: the screen inside is sized in cqw of the frame ---- */
+  .phone {
+    position: relative;
+    width: 11rem;
+    aspect-ratio: 9 / 18.5;
+    container-type: inline-size;
+    padding: 0.32rem;
+    border-radius: 1.8rem;
+    background: linear-gradient(145deg, #4a5264, #1a1f2b 30%, #0d1018 62%, #343b4b);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.14),
+      inset 0 0 0 0.24rem #07090e,
+      0 28px 50px -28px rgb(0 0 0 / 0.75);
+  }
+
+  .screen {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4cqw;
+    height: 100%;
+    overflow: hidden;
+    padding: 4cqw 7cqw 5cqw;
+    border-radius: 15cqw;
+    background:
+      radial-gradient(90% 40% at 50% 0%, color-mix(in oklab, var(--brand) 24%, transparent), transparent),
+      var(--bg);
+    font-size: 6.2cqw;
+    text-align: left;
+  }
+
+  .screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgb(255 255 255 / 0.06), transparent 38%);
+    pointer-events: none;
+  }
+
+  .island {
+    align-self: center;
+    flex: none;
+    width: 30cqw;
+    height: 8cqw;
+    border-radius: 8cqw;
+    background: #05070b;
+  }
+
+  .app {
+    margin-top: 2cqw;
+    font-size: 8.4cqw;
+    font-weight: 700;
+  }
+
+  .home {
+    align-self: center;
+    width: 34cqw;
+    height: 1.6cqw;
+    margin-top: auto;
+    border-radius: 2cqw;
+    background: var(--text-subtle);
+  }
+
+  .screen img {
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
+  }
+
+  /* 1. the home screen */
+  .balance {
+    display: grid;
+    justify-items: center;
+    gap: 1.5cqw;
+    padding: 6cqw 0 3cqw;
+  }
+
+  .balance img {
+    width: 14cqw;
+    height: 14cqw;
+  }
+
+  .balance p {
+    font-size: 9cqw;
+    font-weight: 700;
+  }
+
+  .balance .sub {
+    color: var(--text-subtle);
+    font-size: 5.6cqw;
+    font-weight: 400;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .actions span {
+    display: grid;
+    justify-items: center;
+    gap: 2cqw;
+    color: var(--text-muted);
+    font-size: 5.2cqw;
+  }
+
+  .actions i {
+    display: grid;
+    place-items: center;
+    width: 15cqw;
+    height: 15cqw;
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text);
+    rotate: -45deg;
+  }
+
+  .actions i.rx {
+    rotate: 135deg;
+  }
+
+  .actions .hot {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .actions .hot i {
+    background: var(--brand);
+    box-shadow: 0 0 0 1.4cqw color-mix(in oklab, var(--brand) 30%, transparent);
+    rotate: 0deg;
+  }
+
+  .actions .hot i :global(.logo) {
+    width: auto;
+    height: 7cqw;
+  }
+
+  .actions .hot i :global(.logo path) {
+    fill: #fff;
+  }
+
+  .row {
+    height: 9cqw;
+    border-radius: 3cqw;
+    background: var(--surface);
+  }
+
+  .row:first-of-type {
+    margin-top: 3cqw;
+  }
+
+  .row.short {
+    width: 70%;
+  }
+
+  /* 2. the swap screen */
+  .field {
+    display: grid;
+    gap: 2cqw;
+    padding: 4cqw;
+    border: 1px solid var(--border);
+    border-radius: 5cqw;
+    background: var(--surface);
+  }
+
+  .lbl {
+    color: var(--text-subtle);
+    font-size: 5cqw;
+  }
+
+  .val {
+    display: flex;
+    align-items: center;
+    gap: 2cqw;
+  }
+
+  .val b {
+    font-size: 8cqw;
+    font-weight: 700;
+  }
+
+  .val .data:last-child {
+    margin-left: auto;
+    color: var(--text-muted);
+  }
+
+  .flip {
+    display: grid;
+    place-items: center;
+    width: 10cqw;
+    height: 10cqw;
+    margin: -3cqw auto;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--link);
+    rotate: 90deg;
+  }
+
+  .offer {
+    color: var(--success);
+    font-size: 5cqw;
+    text-align: center;
+  }
+
+  .go {
+    padding: 4cqw;
+    border-radius: 6cqw;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  /* 3. the swap settling */
+  .ticks {
+    display: grid;
+    gap: 4cqw;
+    margin: 4cqw 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ticks li {
+    display: flex;
+    align-items: center;
+    gap: 3cqw;
+    color: var(--text-subtle);
+  }
+
+  .ticks li.done {
+    color: var(--text);
+  }
+
+  .tick {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 8cqw;
+    height: 8cqw;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+  }
+
+  .done .tick {
+    border-color: var(--success);
+    background: var(--success);
+    color: #fff;
+  }
+
+  .bar {
+    position: relative;
+    height: 2cqw;
+    margin-top: 3cqw;
+    overflow: hidden;
+    border-radius: 2cqw;
+    background: var(--surface);
+  }
+
+  .bar i {
+    position: absolute;
+    inset: 0 25% 0 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--brand), var(--accent));
+  }
+
+  .keep {
+    color: var(--text-subtle);
+    font-size: 5cqw;
+    text-align: center;
+  }
+</style>

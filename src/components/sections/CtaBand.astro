@@ -1,0 +1,81 @@
+---
+import Ribbon from '../Ribbon.astro';
+import type { PaletteName } from '../../lib/ribbon-palettes';
+interface Props {
+  kicker?: string;
+  title: string;
+  id?: string;
+  /** Off when the next section already carries a ribbon, so two don't stack. */
+  ribbon?: boolean;
+  /** The ribbon's colours; BasicSwap Blue and Violet by default. */
+  palette?: PaletteName;
+}
+const { kicker, title, id, ribbon = true, palette } = Astro.props;
+---
+
+<section class="cta" id={id}>
+  {ribbon && <Ribbon variant="band" palette={palette} />}
+  <div class="container inner">
+    {kicker && <p class="kicker">{kicker}</p>}
+    <h2>{title}</h2>
+    <div class="body flow"><slot /></div>
+    {Astro.slots.has('actions') && <div class="actions-row"><slot name="actions" /></div>}
+  </div>
+</section>
+
+<style>
+  .cta {
+    position: relative;
+    overflow: hidden;
+    padding-block: var(--section);
+    border-top: 1px solid var(--border);
+  }
+
+  .inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: start;
+    gap: var(--space-5);
+    text-shadow:
+      0 0 3px var(--bg),
+      0 0 14px var(--bg),
+      0 0 32px color-mix(in oklab, var(--bg) 85%, transparent);
+  }
+
+  /* As in the hero, the ribbon dims itself where the text sits, with no shape
+     of its own: evenly on narrow screens, where the text spans the width, and
+     fading in from the left on wide ones. The band's top and bottom fade
+     stays, intersected with that. */
+  .cta :global(.ribbon.band) {
+    -webkit-mask-image:
+      linear-gradient(to bottom, transparent, black 30%, black 70%, transparent),
+      linear-gradient(rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.4));
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to bottom, transparent, black 30%, black 70%, transparent),
+      linear-gradient(rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.4));
+    mask-composite: intersect;
+  }
+
+  @media (min-width: 64rem) {
+    .cta :global(.ribbon.band) {
+      -webkit-mask-image:
+        linear-gradient(to bottom, transparent, black 30%, black 70%, transparent),
+        linear-gradient(90deg, rgb(0 0 0 / 0.3) 0%, rgb(0 0 0 / 0.3) 45%, #000 75%);
+      mask-image:
+        linear-gradient(to bottom, transparent, black 30%, black 70%, transparent),
+        linear-gradient(90deg, rgb(0 0 0 / 0.3) 0%, rgb(0 0 0 / 0.3) 45%, #000 75%);
+    }
+  }
+
+  h2 {
+    max-width: 20ch;
+  }
+
+  .body {
+    max-width: 40rem;
+    color: var(--text-muted);
+    font-size: var(--step-1);
+  }
+</style>

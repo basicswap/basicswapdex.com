@@ -1,0 +1,110 @@
+---
+// "What the swap avoids" on the Bitcoin to Monero page: one numbered row per
+// thing a swap never touches, its title struck through, with the reason
+// beside it on wide screens.
+interface Item {
+  title: string;
+  body: string;
+  /** The inside of a 24 x 24 stroke icon, struck through. */
+  icon: string;
+}
+interface Props {
+  items: Item[];
+}
+const { items } = Astro.props;
+---
+
+<ol class="ledger" role="list">
+  {
+    items.map(({ title, body, icon }, i) => (
+      <li>
+        <span class="n data">0{i + 1}</span>
+        <span class="tile" aria-hidden="true">
+          <svg viewBox="0 0 24 24" set:html={icon} />
+        </span>
+        <h3>
+          <span class="struck">{title}</span>
+        </h3>
+        <p>{body}</p>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .ledger {
+    display: grid;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: 2.5rem 2.75rem minmax(0, 1fr);
+    gap: var(--space-2) var(--space-5);
+    align-items: center;
+    padding-block: var(--space-5);
+    border-top: 1px solid var(--border);
+  }
+
+  li:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .n {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .tile {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid color-mix(in oklab, var(--primary) 40%, var(--border));
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--primary) 10%, var(--surface));
+    color: var(--link);
+    box-shadow: 0 0 24px -10px color-mix(in oklab, var(--primary) 80%, transparent);
+  }
+
+  .tile svg {
+    width: 55%;
+    height: 55%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  h3 {
+    color: var(--text);
+  }
+
+  /* the title, crossed out: none of these enter the trade. A real
+     line-through, so it follows the title onto a second line on phones. */
+  .struck {
+    font-size: var(--step-2);
+    letter-spacing: var(--tracking-tight);
+    text-decoration: line-through;
+    text-decoration-color: color-mix(in oklab, var(--destructive) 75%, transparent);
+    text-decoration-thickness: 0.09em;
+  }
+
+  p {
+    grid-column: 3;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 64rem) {
+    li {
+      grid-template-columns: 3rem 2.75rem 22rem minmax(0, 1fr);
+    }
+
+    p {
+      grid-column: 4;
+      max-width: 38rem;
+    }
+  }
+</style>

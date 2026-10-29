@@ -1,0 +1,220 @@
+{
+  "film": {
+    "title": "Follow the orange half",
+    "description": "A three-minute animated walk through a Bitcoin to Monero atomic swap: the split key, the presigned refunds, the sealed payment, and what happens when one trader walks off.",
+    "duration": "PT3M1S",
+    "transcript": [
+      "Say you want to swap Bitcoin for Monero with a stranger. The usual way is to hand both coins to someone in the middle and hope they pass them along. That middleman can get hacked, run off with the coins, freeze your account, or change the terms on you. This video is about doing it with nobody in the middle.",
+      "A Bitcoin lock can come with instructions, like who gets paid and when the coins go back. A Monero lock cannot, and that kept Monero out of cross-chain trades for years.",
+      "So to make it possible, the Monero side skips the instructions entirely. Its key gets split in two, you hold one half and the seller holds the other, and the coins only move when both halves come together.",
+      "Before either of you locks a single coin, you both sign your refund tickets. If anything stalls or goes wrong, those refunds still go through, whether or not the other one is still around.",
+      "You lock your Bitcoin by yourself, but opening it takes two signatures. So you sign a payment to the seller ahead of time and seal it. Only the seller's half of the Monero key can break that seal. The seller locks their Monero in a vault that needs both halves to open.",
+      "To collect the Bitcoin, the seller has to use their half on the seal. Accepting the payment pins the broken seal to the public blockchain and broadcasts their key half, so now anyone can see it. Nobody else can use it, though. The Monero also needs your half, and that one never leaves your pocket. You copy it, join it to your own, and the vault opens. At no point did either of you have to trust the other.",
+      "That's the swap when both of you play along. Now for the cases where someone doesn't, by mistake or on purpose. Say the seller wanders off before claiming. Once the timelock runs out, your Bitcoin comes back to you, and taking it home puts your half on the public board, so the seller can still get their Monero back by combining it with their own half.",
+      "If you're the one who never comes back for the refund, the seller can take that Bitcoin after a second wait. They still cannot open the Monero without your half, so they never end up with both. By default, BasicSwap then hands you the seller's half as a courtesy, and you can still collect the Monero, only late. Either way, the one who walks off can't cost the other their coins.",
+      "BasicSwap has settled Bitcoin and Monero swaps like this in both directions since 2023."
+    ]
+  },
+  "moves": [
+    [
+      "You lock the Bitcoin in a 2-of-2.",
+      "Moving it takes both your signatures. The refunds were signed before it went in."
+    ],
+    [
+      "The seller locks their Monero under a key split between you.",
+      "Neither half spends on its own."
+    ],
+    [
+      "Once the Monero is locked, you send a signature only their half can finish.",
+      "They finish it to take the Bitcoin, and the signature on chain gives their half away."
+    ],
+    [
+      "You read their half off the chain and add your own.",
+      "That is the whole Monero spend key, and the coins are yours to move."
+    ]
+  ],
+  "avoids": [
+    {
+      "title": "No wrapped coins",
+      "body": "Both sides are the real coins on their own chains. Nothing is minted, pegged or held as an IOU against a reserve, so there is no issuer whose solvency you have to trust."
+    },
+    {
+      "title": "No intermediary coin",
+      "body": "The trade never routes through a third token, the way THORChain and Serai do with their own. That would park your coins in validator-held pools and expose the swap to any failure there."
+    },
+    {
+      "title": "No bridge",
+      "body": "No third chain sits between the two. Bridges are where the largest cross-chain thefts have happened, Ronin and Wormhole among them, and this trade never touches a contract to drain."
+    },
+    {
+      "title": "No custodian",
+      "body": "Coins move straight between the two traders' own wallets. There is no account to open, no deposit to make, and no operator who could freeze or seize the trade partway through."
+    },
+    {
+      "title": "No protocol fee",
+      "body": "The BasicSwap protocol takes nothing from either side, whether you posted the offer or took it. At the protocol level, the only cost is the ordinary network fee on each chain."
+    }
+  ],
+  "stalls": [
+    {
+      "who": "seller",
+      "title": "The seller disappears before claiming",
+      "steps": [
+        "The first timelock runs out, 24 hours after your Bitcoin was locked by default.",
+        "You take the Bitcoin back with the refund you both signed at the start.",
+        "Taking it back reveals your key half, so the seller can still recover their Monero when they return."
+      ],
+      "outcome": "Both of you keep your own coins.",
+      "ends": {
+        "you": "btc",
+        "seller": "xmr"
+      }
+    },
+    {
+      "who": "you",
+      "title": "You never come back for your refund",
+      "steps": [
+        "After the first timelock, the refund moves the Bitcoin under a second timelock.",
+        "Once that one runs out too, the seller can claim the Bitcoin.",
+        "By default, their client then puts their key half on chain, so you can still collect the Monero."
+      ],
+      "outcome": "You end up with the Monero, only late.",
+      "ends": {
+        "you": "xmr",
+        "seller": "btc"
+      }
+    },
+    {
+      "who": "you",
+      "title": "You go offline after the seller claims",
+      "steps": [
+        "The seller has taken the Bitcoin, so their key half is already on chain.",
+        "The Monero waits under the split key, and nobody else can move it without your half.",
+        "When you come back, your client reads their half and collects the Monero."
+      ],
+      "outcome": "Nothing on your side expires.",
+      "ends": {
+        "you": "xmr",
+        "seller": "btc"
+      }
+    }
+  ],
+  "practice": [
+    {
+      "title": "Install BasicSwap Desktop",
+      "body": "Desktop runs the protocol and each coin's core wallet on your own machine. If two full nodes are more than you want to manage, lightweight mode reads from public servers instead."
+    },
+    {
+      "title": "Fund the wallet you are selling from",
+      "body": "BasicSwap creates a deposit address in the wallet it manages for you. Send the Bitcoin or Monero you plan to trade to that address, and wait for it to confirm."
+    },
+    {
+      "title": "Find an offer, or post your own",
+      "body": "Offers arrive over encrypted peer-to-peer messaging. Filter the order book to BTC and XMR, then take an offer at a price that suits you, or post your own."
+    },
+    {
+      "title": "Stay online until it settles",
+      "body": "The client hands data to the other side at each step, so keep it running. If you pay in Bitcoin and stay away past both timelocks, the seller can claim it and you get their Monero late."
+    }
+  ],
+  "surfaces": [
+    {
+      "k": "mobile",
+      "name": "Mobile",
+      "icon": "phone",
+      "status": "Beta · Monero coming",
+      "body": "BasicSwap Mobile comes built into wallet apps. It is live in the Litecoin Nexus Wallet, and Cake Wallet and Edge, which both hold Monero, are adding it.",
+      "steps": [
+        "Open a wallet app with BasicSwap built in.",
+        "Tap Swap and enter how much you want to trade.",
+        "Accept the best offer. Your keys stay on your phone throughout."
+      ],
+      "links": [
+        {
+          "href": "/mobile#surfaces",
+          "label": "See which apps have it"
+        },
+        {
+          "href": "/mobile",
+          "label": "About BasicSwap Mobile"
+        }
+      ]
+    },
+    {
+      "k": "web",
+      "name": "Web",
+      "icon": "globe",
+      "status": "Coming soon",
+      "body": "BasicSwap Web is in development. It runs the same protocol as Desktop and Mobile, with nothing to install and nothing to sync, and its offers share the same order book.",
+      "steps": [
+        "Open a site that runs BasicSwap Web.",
+        "Pick an amount and an offer from the shared order book.",
+        "Keep the tab open while the two chains settle it."
+      ],
+      "links": [
+        {
+          "href": "/web#how",
+          "label": "How it will work"
+        },
+        {
+          "href": "/web#questions",
+          "label": "Questions about Web"
+        }
+      ]
+    }
+  ],
+  "faq": [
+    {
+      "q": "What is a Bitcoin to Monero atomic swap?",
+      "a": "A trade of Bitcoin for Monero between two people, settled by the two blockchains themselves. Both payments complete or both refund, so neither trader can end up with both sides, and nobody holds the coins in between. BasicSwap runs it with adaptor signatures, which work with Monero even though Monero has no scripting of its own."
+    },
+    {
+      "q": "How long does a Bitcoin to Monero swap take?",
+      "a": "Usually tens of minutes. Both chains have to confirm, and a default install waits for one confirmation on Bitcoin and three on Monero, several times over as each side locks its coins and then claims them. A custodial service can look quicker. It moves the funds itself instead of waiting on two chains, and that is the step BasicSwap does without."
+    },
+    {
+      "q": "Can I swap Monero back to Bitcoin?",
+      "a": "Yes. Both directions run on the same protocol and have done since 2023. You post an offer to sell XMR for BTC the same way you would post one the other way round."
+    },
+    {
+      "q": "Can I swap Bitcoin to Monero without KYC?",
+      "a": "Yes. BasicSwap has no account, no sign-up and no identity check. You trade from your own wallet directly with another trader, and the only record is the two payments, each on its own chain."
+    },
+    {
+      "q": "What happens if the other trader disappears?",
+      "a": "Nobody ends up with both sides, whoever stops. If the seller disappears before claiming, your Bitcoin comes back once the timelock runs out, and taking it back lets them recover their Monero later. If the Bitcoin holder never takes that refund, the seller can claim the Bitcoin after a second timelock, and by default their client then hands over the key half for the Monero. Both traders sign the refunds before either locks a coin."
+    },
+    {
+      "q": "Do I need to run a Bitcoin node and a Monero node?",
+      "a": "No. Lightweight mode leans on public Electrum servers and Monero nodes for chain state, and mobile wallets that build in BasicSwap work the same way. Running each coin's official core wallet on Desktop is still the strongest setup, and then BasicSwap validates everything itself. Either way, the client has to stay online for the whole swap, as the two sides hand each other data at every step."
+    },
+    {
+      "q": "What are the fees for converting Bitcoin to Monero?",
+      "a": "The protocol takes nothing, for either side of the trade. You pay the ordinary network fee on each chain, the same as any other transaction, and that is the whole cost."
+    },
+    {
+      "q": "Can you send Bitcoin to a Monero wallet?",
+      "a": "No. They are separate chains with different address formats, and a Monero wallet has no way to receive or spend a Bitcoin transaction. Sending BTC to an XMR address will not deliver the funds, and depending on the address it may lose them. Converting is the only route, and that is what a swap does. Your Bitcoin goes to whoever wanted it, their Monero comes to you, and the two payments are bound together so neither can happen alone."
+    },
+    {
+      "q": "Do I need a Monero wallet before I swap?",
+      "a": "BasicSwap creates one for you. Desktop runs Monero's own wallet software locally and generates the address the swap pays into, so there is nothing to set up beforehand and no address to paste. If you would rather receive into a wallet you already use, withdraw once the swap finishes."
+    },
+    {
+      "q": "Is a Bitcoin to Monero swap traceable?",
+      "a": "Not as a swap. The Bitcoin payment is as public as any other Bitcoin transaction, and the Monero payment carries Monero's usual privacy. Adaptor signatures leave nothing on the Bitcoin chain that says a swap took place or which Monero transaction it pairs with, so the trade looks like ordinary spending rather than a conversion into a privacy coin."
+    },
+    {
+      "q": "How is this different from an instant swap service?",
+      "a": "An instant swap service takes your Bitcoin, holds it, and sends you Monero from its own reserves, which is quicker and means the service can freeze the funds, ask for identification, or fail while holding them. An atomic swap has no such middle step. The coins move directly between two traders and the chains enforce that both payments happen or neither does."
+    },
+    {
+      "q": "Where can I get Monero now that exchanges are delisting it?",
+      "a": "Several large exchanges have dropped Monero, in some regions or entirely. An atomic swap does not depend on any of them. You swap Bitcoin, or another supported coin, for Monero directly with another trader, and there is no listing for anyone to withdraw."
+    },
+    {
+      "q": "Can I swap Bitcoin to Monero on my phone?",
+      "a": "Not yet. BasicSwap Mobile is live in the Litecoin Nexus Wallet, which does not hold Monero, and wallets that do, such as Cake Wallet and Edge, are adding it. For now, Bitcoin to Monero swaps run on BasicSwap Desktop."
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+---
+title: "BasicSwap v0.17.7: A Critical Security Fix for Adaptor-Signature Swaps (Update Now)"
+seoTitle: "BasicSwap v0.17.7: Critical Security Fix"
+date: 2026-08-01
+author: "BasicSwap Team"
+tags: ["News", "Release", "Security"]
+description: "BasicSwap v0.17.7 is a critical security fix for adaptor-signature swaps. It tightens how BasicSwap validates signatures from a swap counterparty and repairs any swap already affected. A drop-in from v0.17.6, mandatory for anyone running these swaps. Update now."
+seoDescription: "BasicSwap v0.17.7 is a critical fix for adaptor-signature swaps, with stricter checks on a counterparty's signatures and a repair for any swap already affected."
+thumbnail: ./images/Medium_BSX_17_7.jpg
+banner: ./images/Blog_BSX_17_7.jpg
+---
+BasicSwap v0.17.7 is a critical security release. It fixes a flaw in how BasicSwap validated a signature received from a swap counterparty on adaptor-signature (Monero-style) swaps, and it repairs any swap already caught by it. Everyone running these swaps should install it without delay. Alongside the security fix, the automated market maker now reserves fees when it sizes offers, and bids on revoked offers are turned away.
+
+<Callout type="warning" title="Critical update: install v0.17.7 now">
+This is a mandatory security update for anyone running adaptor-signature swaps. Update to v0.17.7 before you start, resume, or complete a swap. The fix protects new swaps, and it repairs any swap already affected so it can refund on its own. It cannot be used to steal coins, but it lets a counterparty disrupt a swap and trap its lock until recovery, so do not put this off. Installation steps are at the bottom of this post.
+</Callout>
+
+## Most Notable Updates 💡
+
+### The Security Fix: Adaptor-Signature Swaps 🔒
+
+v0.17.7 closes a gap in how BasicSwap validated a signature received from the swap counterparty on the script side (coin A) of an adaptor-signature swap. A counterparty running modified software could use that gap to leave your coin-A lock in a state that could not be spent as intended, so the swap would stall and need manual recovery to refund. It cannot be used to steal coins, but a swap can be trapped until it is recovered, so if you run adaptor-signature swaps you should treat this as a mandatory update.
+
+The release also cleans up after the issue. If a coin-A lock was already left in the affected state, v0.17.7 rebuilds its refund transaction so the swap can refund on its own, with no manual steps (commits [`5a85097`](https://github.com/basicswap/basicswap/commit/5a85097), [`71cec85`](https://github.com/basicswap/basicswap/commit/71cec85), [PR #629](https://github.com/basicswap/basicswap/pull/629)).
+
+The scope is narrow. It affects only the script side of adaptor-signature swaps on Bitcoin-derived coins, and Bitcoin Cash is not affected. If you run adaptor-signature swaps, update to v0.17.7 without delay. There is nothing else to do.
+
+### AMM: Fee-Aware Offer Sizing 🤖
+
+The automated market maker now sets aside an estimated network fee when it sizes an offer, so it no longer posts an offer larger than your wallet can actually fund once the fee is paid. A new `fee_reserve_mult` setting controls the margin, defaulting to 4, and a template is skipped while no fee estimate is available (commit [`f1b790e`](https://github.com/basicswap/basicswap/commit/f1b790e), [PR #615](https://github.com/basicswap/basicswap/pull/615)).
+
+Two related changes came with it. When the AMM reposts a fixed-total or one-time template, it now counts the amounts already committed to in-flight swaps, so a repost is never sized above what is still spendable (commit [`7f039ad`](https://github.com/basicswap/basicswap/commit/7f039ad), [PR #615](https://github.com/basicswap/basicswap/pull/615)). And it reads each coin's balance once per loop rather than once per template, which is lighter on the wallet when you run many templates (commit [`51e5276`](https://github.com/basicswap/basicswap/commit/51e5276), [PR #615](https://github.com/basicswap/basicswap/pull/615)).
+
+### Smaller Fixes 🧹
+
+Bids on revoked or inactive offers are now rejected on both sides. You cannot place a bid on an offer that has been revoked or gone inactive, and a bid that arrives for one is dropped rather than processed (commit [`5f6a7a1`](https://github.com/basicswap/basicswap/commit/5f6a7a1), [PR #628](https://github.com/basicswap/basicswap/pull/628)).
+
+Under the hood, v0.17.7 replaces `assert` with an explicit check throughout, so those checks still run when Python is started with optimisations enabled, and it now verifies a keyshare recovered from a counterparty's on-chain data against the pubkey agreed during the bid, so a bad recovery is reported by its cause rather than surfacing later as an unexplained failure (commits [`27371262`](https://github.com/basicswap/basicswap/commit/27371262), [`5a85097`](https://github.com/basicswap/basicswap/commit/5a85097), [PR #629](https://github.com/basicswap/basicswap/pull/629)).
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch.
+
+<Callout type="info" title="A drop-in update">
+v0.17.7 changes no coin daemons, and the database schema stays at v37, so updating from v0.17.6 is a straight swap. Running the `--upgradecores` step downloads nothing this cycle, and there is no on-start migration. Back up your coindata directory first as always.
+</Callout>
+
+### Docker
+
+If you've installed BasicSwap following the Docker method:
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method:
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3. Execute the following command: `source ~/coinswaps/venv/bin/activate`
+4.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+5.  Execute the following command: `pip3 install .`,
+6.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/):
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+The full v0.17.7 changelog, grouped by area. It covers 4 pull requests (#607, #615, #628 and #629).
+
+### Security
+
+*   Adaptor-sig swaps: tighten validation of a signature received from a peer, closing a way a counterparty could disrupt a swap [[5a85097]](https://github.com/basicswap/basicswap/commit/5a85097) / [PR #629](https://github.com/basicswap/basicswap/pull/629)
+*   Adaptor-sig swaps: automatically repair an affected coin-A lock refund transaction so the swap can refund without manual recovery [[71cec85]](https://github.com/basicswap/basicswap/commit/71cec85) / [PR #629](https://github.com/basicswap/basicswap/pull/629)
+
+### AMM
+
+*   Reserve an estimated network fee when sizing offers, with a new `fee_reserve_mult` option (default 4) [[f1b790e]](https://github.com/basicswap/basicswap/commit/f1b790e) / [PR #615](https://github.com/basicswap/basicswap/pull/615)
+*   Account for in-flight amounts when reposting fixed-total and one-time templates [[7f039ad]](https://github.com/basicswap/basicswap/commit/7f039ad) / [PR #615](https://github.com/basicswap/basicswap/pull/615)
+*   Fetch each coin's wallet balance once per loop instead of once per template [[51e5276]](https://github.com/basicswap/basicswap/commit/51e5276) / [PR #615](https://github.com/basicswap/basicswap/pull/615)
+
+### Fixes
+
+*   Reject bids placed on, and bids received for, revoked or inactive offers [[5f6a7a1]](https://github.com/basicswap/basicswap/commit/5f6a7a1) / [PR #628](https://github.com/basicswap/basicswap/pull/628)
+
+### Refactors
+
+*   Replace `assert` with an explicit check throughout, and verify a recovered keyshare against the pubkey agreed during the bid [[27371262]](https://github.com/basicswap/basicswap/commit/27371262) [[5a85097]](https://github.com/basicswap/basicswap/commit/5a85097) / [PR #629](https://github.com/basicswap/basicswap/pull/629)
+
+### Build
+
+*   Bump `actions/setup-python` from 6 to 7 [[553781d]](https://github.com/basicswap/basicswap/commit/553781d) / [PR #607](https://github.com/basicswap/basicswap/pull/607)
+
+You can inspect all changes by verifying the [v0.17.6 to v0.17.7 comparison page here](https://github.com/basicswap/basicswap/compare/v0.17.6...v0.17.7).
+
+## Stay Connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

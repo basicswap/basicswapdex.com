@@ -1,0 +1,48 @@
+---
+// The coins BasicSwap supports, read from the basicswap repo at build time
+// (src/lib/coins.ts), so versions follow each release without edits here.
+import Table from '../../blog/mdx/Table.astro';
+import { REPO } from '../../../lib/release';
+import { getCoinTable } from '../../../lib/coins';
+
+const { ref, coins } = await getCoinTable();
+const source = (dir: string) => `https://github.com/${REPO}/blob/${ref}/basicswap/interface/${dir}/core.py`;
+---
+
+<Table>
+  <thead>
+    <tr>
+      <th>Coin</th>
+      <th>Core version</th>
+      <th>Scripts</th>
+      <th>Segwit</th>
+      <th>Without a full node</th>
+    </tr>
+  </thead>
+  <tbody>
+    {
+      coins.map((c) => (
+        <tr>
+          <td>
+            {c.name} ({c.ticker})
+          </td>
+          <td>
+            <a href={source(c.dir)}>{c.version}</a>
+          </td>
+          <td>{c.scripts ? 'Yes' : 'No'}</td>
+          <td>{c.scripts ? (c.segwit ? 'Yes' : 'No') : '—'}</td>
+          <td>{c.light ?? '—'}</td>
+        </tr>
+      ))
+    }
+  </tbody>
+</Table>
+<p class="coin-source">Versions from BasicSwap {ref}, read from the code when this page was built.</p>
+
+<style>
+  .coin-source {
+    margin-top: calc(var(--space-4) * -1);
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+</style>

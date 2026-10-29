@@ -1,0 +1,328 @@
+{
+  "compare": {
+    "tools": [
+      {
+        "name": "BasicSwap",
+        "kind": "Atomic swaps"
+      },
+      {
+        "name": "eigenwallet",
+        "kind": "Atomic swaps"
+      },
+      {
+        "name": "Haveno / RetoSwap",
+        "kind": "Peer-to-peer, arbitrated"
+      },
+      {
+        "name": "Instant swappers",
+        "kind": "Custodial service"
+      },
+      {
+        "name": "Centralized exchanges",
+        "kind": "Custodial, e.g. Kraken"
+      }
+    ],
+    "rows": [
+      {
+        "label": "Who holds the coins mid-trade",
+        "cells": [
+          {
+            "text": "Nobody. The chains do.",
+            "s": "good"
+          },
+          {
+            "text": "Nobody. The chains do.",
+            "s": "good"
+          },
+          {
+            "text": "2-of-3 multisig with an arbitrator",
+            "s": "mid"
+          },
+          {
+            "text": "The service does",
+            "s": "bad"
+          },
+          {
+            "text": "The exchange, from deposit to withdrawal",
+            "s": "bad"
+          }
+        ]
+      },
+      {
+        "label": "Account needed",
+        "cells": [
+          {
+            "text": "No",
+            "s": "good"
+          },
+          {
+            "text": "No",
+            "s": "good"
+          },
+          {
+            "text": "No",
+            "s": "good"
+          },
+          {
+            "text": "Usually not, but screening applies",
+            "s": "mid"
+          },
+          {
+            "text": "Yes, with identity checks",
+            "s": "bad"
+          }
+        ]
+      },
+      {
+        "label": "Data you give up",
+        "cells": [
+          {
+            "text": "No account or ID. Tor is optional, not on by default.",
+            "s": "good"
+          },
+          {
+            "text": "No account or ID, and Tor is on by default",
+            "s": "good"
+          },
+          {
+            "text": "No account or ID, and Tor is built in",
+            "s": "good"
+          },
+          {
+            "text": "Your addresses and IP, and ID if a trade is flagged",
+            "s": "mid"
+          },
+          {
+            "text": "Your identity documents and full trade history",
+            "s": "bad"
+          }
+        ]
+      },
+      {
+        "label": "Protocol fee",
+        "cells": [
+          {
+            "text": "None. Makers set their own price.",
+            "s": "good"
+          },
+          {
+            "text": "None. Makers set their own price.",
+            "s": "good"
+          },
+          {
+            "text": "Maker and taker fees",
+            "s": "mid"
+          },
+          {
+            "text": "Built into the quoted rate",
+            "s": "mid"
+          },
+          {
+            "text": "Trading fees, plus withdrawal fees",
+            "s": "mid"
+          }
+        ]
+      },
+      {
+        "label": "Directions",
+        "cells": [
+          {
+            "text": "BTC to XMR and back, as maker or taker",
+            "s": "good"
+          },
+          {
+            "text": "One way per role. Takers only buy XMR, and makers only sell it.",
+            "s": "mid"
+          },
+          {
+            "text": "XMR against fiat and crypto",
+            "s": "good"
+          },
+          {
+            "text": "Both, quoted per request",
+            "s": "good"
+          },
+          {
+            "text": "Both, where Monero is still listed",
+            "s": "mid"
+          }
+        ]
+      },
+      {
+        "label": "Make and take offers in the app",
+        "cells": [
+          {
+            "text": "Both, in the same client, either direction",
+            "s": "good"
+          },
+          {
+            "text": "Taking only, to buy XMR. Making needs a separate daemon that only sells XMR.",
+            "s": "mid"
+          },
+          {
+            "text": "Both",
+            "s": "good"
+          },
+          {
+            "text": "Neither. You take their quote.",
+            "s": "bad"
+          },
+          {
+            "text": "Both, on its order book",
+            "s": "good"
+          }
+        ]
+      },
+      {
+        "label": "How offers reach you",
+        "cells": [
+          {
+            "text": "Shared between peers and listed in a distributed order book",
+            "s": "good"
+          },
+          {
+            "text": "Fetched from each maker you discover",
+            "s": "mid"
+          },
+          {
+            "text": "Peer-to-peer offer book",
+            "s": "good"
+          },
+          {
+            "text": "One quote from the operator",
+            "s": "bad"
+          },
+          {
+            "text": "The exchange's own order book",
+            "s": "bad"
+          }
+        ]
+      },
+      {
+        "label": "Counterparty history",
+        "cells": [
+          {
+            "text": "Your own record of each counterparty, which can auto-accept or refuse their next bid",
+            "s": "good"
+          },
+          {
+            "text": "Your own past swaps with that maker, shown only",
+            "s": "mid"
+          },
+          {
+            "text": "Arbitrator resolves disputes",
+            "s": "mid"
+          },
+          {
+            "text": "None",
+            "s": "bad"
+          },
+          {
+            "text": "The exchange matches you",
+            "s": "mid"
+          }
+        ]
+      },
+      {
+        "label": "Third party who can stop it",
+        "cells": [
+          {
+            "text": "None",
+            "s": "good"
+          },
+          {
+            "text": "None",
+            "s": "good"
+          },
+          {
+            "text": "Arbitrator on a disputed trade",
+            "s": "mid"
+          },
+          {
+            "text": "The operator, at any point",
+            "s": "bad"
+          },
+          {
+            "text": "The exchange, at any point",
+            "s": "bad"
+          }
+        ]
+      },
+      {
+        "label": "Pairs beyond BTC and XMR",
+        "cells": [
+          {
+            "text": "<a href=\"/desktop#coins\">12 coins</a>",
+            "s": "good"
+          },
+          {
+            "text": "None",
+            "s": "bad"
+          },
+          {
+            "text": "Monero-centred",
+            "s": "mid"
+          },
+          {
+            "text": "Hundreds",
+            "s": "good"
+          },
+          {
+            "text": "Hundreds",
+            "s": "good"
+          }
+        ]
+      },
+      {
+        "label": "Run your own node",
+        "cells": [
+          {
+            "text": "Optional, or lightweight mode",
+            "s": "good"
+          },
+          {
+            "text": "Optional",
+            "s": "good"
+          },
+          {
+            "text": "Recommended, not required",
+            "s": "good"
+          },
+          {
+            "text": "Not possible",
+            "s": "bad"
+          },
+          {
+            "text": "Not possible",
+            "s": "bad"
+          }
+        ]
+      },
+      {
+        "label": "How you get it",
+        "cells": [
+          {
+            "text": "<a href=\"/desktop\">Desktop</a>, <a href=\"/web\">Web</a> (coming soon) and <a href=\"/mobile\">Mobile</a>",
+            "s": "good"
+          },
+          {
+            "text": "Desktop, for Linux, macOS and Windows. Mobile is planned.",
+            "s": "good"
+          },
+          {
+            "text": "Desktop, for Linux, macOS and Windows, through a network such as RetoSwap",
+            "s": "good"
+          },
+          {
+            "text": "A website. Nothing to install.",
+            "s": "good"
+          },
+          {
+            "text": "An account, then a deposit",
+            "s": "bad"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,709 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { SOCIAL } from '../config/site';
+import { breadcrumb } from '../lib/seo';
+import pages from '../data/pages.json';
+
+// The terms as a document: a sticky contents list beside one reading column,
+// a plain-language summary, then sections 01-10 as numbered clauses (1.1,
+// 1.2...). The contents list marks the section you're reading. Edit the text
+// in place.
+---
+
+<BaseLayout {...pages.terms} jsonLd={[breadcrumb('Terms and Conditions', '/terms')]}>
+  <PageHero band="full" title={'Terms for a protocol\nwith no operator.'}>
+    <p>
+      BasicSwap is open-source software. These terms describe what the protocol is, what it explicitly is not, and the
+      responsibilities you accept when you choose to run a node or settle a swap through the network.
+    </p>
+    <dl slot="actions" class="meta">
+      <div><dt>version</dt><dd class="data">1.0</dd></div>
+      <div><dt>last modified</dt><dd class="data"><time datetime="2026-10-23">Oct 23, 2026</time></dd></div>
+      <div><dt>license</dt><dd class="data">MIT</dd></div>
+      <div><dt>language</dt><dd class="data">English</dd></div>
+    </dl>
+  </PageHero>
+
+  <div class="doc container">
+    <nav class="toc" aria-label="Contents">
+      <p class="toc-k data">contents</p>
+      <ol>
+        <li><a href="#summary"><span class="data">00</span>The short version</a></li>
+        <li><a href="#acceptance"><span class="data">01</span>Acceptance and definitions</a></li>
+        <li><a href="#nature"><span class="data">02</span>What BasicSwap is, and is not</a></li>
+        <li><a href="#primitives"><span class="data">03</span>Swap primitives and the SMSG mesh</a></li>
+        <li><a href="#third-party"><span class="data">04</span>Third-party software and services</a></li>
+        <li><a href="#responsibilities"><span class="data">05</span>Your responsibilities</a></li>
+        <li><a href="#privacy"><span class="data">06</span>Privacy and data handling</a></li>
+        <li><a href="#risks"><span class="data">07</span>Risks and disclosures</a></li>
+        <li><a href="#disclaimers"><span class="data">08</span>Disclaimers and liability</a></li>
+        <li><a href="#governance"><span class="data">09</span>Open-source governance</a></li>
+        <li><a href="#changes"><span class="data">10</span>Changes, jurisdiction, severability</a></li>
+      </ol>
+    </nav>
+
+    <article class="body">
+      <section class="summary" id="summary">
+        <p class="kicker">plain-language summary</p>
+        <h2>The short version.</h2>
+        <ol>
+          <li>BasicSwap is open-source software. It facilitates atomic swaps. It does not perform them.</li>
+          <li>You hold your own keys. Nobody can recover them for you. Losing them loses your funds.</li>
+          <li>No protocol fees. The base protocol costs only the on-chain network fee of each transaction. An app that builds BasicSwap in may add its own service fee at the application level, outside the protocol.</li>
+          <li>You are responsible for complying with the laws of your jurisdiction.</li>
+          <li>The software is provided as is. The contributors are not liable for losses.</li>
+          <li>By using BasicSwap you accept these terms in full.</li>
+        </ol>
+        <p class="binding">The sections below are the binding version. Read them.</p>
+      </section>
+
+      <section class="clause" id="acceptance">
+        <header><span class="num data" aria-hidden="true">01</span><h2>Acceptance and definitions</h2><p class="lede">What you accept by using BasicSwap.</p></header>
+        <h3><span class="sub data">1.1</span>Acceptance</h3>
+        <p>Running a BasicSwap node, participating in the SMSG mesh, broadcasting an offer, accepting a bid, or otherwise interacting with BasicSwap software constitutes your acceptance of these terms. If you do not agree, do not run the software and do not interact with the network.</p>
+        <p>You confirm that you are of legal age and have the legal capacity to enter into binding agreements in your jurisdiction.</p>
+        <p>These terms apply to every release of BasicSwap and every node operator running the open-source software. They do not apply to forks, modifications, or third-party redistributions, which carry their own terms.</p>
+        <h3><span class="sub data">1.2</span>Definitions</h3>
+        <dl class="defs">
+          <div><dt>&ldquo;BasicSwap&rdquo; or &ldquo;the protocol&rdquo;</dt><dd>The open-source software, the atomic swap protocol it implements, and the SMSG message mesh it relies on. Treated as a single decentralized system, not a service.</dd></div>
+          <div><dt>&ldquo;Node&rdquo;</dt><dd>A device running BasicSwap and a Particl Core daemon. Every node automatically participates in the SMSG mesh.</dd></div>
+          <div><dt>&ldquo;Swap&rdquo;</dt><dd>An on-chain atomic exchange between two cryptocurrencies, settled across the respective blockchains using HTLC, OtVES, or SwapLock primitives.</dd></div>
+          <div><dt>&ldquo;User&rdquo;</dt><dd>You. Any natural or legal person running BasicSwap, holding keys, or sending messages through the SMSG mesh.</dd></div>
+          <div><dt>&ldquo;Contributors&rdquo;</dt><dd>The maintainers and developers of the BasicSwap open-source codebase. They are not a company, operator, custodian, or service provider.</dd></div>
+          <div><dt>&ldquo;Core wallet&rdquo;</dt><dd>The official, publicly available wallet of an underlying cryptocurrency (e.g. Bitcoin Core, Litecoin Core, Monero CLI).</dd></div>
+        </dl>
+      </section>
+
+      <section class="clause" id="nature">
+        <header><span class="num data" aria-hidden="true">02</span><h2>What BasicSwap is, and what it is not</h2><p class="lede">Decentralized messaging protocol. Not an exchange.</p></header>
+        <div class="isnot">
+          <div class="is">
+            <h3>BasicSwap is</h3>
+            <ul>
+              <li><strong>A decentralized messaging protocol.</strong> It coordinates the messages, while the underlying chains do the settlement, with no operator anyone can compel.</li>
+              <li><strong>An open-source codebase</strong> distributed under the MIT license, available for anyone to inspect, audit, fork, or contribute to.</li>
+              <li><strong>A protocol composer.</strong> It binds open swap primitives (HTLC, OtVES, SwapLock) to the SMSG messaging layer so that two clients can settle a cross-chain swap without trusting an operator.</li>
+              <li><strong>Non-custodial throughout.</strong> Funds remain in the user&rsquo;s own core wallets at every step.</li>
+            </ul>
+          </div>
+          <div class="not">
+            <h3>BasicSwap is not</h3>
+            <ul>
+              <li>BasicSwap does <strong>not</strong> initiate, process, or execute swaps. Each underlying blockchain does that itself.</li>
+              <li>BasicSwap does <strong>not</strong> hold funds, generate wallets, or store private keys. Core wallets do.</li>
+              <li>BasicSwap does <strong>not</strong> run central servers, central order books, or central matching engines.</li>
+              <li>BasicSwap does <strong>not</strong> charge protocol fees, take commissions, or operate a monetization layer.</li>
+              <li>BasicSwap does <strong>not</strong> require, collect, or verify identity information.</li>
+            </ul>
+          </div>
+        </div>
+        <p>No company, foundation, or central team controls the running network. Once a swap is broadcast it settles on the underlying blockchains; no contributor or third-party can pause, censor, freeze, or reverse it. Section 9 covers how the codebase itself is maintained.</p>
+      </section>
+
+      <section class="clause" id="primitives">
+        <header><span class="num data" aria-hidden="true">03</span><h2>Atomic swap primitives and the SMSG mesh</h2><p class="lede">The cryptographic plumbing.</p></header>
+        <h3><span class="sub data">3.1</span>HTLC &middot; Hash Time-Locked Contracts</h3>
+        <p>For pairs where both chains support scripts. A secret-hash protocol that binds two transactions on two chains so that either both confirm or both refund.</p>
+        <h3><span class="sub data">3.2</span>OtVES &middot; Adaptor signatures</h3>
+        <p>For pairs that include a chain without script support, such as Monero, Wownero, or Particl&rsquo;s anon and blind outputs, and available for many scripted pairs too. Atomicity is enforced by the cryptography of the signatures themselves, not by an on-chain contract.</p>
+        <p>Which method a given pair uses is listed in the <a href="/desktop#coins">coin compatibility table</a>.</p>
+        <h3><span class="sub data">3.3</span>SwapLock</h3>
+        <p>A BCH-specific variant (based on swaplock.cash) that pairs BCH&rsquo;s transaction introspection opcodes (<code>OP_OUTPUTVALUE</code>, <code>OP_OUTPUTBYTECODE</code>) with <code>OP_CHECKDATASIG</code> to enforce the swap in script.</p>
+        <h3><span class="sub data">3.4</span>SMSG mesh</h3>
+        <p>BasicSwap uses the Secure Messaging Network (SMSG) built into Particl Core. SMSG is a decentralized, end-to-end encrypted gossip mesh that carries the BasicSwap order book, bids, accept messages, lock signatures, and reveal messages between peers. It is open source and pre-existing software. BasicSwap does not control it.</p>
+        <p>Every BasicSwap user automatically operates as a node in the mesh. Messages are encrypted on the local device before being broadcast and are relayed by other nodes against the network&rsquo;s consensus rules. Each message carries a time-to-live and expires automatically once it elapses, up to 14 days for free messages and 31 days for paid ones.</p>
+        <p>A Particl Core node is therefore required to run BasicSwap. The PART token is not required and is never used by BasicSwap as a means of payment.</p>
+        <table class="spec">
+          <caption class="data">smsg cryptography</caption>
+          <tbody>
+            <tr><th scope="row">Key exchange</th><td class="data">ECDH (secp256k1)</td></tr>
+            <tr><th scope="row">Encryption</th><td class="data">AES-256-CBC</td></tr>
+            <tr><th scope="row">Authentication</th><td class="data">HMAC-SHA256</td></tr>
+            <tr><th scope="row">Anti-spam</th><td class="data">proof-of-work &middot; on-chain fees</td></tr>
+            <tr><th scope="row">Retention</th><td class="data">1-hour buckets &middot; up to 31-day TTL</td></tr>
+          </tbody>
+        </table>
+        <h3><span class="sub data">3.5</span>Messaging-agnostic</h3>
+        <p>SMSG is the default, not a hard requirement. BasicSwap is agnostic about the messaging and data layer it runs on: the same protocol works just as well over alternatives such as SimpleX or Nostr. Any transport that can carry the encrypted offers and swap messages between peers will do.</p>
+      </section>
+
+      <section class="clause" id="third-party">
+        <header><span class="num data" aria-hidden="true">04</span><h2>Third-party software and services</h2><p class="lede">What BasicSwap depends on, and does not control.</p></header>
+        <p>BasicSwap composes open-source software written and maintained by independent projects. The contributors of BasicSwap have no control over these dependencies and make no representations about them. Use of any third-party component is governed by its own license and terms.</p>
+        <h3><span class="sub data">4.1</span>Coin core wallets</h3>
+        <p>Bitcoin Core, Litecoin Core, Monero CLI, Dash Core, Decred wallet, Firo Core, Bitcoin Cash Node, Dogecoin Core, Namecoin Core, PIVX Core, Wownero CLI, Particl Core. Each is downloaded directly from its upstream project and runs locally on your machine.</p>
+        <h3><span class="sub data">4.2</span>Electrum and remote nodes (optional)</h3>
+        <p>Only used if you run a coin in lightweight mode instead of a full node. In that mode BasicSwap reads chain state from public Electrum-compatible nodes, or from public remote nodes for Monero and Wownero; it does not operate them and cannot guarantee their availability. Full-node mode does not use them at all.</p>
+        <h3><span class="sub data">4.3</span>Block explorers (optional)</h3>
+        <p>BasicSwap can query public block explorers (Insight, BitAps, Chainz) for manual lookups such as chain height, blocks, transactions, and balances. It is an optional convenience tool, not part of swap settlement. Use of any public explorer is subject to its terms.</p>
+        <h3><span class="sub data">4.4</span>Third-party integrations</h3>
+        <p>Independent apps, wallets, and services that integrate BasicSwap provide their own user interfaces. Their terms, fees, and conduct are their own responsibility.</p>
+        <p>Maintaining and updating coin cores is your responsibility. BasicSwap never installs an update for you, but it does notify you when one is available; whether and when to apply it is your choice. Skipping a core update that carries a consensus change (e.g. a hard fork) may leave a swap non-functional.</p>
+      </section>
+
+      <section class="clause" id="responsibilities">
+        <header><span class="num data" aria-hidden="true">05</span><h2>Your responsibilities</h2><p class="lede">What only you can do.</p></header>
+        <h3><span class="sub data">5.1</span>Self-custody and key security</h3>
+        <p>You are the sole custodian of your private keys, seed phrases, and core wallets. Nobody else has access. Lost keys mean lost funds and cannot be restored by anyone.</p>
+        <h3><span class="sub data">5.2</span>Back up the Particl seed phrase</h3>
+        <p>On first install BasicSwap either creates a new Particl Core wallet or links to an existing one. Write down the seed phrase and store it offline. Every other coin enabled on BasicSwap is derived from this seed.</p>
+        <h3><span class="sub data">5.3</span>Operational security</h3>
+        <p>Keep your operating system patched, your dependencies up to date, and your device free of malware. Verify checksums of downloaded software. Never paste a seed phrase into a website or share it with a person.</p>
+        <h3><span class="sub data">5.4</span>Due diligence</h3>
+        <p>Understand the risks of cross-chain settlement, of the specific coins you are trading, and of the current state of the protocol before initiating a swap.</p>
+        <h3><span class="sub data">5.5</span>Legal and regulatory compliance</h3>
+        <p>You are solely responsible for ensuring that your use of BasicSwap, the activities you perform with it, and the funds you trade comply with the laws of your jurisdiction. Consult qualified legal counsel where appropriate.</p>
+        <h3><span class="sub data">5.6</span>Tax obligations</h3>
+        <p>Atomic swaps may constitute taxable events in your jurisdiction. You are solely responsible for tracking, reporting, and paying any tax owed. BasicSwap produces no tax forms and reports no transactions to any authority.</p>
+        <h3><span class="sub data">5.7</span>Sanctions and counterparty screening</h3>
+        <p>If you are subject to sanctions, export controls, or other restrictions on cryptocurrency activity, you are responsible for assessing and respecting those obligations. The protocol cannot do this on your behalf.</p>
+        <h3><span class="sub data">5.8</span>Realistic understanding of risk</h3>
+        <p>Cryptocurrency markets are volatile. Open-source software can contain bugs. Use only funds whose loss you can absorb.</p>
+      </section>
+
+      <section class="clause" id="privacy">
+        <header><span class="num data" aria-hidden="true">06</span><h2>Privacy and data handling</h2><p class="lede">What flows where.</p></header>
+        <p>BasicSwap collects no personal data. There is no telemetry, no analytics, no tracking, no account, and no central log of activity. This website is the same: no analytics, no trackers, no cookies, and no third-party scripts, storing only a light or dark theme preference locally on your device. There is, however, network traffic on the protocol side. This section makes the data flows explicit so that you can make an informed decision about privacy.</p>
+        <table class="flows">
+          <tbody>
+            <tr>
+              <th scope="row"><span class="where local">Stays local</span></th>
+              <td><ul>
+                <li>Your private keys, seed phrases, and signed transactions.</li>
+                <li>Your core wallet databases.</li>
+                <li>Your BasicSwap configuration and offer management history.</li>
+              </ul></td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="where smsg">Goes onto SMSG (encrypted)</span></th>
+              <td><ul>
+                <li>Offers, bids, accept messages, lock signatures, and reveal messages.</li>
+                <li>Routed peer-to-peer and end-to-end encrypted to the counterparty.</li>
+                <li>Time-bucketed and expired after their time-to-live (up to 31 days).</li>
+              </ul></td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="where chain">Goes on chain (public)</span></th>
+              <td><ul>
+                <li>Bitcoin, Monero, Litecoin and similar transactions are public on their respective blockchains.</li>
+                <li>Anyone watching a chain can see settled swap transactions on it.</li>
+                <li>Transaction-level privacy is a property of the underlying coin, not BasicSwap.</li>
+              </ul></td>
+            </tr>
+            <tr>
+              <th scope="row"><span class="where third">Goes to third-parties</span></th>
+              <td><ul>
+                <li>Electrum nodes, and Monero or Wownero remote nodes, see the queries lightweight mode makes against them.</li>
+                <li>Block explorers (if used) see the queries against them.</li>
+                <li>Third-party integrations see whatever their UI surfaces collect; consult their privacy policies.</li>
+              </ul></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Routing BasicSwap and its coin cores through Tor or another network-privacy layer is supported and recommended for users for whom IP-level privacy is part of their threat model.</p>
+      </section>
+
+      <section class="clause" id="risks">
+        <header><span class="num data" aria-hidden="true">07</span><h2>Risks and disclosures</h2><p class="lede">What can go wrong.</p></header>
+        <dl class="risks">
+          <div><dt><span class="sub data">7.1</span>Market volatility</dt><dd>Cryptocurrency prices are volatile. A swap settles at exactly the rate both parties agreed; that coin-to-coin ratio is locked once it begins. What can move is the fiat value of the coins involved, which may differ by the time the swap completes.</dd></div>
+          <div><dt><span class="sub data">7.2</span>User error</dt><dd>Mistyped amounts, wrong addresses, misplaced seed phrases, and similar errors are irreversible. Read each step before signing.</dd></div>
+          <div><dt><span class="sub data">7.3</span>Software bugs</dt><dd>Any software, open-source or not, including BasicSwap, its coin cores, and the underlying cryptography libraries, can contain bugs. Some bugs may result in stuck or lost funds.</dd></div>
+          <div><dt><span class="sub data">7.4</span>Cryptographic risk</dt><dd>Atomic swap primitives rely on assumptions about modern cryptography. A future break in those assumptions could compromise specific operations.</dd></div>
+          <div><dt><span class="sub data">7.5</span>Chain reorganizations</dt><dd>On any underlying chain, transactions can be reorganized away. Use confirmation depths appropriate to the value being settled.</dd></div>
+          <div><dt><span class="sub data">7.6</span>Network attacks</dt><dd>The SMSG mesh, like any P2P network, can be targeted by sybil, eclipse, or denial-of-service attacks. The protocol has defenses; none are absolute.</dd></div>
+          <div><dt><span class="sub data">7.7</span>Third-party failure</dt><dd>Electrum nodes, remote nodes, block explorers, third-party integrations, exchanges, and other parties can go offline, malfunction, or behave adversarially.</dd></div>
+          <div><dt><span class="sub data">7.8</span>Counterparty timing</dt><dd>Atomic swaps include refund branches if a counterparty walks away. The refund window is bounded; very long disconnections can produce edge cases.</dd></div>
+          <div><dt><span class="sub data">7.9</span>Regulatory change</dt><dd>The legal treatment of cryptocurrency, atomic swaps, and self-custodial software changes. Activity that is legal where you live today may not be tomorrow.</dd></div>
+          <div><dt><span class="sub data">7.10</span>Loss of access</dt><dd>Forgetting a seed phrase, losing the device holding the keys, or failing to migrate state through a hardware change can result in permanent loss of funds.</dd></div>
+        </dl>
+      </section>
+
+      <section class="clause" id="disclaimers">
+        <header><span class="num data" aria-hidden="true">08</span><h2>Disclaimers and limitation of liability</h2><p class="lede">The software is provided as is.</p></header>
+        <h3><span class="sub data">8.1</span>No warranties</h3>
+        <p>BasicSwap is provided on an &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. The contributors disclaim, to the maximum extent permitted by law, all warranties of any kind, whether express or implied, including without limitation warranties of merchantability, fitness for a particular purpose, title, and non-infringement.</p>
+        <p>The contributors do not guarantee that the software will be uninterrupted, secure, error-free, free of viruses, or that defects will be corrected. The contributors do not warrant the accuracy, completeness, or reliability of any information conveyed through the software or its dependencies.</p>
+        <h3><span class="sub data">8.2</span>Limitation of liability</h3>
+        <p>To the maximum extent permitted by law, no contributor shall be liable for any direct, indirect, incidental, special, consequential, exemplary, or punitive damages of any kind, including loss of funds, loss of profits, loss of data, loss of opportunity, business interruption, or any other losses arising from or in connection with your use of the software, even if the contributors have been advised of the possibility of such damages.</p>
+        <p>You acknowledge that running open-source cryptocurrency software involves irreversible operations, and you accept full responsibility for those operations.</p>
+      </section>
+
+      <section class="clause" id="governance">
+        <header><span class="num data" aria-hidden="true">09</span><h2>Open-source governance</h2><p class="lede">Code governs. The community decides.</p></header>
+        <h3><span class="sub data">9.1</span>License</h3>
+        <p>BasicSwap is released under the MIT license. Anyone may use, copy, modify, merge, publish, distribute, sublicense, or sell copies of the software, subject to the terms of that license.</p>
+        <h3><span class="sub data">9.2</span>Maintainers, not operators</h3>
+        <p>BasicSwap has maintainers who merge code and publish releases, like any open-source project. They have no power to pause the running network, censor messages on SMSG, or force a node to upgrade. Users choose which release to run.</p>
+        <h3><span class="sub data">9.3</span>Resilience</h3>
+        <p>The running network depends on no central operator. It continues to function even if every current contributor stops contributing. Anyone may fork the codebase, ship their own release, and carry the project forward. A fork can stay compatible with the same order book and network, so even though one group maintains the main repository, the network itself is genuinely decentralized.</p>
+        <p>Once a swap has been broadcast on the underlying chains, it is governed by those chains&rsquo; consensus protocols. The transactions cannot be altered, reversed, or revoked by any contributor or third-party.</p>
+      </section>
+
+      <section class="clause" id="changes">
+        <header><span class="num data" aria-hidden="true">10</span><h2>Changes, jurisdiction, and severability</h2><p class="lede">Housekeeping.</p></header>
+        <h3><span class="sub data">10.1</span>Changes to these terms</h3>
+        <p>These terms may be updated to reflect changes to the software, dependencies, or legal context. Material changes are dated and versioned at the top of this page. Continued use of BasicSwap after a change constitutes acceptance of the revised terms. No notification of a change is pushed to you.</p>
+        <h3><span class="sub data">10.2</span>Governing law</h3>
+        <p>BasicSwap operates as decentralized software without a fixed jurisdiction. Disputes between users and the protocol have no natural forum. You agree that any dispute relating to BasicSwap or these terms shall be resolved under the laws of your own jurisdiction, applied to the contributors only to the extent permitted by applicable law.</p>
+        <h3><span class="sub data">10.3</span>Severability</h3>
+        <p>If any provision of these terms is held by a court of competent jurisdiction to be invalid, illegal, or unenforceable, the remaining provisions shall continue in full force and effect, and the invalid provision shall be modified to the minimum extent necessary to render it valid.</p>
+        <h3><span class="sub data">10.4</span>Entire agreement</h3>
+        <p>These terms, together with the MIT license text accompanying the software, constitute the entire agreement between you and the contributors regarding BasicSwap. They supersede any prior or contemporaneous understanding on the same subject matter.</p>
+        <h3><span class="sub data">10.5</span>Translations</h3>
+        <p>The English version of these terms is authoritative. Any translation is provided for convenience only and has no legal effect in the event of a conflict.</p>
+        <h3><span class="sub data">10.6</span>Contact</h3>
+        <p>Public discussion of these terms, the software, and the protocol happens on the BasicSwap <a href={SOCIAL.githubOrg} target="_blank" rel="noopener noreferrer">GitHub</a> and <a href={SOCIAL.matrix} target="_blank" rel="noopener noreferrer">Matrix</a> channels. The contributors do not maintain a private support inbox.</p>
+      </section>
+    </article>
+  </div>
+
+  <CtaBand kicker="acceptance" title="By using BasicSwap, you accept these terms.">
+    <p>
+      There is no &ldquo;I agree&rdquo; checkbox in decentralized software. The act of installing and running BasicSwap,
+      of participating in the SMSG mesh, and of initiating or accepting a swap, is itself your assent.
+    </p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary" href="/protocol">Read the protocol page</a>
+      <a class="btn btn-outline" href="https://github.com/basicswap" target="_blank" rel="noopener noreferrer"
+        >View the source<Icon name="external" size={14} /></a
+      >
+    </Fragment>
+  </CtaBand>
+</BaseLayout>
+
+<script>
+  // Mark the section being read in the contents list.
+  const links = new Map(
+    [...document.querySelectorAll<HTMLAnchorElement>('.toc a')].map((a) => [a.hash.slice(1), a]),
+  );
+  const seen = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        links.forEach((a) => a.removeAttribute('aria-current'));
+        links.get(e.target.id)?.setAttribute('aria-current', 'true');
+      }
+    },
+    { rootMargin: '-30% 0px -60% 0px' },
+  );
+  links.forEach((_, id) => {
+    const el = document.getElementById(id);
+    if (el) seen.observe(el);
+  });
+</script>
+
+<style>
+  /* ---- the document: contents beside one reading column ---- */
+  .doc {
+    display: grid;
+    gap: var(--space-7);
+    padding-block: var(--section);
+  }
+
+  @media (min-width: 64rem) {
+    .doc {
+      grid-template-columns: 15rem minmax(0, 46rem);
+      justify-content: center;
+      gap: var(--space-9, 5rem);
+    }
+  }
+
+  .toc {
+    align-self: start;
+  }
+
+  @media (min-width: 64rem) {
+    .toc {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-6));
+    }
+  }
+
+  .toc-k {
+    margin-bottom: var(--space-3);
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  .toc ol {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--border);
+    list-style: none;
+  }
+
+  .toc a {
+    display: flex;
+    gap: var(--space-3);
+    margin-left: -1px;
+    padding: 0.4rem 0 0.4rem var(--space-4);
+    border-left: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    text-decoration: none;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .toc a span {
+    flex: none;
+    width: 1.4rem;
+    color: var(--text-subtle);
+  }
+
+  .toc a:hover,
+  .toc a[aria-current='true'] {
+    color: var(--text);
+  }
+
+  .toc a[aria-current='true'] {
+    border-left-color: var(--brand);
+  }
+
+  .toc a[aria-current='true'] span {
+    color: var(--link);
+  }
+
+  /* on phones the contents list sits in two columns above the document */
+  @media (max-width: 63.99rem) {
+    .toc ol {
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    }
+  }
+
+  .body {
+    min-width: 0;
+  }
+
+  .body p,
+  .body li,
+  .body dd {
+    color: var(--text-muted);
+  }
+
+  .body strong {
+    color: var(--text);
+  }
+
+  .body section {
+    scroll-margin-top: calc(var(--header-h) + var(--space-5));
+  }
+
+  /* ---- the short version: the one panel on the page ---- */
+  .summary {
+    padding: var(--space-6) var(--space-6) var(--space-5);
+    border: 1px solid color-mix(in oklab, var(--brand) 35%, var(--border));
+    border-radius: calc(var(--radius-xl) + 0.25rem);
+    background:
+      radial-gradient(80% 120% at 0% 0%, color-mix(in oklab, var(--brand) 10%, transparent), transparent 70%),
+      var(--surface);
+  }
+
+  .summary h2 {
+    margin: var(--space-3) 0 var(--space-5);
+  }
+
+  .summary ol {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: short;
+  }
+
+  .summary li {
+    display: flex;
+    gap: var(--space-4);
+    color: var(--text);
+    counter-increment: short;
+  }
+
+  .summary li::before {
+    content: counter(short, decimal-leading-zero);
+    flex: none;
+    width: 1.6rem;
+    padding-top: 0.15em;
+    color: var(--link);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+
+  .binding {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border);
+    font-size: var(--step--1);
+  }
+
+  /* ---- numbered clauses ---- */
+  .clause {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-9, 5rem);
+    padding-top: var(--space-7);
+    border-top: 1px solid var(--border);
+  }
+
+  .clause header {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  /* the section number, large and outlined in the brand blue */
+  .num {
+    color: transparent;
+    font-size: clamp(2.6rem, 2rem + 2vw, 3.6rem);
+    font-weight: 700;
+    line-height: 1;
+    -webkit-text-stroke: 1.2px color-mix(in oklab, var(--brand) 70%, var(--text));
+  }
+
+  .clause h2 {
+    font-size: var(--step-3);
+  }
+
+  .lede {
+    color: var(--text-subtle) !important;
+    font-size: var(--step-1);
+  }
+
+  .clause h3 {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    color: var(--text);
+    font-size: var(--step-1);
+  }
+
+  .sub {
+    flex: none;
+    min-width: 2.2rem;
+    color: var(--link);
+    font-size: var(--step--1);
+    font-weight: 400;
+  }
+
+  .clause code {
+    font-size: 0.9em;
+  }
+
+  /* definitions and risks: term over text, hairlines between */
+  .defs,
+  .risks {
+    display: grid;
+    margin: 0;
+  }
+
+  .defs > div,
+  .risks > div {
+    display: grid;
+    gap: var(--space-1);
+    padding-block: var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .defs > div:first-child,
+  .risks > div:first-child {
+    border-top: 1px solid var(--border);
+  }
+
+  .defs dt,
+  .risks dt {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .defs dd,
+  .risks dd {
+    margin: 0;
+  }
+
+  .risks dd {
+    padding-left: calc(2.2rem + var(--space-3));
+  }
+
+  @media (min-width: 48rem) {
+    .defs > div {
+      grid-template-columns: 13rem minmax(0, 1fr);
+      gap: var(--space-5);
+    }
+  }
+
+  /* is / is not: two marked lists split by a line */
+  .isnot {
+    display: grid;
+    gap: var(--space-6);
+    margin-block: var(--space-2);
+  }
+
+  .isnot h3 {
+    margin: 0 0 var(--space-3);
+  }
+
+  .isnot ul {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .isnot li {
+    position: relative;
+    padding-left: 1.75rem;
+  }
+
+  .isnot li::before {
+    position: absolute;
+    top: 0.05em;
+    left: 0;
+    font-weight: 700;
+  }
+
+  .is li::before {
+    content: '✓';
+    color: var(--success);
+  }
+
+  .not li::before {
+    content: '✕';
+    color: var(--destructive);
+  }
+
+  @media (min-width: 48rem) {
+    .isnot {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-7);
+    }
+
+    .not {
+      padding-left: var(--space-7);
+      border-left: 1px solid var(--border);
+    }
+  }
+
+  /* the SMSG spec and the privacy flows: plain tables with hairlines */
+  .spec,
+  .flows {
+    width: 100%;
+    margin-block: var(--space-2);
+    border-collapse: collapse;
+  }
+
+  .spec caption {
+    padding-bottom: var(--space-2);
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+    text-align: left;
+  }
+
+  .spec th,
+  .spec td,
+  .flows th,
+  .flows td {
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .spec tr:last-child > *,
+  .flows tr:last-child > * {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .spec th {
+    width: 40%;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .spec td {
+    color: var(--text);
+    font-size: var(--step--1);
+  }
+
+  .flows th {
+    width: 32%;
+    padding-right: var(--space-5);
+  }
+
+  .flows ul {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+
+  .flows li::marker {
+    color: var(--text-subtle);
+  }
+
+  .where {
+    display: inline-block;
+    padding-left: var(--space-3);
+    border-left: 3px solid var(--c);
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .where.local {
+    --c: var(--success);
+  }
+
+  .where.smsg {
+    --c: var(--accent);
+  }
+
+  .where.chain {
+    --c: var(--brand);
+  }
+
+  .where.third {
+    --c: var(--warning);
+  }
+
+  @media (max-width: 47.99rem) {
+    .flows tr {
+      display: grid;
+      border-top: 1px solid var(--border);
+    }
+
+    .flows th,
+    .flows td {
+      width: auto;
+      border: 0;
+    }
+
+    .flows td {
+      padding-top: 0;
+    }
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5) var(--space-7);
+  }
+
+  .meta dt {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  .meta dd {
+    margin: 0;
+    color: var(--text);
+  }
+</style>

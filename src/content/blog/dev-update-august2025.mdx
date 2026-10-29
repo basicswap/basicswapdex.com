@@ -1,0 +1,221 @@
+---
+title: "Development Update (August 2025)"
+date: 2025-08-31
+author: "BasicSwap Team"
+tags: ["News", "Report"]
+description: "A summary of the recent developments and progress made by BasicSwap contributors in August 2025."
+seoDescription: "BasicSwap's August 2025 development update covers the short-term roadmap for multi-net messaging, the AMM and light wallets, plus the month's fixes."
+thumbnail: ./images/dev_update_thumbnail.jpg
+banner: ./images/dev_update_banner.jpg
+---
+With the month of August behind us, it's time to report on all the progress we've made working on BasicSwap and related endeavors. 
+
+In this report, we'll go over the key accomplishments from the past month and outline the next steps for the month ahead.
+
+## What We're Working On
+
+Over the past month, our team has made significant progress on the project. Key developments include the implementation of multi-net support, substantial GUI improvements, and numerous bug fixes. In parallel, we have advanced our research and experimentation with critical components such as light wallets, pre-signed swap transactions, and more decentralized price oracles.
+
+On the GUI front, we are developing a revamped order book designed to mirror the look and feel of traditional centralized exchanges. We are also exploring ways to integrate AMM functionality and quick swaps (taker) more tightly into this new interface. The code for these specific GUI updates is still in development and has not yet been published.
+
+<Callout type="info" title="This Month — A Bird's Eye View">
+  <ul>
+    <li>
+      <strong>Major Features Being Looked Into:</strong>
+      <ul>
+        <li>Light Wallet Support (SPV)</li>
+        <li>Pre-signed swap transactions</li>
+        <li>Decentralized price oracle</li>
+        <li>Advanced order book design and functionalities, qith quick swaps and AMM integrations</li>
+      </ul>
+    </li>
+    <li>
+      <strong>Key Improvements:</strong>
+      <ul>
+        <li>More adapted user experience for both makers and takers</li>
+        <li>More offer reliability</li>
+        <li>Better accessibility</li>
+        <li>Faster setup time</li>
+      </ul>
+    </li>
+  </ul>
+</Callout>
+
+### Upcoming Milestones (Short-term Roadmap)
+Here's an updated look at our short-term roadmap, representing the next major milestones in approximate order of development. As BasicSwap DEX is a complex project with multiple moving parts, we may adjust the roadmap to better reflect the platform's evolving priorities.
+
+<Timeline items={[
+  { status: 'Live on Dev', title: 'Multi-Net Functionality', description: 'Enables BasicSwap to distribute swap, offer, and bid messages across multiple messaging networks beyond SMSG when the primary network experiences high load.', long_description: 'Currently live on the dev branch, but it does not possess all the bells and whistles we have planned for its official V1 version.\n\nNamely, it is currently not included in the GUI, it must be manually configured outside the user interface by editing a config file, and it doesn\'t yet allow swaps to happen when two participants are on a different network.\n\nThe latter will require modifications to Particl Core via a hardfork, which we are likely to bundle with a potential coming hardfork to tweak the network emission rate and disable treasury (more news about this treasury community CCS proposal to be published next week), should its ccs proposal be voted in favor.' },
+  { status: 'In Production', title: 'AMM and Advanced Order MGMT', description: 'Enables advanced trading operations like automated market making and advanced order/bid placement.', long_description: 'As it stands at this moment, the initial implementation is now ready and live on the dev branch, and a new BasicSwap page connects directly with the automated market making companion script, allowing you to interact with it directly from the user interface.\n\nThis means you can deploy it, edit its configuration, and post offers using advanced trading options — such as automatic republishing, automatic fiat spread adjustment, price pegging, and more — straight from the user interface.' },
+  { status: 'In Progress', title: 'Light Wallet Support (SPV)', description: 'Enables users to use light wallets instead of full nodes for faster setup time and reduced storage requirements.', long_description: '' },
+  { status: 'Research', title: 'Pre-signed Swap Transactions', description: 'Enables users to safely go offline once a swap is initiated without disrupting the swap process.', long_description: '' },
+  { status: 'Planned', title: 'Quicks Swaps', description: 'Improves and simplifies the process of posting a new offer.', long_description: 'Posting a new offer to the order book is a cumbersome, multi-step process that has remained virtually untouched since the initial BasicSwap GUI release.\n\nThe new "Quick Swaps" feature streamlines this experience, allowing users to post offers from a single, intuitive window without navigating through multiple pages.\n\nImproving this core function is vital for making the DEX more intuitive and will integrate seamlessly with the upcoming order book redesign.' },
+  { status: 'In Progress', title: 'Advanced Order Book Design', description: 'Redesign of the order book into a more intuitive and user-friendly interface.', long_description: 'The current BasicSwap order book functions more like an over-the-counter (OTC) offer board than a traditional order book found on major exchanges like Binance.\n\nWhile this isn\'t inherently bad, it doesn\'t align with our mission to make atomic swaps a ubiquitous and viable alternative to high-risk centralized exchanges (CEXs).\n\nTo address this, we are redesigning the order book to be more intuitive and to include features users expect, such as a depth chart, volume indicators, separate buy/sell books, and market order capabilities.\n\nUltimately, our goal is to deliver the security and privacy benefits of adaptor signature atomic swaps within a DEX that has the familiar look and feel of a popular exchange, but without the associated centralized risks.' }, 
+]} />
+
+## Changes From Last Month
+
+What follows are all the published changes from the last month. Note that this isn't an exhaustive list of all the code we've worked on, as a good portion of it is still unpublished as we're still in the early stages of development.
+
+### Bug Fixes
+
+We've resolved the following bugs to improve stability and performance. These fixes are either live on the [`dev` branch (experimental)](https://github.com/basicswap/basicswap/commits/dev/) or pending in [pull requests](https://github.com/basicswap/basicswap/pulls). What is listed here will likely be merged into the production build in the next BasicSwap release.
+
+<StyledTableWrapper>
+  <thead>
+    <tr>
+      <th>Bug Description</th>
+      <th>Impact</th>
+      <th>Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>GUI — Fix `changepassword`</td>
+      <td>Fix a small bug with the `changepassword` function</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/4c9aa7b77780589c99aac4e27192eb2fe843a2ac)</td>
+    </tr>
+    <tr>
+      <td>GUI — Fix chart display</td>
+      <td>Fix BTC chart to load even if Bitcoin is not enabled</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/30226c37afa4034ec20fcb93419a8e2aa132561c)</td>
+    </tr>
+    <tr>
+      <td>General — Enable relative paths</td>
+      <td>Allow relative paths in inputs</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/0174715dd2dc43dc580442cb5bba0a6fe4ff3a33)</td>
+    </tr>
+    <tr>
+      <td>General — Fix `verifyMessage` parameter</td>
+      <td>Fix verifyMessage parameter order</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/72481337e1ebef0be086c3e46a9bd9cda453c5c7)</td>
+    </tr>
+    <tr>
+      <td>General — Lock-tx flexibility</td>
+      <td>Allow lock-tx nLockTime to be > chain height + 2</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/4fa61e8e493588bc7ae29e9268bec7f7fccc18cc)</td>
+    </tr>
+    <tr>
+      <td>Database — Fix `force_db_upgrade` setting</td>
+      <td>Fix `force_db_upgrade` setting</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/6fce77f34a86bcddf6e0bf8da905319e24af33eb)</td>
+    </tr>
+    <tr>
+      <td>Multi-net — No error if multiple networks</td>
+      <td>Don't raise an error if multiple networks are active (for testing pre smsg-plaintext-version2)</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/4b010cfee06ef374a5a0ba960a28827f4df51036)</td>
+    </tr>
+    <tr>
+      <td>Multi-net — Duplicate SQLite entries</td>
+      <td>Simplex SQLite duplicate server entries</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/e68fc6509bc98c9ce093bddfb5544df1489bf287)</td>
+    </tr>
+    <tr>
+      <td>SMSG — Fix backwards compatibility</td>
+      <td>Fix backwards compatibility</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/bae6aac12ad3ea4cbed64378db7f611f3fde0ab3)</td>
+    </tr>
+  </tbody>
+</StyledTableWrapper>
+
+### Improvements
+
+We've also made several improvements, which are also live on the [`dev` branch (experimental)](https://github.com/basicswap/basicswap/commits/dev/) or pending in [pull requests](https://github.com/basicswap/basicswap/pulls). What is listed here will likely be merged into the production build in the next BasicSwap release.
+
+<StyledTableWrapper>
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th>Impact</th>
+      <th>Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>GUI — Version bump</td>
+      <td>Bump GUI to version 3.3.0</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/c160ba511478fd79b06035baf6fd68a49bb11f7f)</td>
+    </tr>
+    <tr>
+      <td>GUI — Updated notifications</td>
+      <td>Updated toasts and added notifications history</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/672747cc7daf6deecd57d597f681877326ffd3c7)</td>
+    </tr>
+    <tr>
+      <td>GUI — Notify when new BasicSwap update</td>
+      <td>Show notification when new release of BasicSwap is available</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/43f9ae8acfb47c4e69a6550db71015841ce448e3)</td>
+    </tr>
+    <tr>
+      <td>Prepare — Add `deprecaterpc`</td>
+      <td>Add `deprecaterpc` line to `particl.conf`</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/1ea8b80bdcfad3c3f6587523811d55e777020e1f)</td>
+    </tr>
+    <tr>
+      <td>Prepare — Update Particl version</td>
+      <td>Set Particl version to 27.2.1.0</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/a171bbb48a964f0d81931364d41c9f0606ef26db)</td>
+    </tr>
+    <tr>
+      <td>Prepare — Update Particl version</td>
+      <td>Set Particl version to 27.2.2.0</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/7ee1931176dc9e8efb7040773f83813324845c63)</td>
+    </tr>
+    <tr>
+      <td>Prepare — Network logging category</td>
+      <td>Enable network logging category</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/aa2611166592c22ea3daad520a771b73d5e8e8c0)</td>
+    </tr>
+    <tr>
+      <td>Multi-net — Automatically set direct mode per bid</td>
+      <td>Add `deprecaterpc` line to `particl.conf`</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/fafbd0defe9e572b8020859e55746d00d6792d52)</td>
+    </tr>
+    <tr>
+      <td>Multi-net — Fix selection when no networks are specified</td>
+      <td>Fix selection when no networks are specified</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/cd147da7dddbe0f41a045d9ff7a29b18b9f67ba9)</td>
+    </tr>
+    <tr>
+      <td>Multi-net — Add ttl to `smsgEncrypt`</td>
+      <td>Add ttl to `smsgEncrypt`</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/ba8168938fc4a82ed119c68f65217cfc6cd91b06)</td>
+    </tr>
+    <tr>
+      <td>SMSG — Rename `smsg_plaintext_version`</td>
+      <td>Rename smsg_plaintext_version</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/4b010cfee06ef374a5a0ba960a28827f4df51036)</td>
+    </tr>
+    <tr>
+      <td>SMSG — Set version automatically</td>
+      <td>Set `smsg_payload_version` automatically if unset</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/11bbc9b1284177956117d917517ebe43941bb6a4)</td>
+    </tr>
+    <tr>
+      <td>SMSG — Backward compatibility</td>
+      <td>Make backwards compatible with smsg payload version 1</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/9cc4734bdae58f32f62c21a45f01b14199db1c29)</td>
+    </tr>
+    <tr>
+      <td>Particl — Set `messagemagic` string</td>
+      <td>Explicitly set `messagemagic` string for Particl v27</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/235a8f6830651ca77c605b69c1a4db5503393aef)</td>
+    </tr>
+    <tr>
+      <td>Monero — Version bump</td>
+      <td>Bump Monero deamon to version 0.18.4.2</td>
+      <td>[1](https://github.com/basicswap/basicswap/commit/84b6850a0b4a028535e49d3bc50beb47d6ca336b)</td>
+    </tr>
+  </tbody>
+</StyledTableWrapper>
+
+---
+
+## Stay Connected
+
+Stay connected with us on our social media channels for real-time updates, news, and more.
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

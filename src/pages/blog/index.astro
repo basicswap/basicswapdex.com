@@ -1,0 +1,165 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/sections/PageHero.astro';
+import PostCard from '../../components/blog/PostCard.astro';
+import TagNav from '../../components/blog/TagNav.astro';
+import Icon from '../../components/Icon.astro';
+import { BLOG_DESCRIPTION, BLOG_TITLE, getPosts, postUrl, tagIndex } from '../../lib/blog';
+import { breadcrumb } from '../../lib/seo';
+import { SITE_NAME, SITE_URL } from '../../config/site';
+
+const posts = await getPosts();
+const [latest] = posts;
+const tags = tagIndex(posts);
+
+const blogLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: BLOG_TITLE,
+  description: BLOG_DESCRIPTION,
+  url: `${SITE_URL}/blog`,
+  publisher: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+  blogPost: posts.slice(0, 10).map((p) => ({ '@type': 'BlogPosting', headline: p.data.title, url: postUrl(p), datePublished: p.data.date.toISOString() })),
+};
+---
+
+<BaseLayout
+  title="BasicSwap Blog — Atomic Swap DEX News, Releases & Guides"
+  description={BLOG_DESCRIPTION}
+  path="/blog"
+  jsonLd={[blogLd, breadcrumb('Blog', '/blog')]}
+>
+  <link slot="head" rel="alternate" type="application/rss+xml" title={BLOG_TITLE} href="/blog/rss.xml" />
+
+  <PageHero band="full" title={BLOG_TITLE}>
+    <p>{BLOG_DESCRIPTION}</p>
+    <Fragment slot="actions">
+      <a class="btn btn-outline" href="/blog/rss.xml" data-parity="new"><Icon name="rss" size={16} />RSS feed</a>
+    </Fragment>
+  </PageHero>
+
+  <section class="container latest" aria-labelledby="latest-title">
+    <h2 id="latest-title" class="section-label" data-parity="new">Latest</h2>
+    <PostCard post={latest} feature />
+  </section>
+
+  <section class="container all" aria-labelledby="all-title">
+    <div class="toolbar">
+      <h2 id="all-title" class="section-label" data-parity="new">All posts</h2>
+      <label class="search" hidden data-search-wrap>
+        <Icon name="search" size={16} />
+        <span class="visually-hidden">Search posts</span>
+        <input type="search" placeholder="Search posts..." autocomplete="off" data-search />
+      </label>
+    </div>
+    <TagNav tags={tags} total={posts.length} current={null} />
+
+    <div class="grid" data-grid>
+      {posts.map((post) => <PostCard post={post} level={3} />)}
+    </div>
+    <p class="empty" hidden data-empty>No posts found matching your criteria.</p>
+  </section>
+</BaseLayout>
+
+<style>
+  .latest {
+    padding-top: var(--space-8);
+  }
+
+  .section-label {
+    margin-bottom: var(--space-4);
+    color: var(--text-muted);
+    font-size: var(--step-0);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .all {
+    padding-block: var(--space-8) var(--section);
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .toolbar .section-label {
+    margin: 0;
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: min(100%, 20rem);
+    padding: 0 var(--space-3);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text-subtle);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .search[hidden] {
+    display: none;
+  }
+
+  .search:focus-within {
+    border-color: var(--primary);
+  }
+
+  .search input {
+    flex: 1;
+    min-width: 0;
+    height: 2.6rem;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font-size: var(--step--1);
+    outline: none;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+  }
+
+  /* The newest post is featured above; it rejoins the grid while searching. */
+  .grid:not(.searching) > :global(:first-child) {
+    display: none;
+  }
+
+  .empty {
+    margin-top: var(--space-6);
+    color: var(--text-muted);
+    text-align: center;
+  }
+</style>
+
+<script>
+  const wrap = document.querySelector<HTMLElement>('[data-search-wrap]');
+  const input = document.querySelector<HTMLInputElement>('[data-search]');
+  const grid = document.querySelector<HTMLElement>('[data-grid]');
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+  if (wrap && input && grid && empty) {
+    wrap.hidden = false;
+    const cards = [...grid.querySelectorAll<HTMLElement>('[data-search]')];
+    input.addEventListener('input', () => {
+      const terms = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+      grid.classList.toggle('searching', terms.length > 0);
+      let shown = 0;
+      for (const card of cards) {
+        const hit = terms.every((t) => card.dataset.search!.includes(t));
+        card.hidden = !hit;
+        if (hit) shown++;
+      }
+      empty.hidden = shown > 0;
+    });
+  }
+</script>

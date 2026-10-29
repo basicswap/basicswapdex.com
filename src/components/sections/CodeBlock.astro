@@ -1,0 +1,33 @@
+---
+// A labelled command block. `code` is the exact text, whitespace preserved.
+interface Props {
+  label?: string;
+  code: string;
+}
+const { label, code } = Astro.props;
+---
+
+<figure class="code">
+  {label && <figcaption class="data">{label}</figcaption>}
+  <pre><code>{code}</code></pre>
+</figure>
+
+<style>
+  .code {
+    min-width: 0;
+  }
+
+  figcaption {
+    margin-bottom: var(--space-2);
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  pre {
+    font-size: var(--step--1);
+  }
+
+  code {
+    font-size: inherit;
+  }
+</style>

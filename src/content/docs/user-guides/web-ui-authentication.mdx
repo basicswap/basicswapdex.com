@@ -1,0 +1,178 @@
+---
+title: "Web UI authentication"
+sidebar: "Web UI Authentication"
+seoTitle: "Password-Protect BasicSwap's Web UI and API"
+description: "Require a password for BasicSwap's web UI and JSON API, reach it safely over a network with allowed_hosts, and change or remove it with basicswap-prepare."
+published: 2026-07-20
+---
+BasicSwap can ask for a password before it shows the web UI or answers the JSON API. On a computer only you use, with BasicSwap listening on `127.0.0.1`, that's an extra lock on a door nobody else can reach. Once BasicSwap is reachable over a network, for example with `--htmlhost=0.0.0.0`, the password becomes what stands between your wallets and everyone else on that network. With a password set, every page apart from the login screen needs a valid session or API credentials, and a visitor without them lands on the login page.
+
+<Callout type="caution" title="The password travels unencrypted">
+
+BasicSwap's own web server speaks plain HTTP, not HTTPS. Outside `localhost`, that means your password crosses the network readable by anyone in between, unless you put a reverse proxy with HTTPS, such as Nginx or Caddy, in front of BasicSwap.
+
+</Callout>
+
+## Reaching BasicSwap over a network
+
+From version 0.17.3 on, a password alone doesn't let you reach the UI from another machine. BasicSwap also checks the `Host` header of every request, and the `Origin` of every request that changes something, against a list of allowed hosts, which protects it against DNS-rebinding and cross-site attacks. BasicSwap always allows `localhost`, `127.0.0.1` and `::1`, so an install used on the same machine, including the default Docker setup that publishes the port to localhost, needs nothing more.
+
+To reach the UI by any other address, add it to `allowed_hosts` in `basicswap.json` and restart BasicSwap:
+
+```json
+{
+  "allowed_hosts": ["192.168.1.50", "nas.local", "https://swap.example.com", "http://localhost:5555"]
+}
+```
+
+A bare host such as `192.168.1.50` or `nas.local` allows that host on any scheme and port. An entry with a scheme, such as `https://swap.example.com`, has to match the browser's origin exactly, which is what a reverse proxy needs, and it should include the port when the proxy listens on a non-standard one, as in `https://swap.example.com:8443`.
+
+There's no `basicswap-prepare` option for this setting, so you edit `basicswap.json` in your data folder by hand. Updating BasicSwap doesn't add it to an existing configuration either, which means anyone upgrading from a version before 0.17.3 who reaches the UI over a network has to add it after the update.
+
+When the list is missing an address, the failure takes one of two forms. Opening the UI by a LAN address, hostname or mDNS name that isn't listed returns `403 Host not allowed`, and the page doesn't load at all. A bind-all address like `0.0.0.0` never counts as a hostname, so binding to it and then browsing to the machine's LAN address fails until that address is in the list. Going through a reverse proxy, or through an SSH tunnel forwarded to a different local port than the server's, gets a little further, in that the page loads but every action returns `Cross-origin request blocked` and live updates stop. The fix there is to add the exact origin you type in the browser, such as `https://swap.example.com` or `http://localhost:5555` for a tunnel, or to forward the same port the server uses.
+
+<Callout type="caution" title="Allowing any host">
+
+Setting `allowed_hosts` to `"*"` accepts any host name, but BasicSwap refuses to start that way unless a password is set. On a trusted, isolated network you can override the refusal with `"unsafe_allow_any_host_without_auth": true`, available from version 0.17.4. Even with `"*"`, BasicSwap still enforces its cross-origin and websocket checks, so you still need to list a reverse proxy's origin as well.
+
+</Callout>
+
+## Enable authentication
+
+<Tabs groupId="install-method">
+<TabItem value="bash" label="basicswap-bash" default>
+
+With BasicSwap stopped, run the client-auth command:
+
+```bash
+bsx-clientauth
+```
+
+Choose **Enable client auth** and enter the password twice. The same command later changes the password, or removes it with **Disable client auth**. Start BasicSwap again with `basicswap-bash` when you're done.
+
+</TabItem>
+<TabItem value="docker" label="Docker">
+
+On a new install, add `--client-auth-password` to the [configure command](/docs/user-guides/install#configure-the-container):
+
+```bash
+docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --htmlhost="0.0.0.0" --wshost="0.0.0.0" --withcoins=monero,bitcoin --client-auth-password=YOUR_PASSWORD
+```
+
+On an existing install, run these in the `basicswap/docker` folder:
+
+```bash
+docker-compose stop
+docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --client-auth-password=YOUR_PASSWORD
+docker-compose up
+```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+On a new install, add `--client-auth-password` to the [configure command](/docs/user-guides/install#configure-basicswap). On an existing install, stop BasicSwap and run:
+
+```bash
+export SWAP_DATADIR=$HOME/coinswaps
+. $SWAP_DATADIR/venv/bin/activate
+basicswap-prepare --datadir=$SWAP_DATADIR --client-auth-password=YOUR_PASSWORD
+basicswap-run --datadir=$SWAP_DATADIR
+```
+
+</TabItem>
+</Tabs>
+
+BasicSwap stores only a hash of the password, as `client_auth_hash` in `basicswap.json`, and never writes the password itself to disk.
+
+## Logging in
+
+With a password set, opening the web UI takes you to the login page first. After you log in, BasicSwap sets a session cookie that lasts 15 minutes by default, and the open web UI keeps extending it in the background, so in practice BasicSwap only logs you out once you've closed the page for 15 minutes. You can change the length under **Settings → Security → Session Timeout (minutes)**, anywhere from 1 minute to 10,080, which is a week.
+
+A session that a script opens never extends itself in this way and ends 15 minutes, or your chosen timeout, after logging in, which is why scripts are better off with [Basic Auth](#http-basic-auth) and no session at all. If BasicSwap notices that the UI is reachable from a non-local address, the login page also warns that the password would travel over plain HTTP, and the answer there is a reverse proxy with HTTPS.
+
+## Authenticating API requests
+
+The JSON API, everything under `/json/`, uses the same password, and a script can supply it in one of two ways.
+
+### HTTP Basic Auth
+
+The simpler way is HTTP Basic Auth with an empty username and your password. BasicSwap ignores the username, and the colon in front of the password below stands for the empty one:
+
+```bash
+curl -u :YOUR_PASSWORD http://localhost:12700/json/wallets
+```
+
+### A login session
+
+A script can also log in the way the browser does, by posting the password as JSON to `/login` and keeping the `basicswap_session_id` cookie it gets back for later requests:
+
+```bash
+curl -X POST http://localhost:12700/login \
+  -H "Content-Type: application/json" \
+  -d '{"password": "YOUR_PASSWORD"}' \
+  -c cookies.txt
+
+curl -b cookies.txt http://localhost:12700/json/wallets
+```
+
+## Change the password
+
+You can only change the login password from the command line, with BasicSwap stopped, by running `basicswap-prepare` again with the new password, or `bsx-clientauth` on a basicswap-bash install:
+
+<Tabs groupId="install-method">
+<TabItem value="docker" label="Docker" default>
+
+```bash
+docker-compose stop
+docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --client-auth-password=NEW_PASSWORD
+docker-compose up
+```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+```bash
+basicswap-prepare --datadir=$SWAP_DATADIR --client-auth-password=NEW_PASSWORD
+```
+
+</TabItem>
+</Tabs>
+
+The new hash replaces the old `client_auth_hash` and takes effect when BasicSwap starts again, at which point every earlier session has ended and everyone logs in with the new password.
+
+<Callout type="note" title="Not the wallet password">
+
+The **Change/Set Password** button on the Wallets page, at `/changepassword`, sets the password that encrypts your coin wallets. It's a separate password and has no effect on logging in to the web UI.
+
+</Callout>
+
+## Remove the password
+
+To turn authentication off, stop BasicSwap and run `basicswap-prepare` with `--disable-client-auth`, or choose **Disable client auth** in `bsx-clientauth`:
+
+<Tabs groupId="install-method">
+<TabItem value="docker" label="Docker" default>
+
+```bash
+docker-compose stop
+docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --disable-client-auth
+docker-compose up
+```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+```bash
+basicswap-prepare --datadir=$SWAP_DATADIR --disable-client-auth
+```
+
+</TabItem>
+</Tabs>
+
+That deletes `client_auth_hash` from `basicswap.json`, and after the restart the web UI and API open without a password.
+
+## How it works
+
+BasicSwap hashes the password with the RFC 2440 scheme that Tor also uses, and keeps sessions in memory only, so restarting BasicSwap logs everyone out. The login page, static files, error pages and info pages are open to everyone, while every other page and API endpoint needs a session or Basic Auth.
+
+If you bind BasicSwap to `0.0.0.0`, the UI is open to your whole local network, and possibly further depending on your firewall, so treat a password as required in that setup. Reaching the UI by a LAN address, hostname or reverse proxy also needs an [`allowed_hosts` entry](#reaching-basicswap-over-a-network), and BasicSwap checks that list before it even asks for the password.

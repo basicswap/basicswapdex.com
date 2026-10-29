@@ -1,0 +1,53 @@
+---
+// A screenshot or mock in two versions, one per theme. Both are in the HTML
+// and CSS shows the one matching the active theme, so there is no wrong-theme
+// flash and no JS. The dark copy has an empty alt and is aria-hidden, so
+// screen readers and crawlers read the picture once. Same approach as the
+// PineHook site's MockShot.
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  light: ImageMetadata;
+  dark: ImageMetadata;
+  alt: string;
+  sizes?: string;
+  /** Only for the image that is the page's LCP element. */
+  priority?: boolean;
+  class?: string;
+}
+
+const { light, dark, alt, sizes = '(max-width: 72rem) 100vw, 72rem', priority = false, class: className } = Astro.props;
+const common = { sizes, widths: [640, 960, 1280, 1920, 2560], decoding: 'async' as const };
+// Dark is the default theme, so only the dark copy gets the LCP treatment.
+// The light copy stays lazy: browsers skip lazy images that are display:none,
+// so each visitor downloads one version. With `priority`, a light-theme
+// visitor also fetches the eager dark copy; that is the cost of a fast LCP
+// for the default theme.
+const darkLoading = priority ? { loading: 'eager' as const, fetchpriority: 'high' as const } : { loading: 'lazy' as const };
+---
+
+<span class:list={['themed', className]}>
+  <Image src={light} alt={alt} class="for-light" loading="lazy" {...common} />
+  <Image src={dark} alt="" aria-hidden="true" class="for-dark" {...common} {...darkLoading} />
+</span>
+
+<style>
+  .themed {
+    display: block;
+  }
+
+  .themed :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
+  .themed :global(.for-light),
+  :global(html[data-theme='light']) .themed :global(.for-dark) {
+    display: none;
+  }
+
+  :global(html[data-theme='light']) .themed :global(.for-light) {
+    display: block;
+  }
+</style>

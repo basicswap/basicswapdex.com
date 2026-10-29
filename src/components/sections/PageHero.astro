@@ -1,0 +1,274 @@
+---
+// Top of every inner page: kicker, h1, lead, actions, with the ribbon band
+// behind. An `aside` slot holds a visual beside the text on wide screens.
+// `ribbon="hero"` swaps the band for the homepage's full-width hero ribbon,
+// spanning the whole section edge to edge.
+// `fit` sizes the hero to the screen below the header on desktop, at any
+// browser zoom: type, spacing and the aside scale with the viewport height
+// (the aside reads --hero-h), so the whole hero always fits one screen.
+// `jump` adds an "On this page" row of quick links along its bottom edge.
+// Slots: `notice` (above the kicker), default (the lead), `actions`,
+// `after` (below the actions), `aside` (the visual) and `backdrop` (art
+// across the whole hero, in place of the ribbon; pass ribbon="none").
+// `band="full"` spreads the band ribbon across the whole hero, faint behind
+// the copy and full strength on the right, as the page backdrops do.
+import Ribbon from '../Ribbon.astro';
+import HeroJump from './HeroJump.astro';
+import type { PaletteName } from '../../lib/ribbon-palettes';
+
+interface Props {
+  kicker?: string;
+  title: string;
+  ribbon?: 'band' | 'hero' | 'none';
+  fit?: boolean;
+  jump?: { href: string; label: string }[];
+  /** Share of the width the aside takes when the hero is fitted. */
+  aside?: 'wide' | 'xl' | 'narrow';
+  /** How far the band ribbon reaches: the right side, or the full width. */
+  band?: 'right' | 'full';
+  /** The ribbon's colours; BasicSwap Blue and Violet by default. */
+  palette?: PaletteName;
+}
+const { kicker, title, ribbon = 'band', fit = false, jump, aside = 'wide', band = 'right', palette } = Astro.props;
+const lines = title.split('\n');
+const hasAside = Astro.slots.has('aside');
+const hasBackdrop = Astro.slots.has('backdrop');
+---
+
+<section class:list={['page-hero', `aside-${aside}`, `band-${band}`, { split: hasAside, wide: ribbon === 'hero' || hasBackdrop, fit, 'has-jump': jump?.length }]}>
+  {ribbon === 'band' && <Ribbon variant="band" class="hero-ribbon" palette={palette} />}
+  {hasBackdrop && <div class="backdrop"><slot name="backdrop" /></div>}
+  <div class="container inner">
+    <div class="copy">
+      {Astro.slots.has('notice') && <slot name="notice" />}
+      {kicker && <p class="kicker">{kicker}</p>}
+      <div class="headline">
+        {ribbon === 'hero' && <Ribbon variant="hero" class="wide-ribbon" palette={palette} />}
+        <h1>{lines.map((line, i) => (i > 0 ? [<br />, line] : line))}</h1>
+      </div>
+      <div class="lead-wrap flow"><slot /></div>
+      {Astro.slots.has('actions') && <div class="actions-row"><slot name="actions" /></div>}
+      {Astro.slots.has('after') && <div class="after"><slot name="after" /></div>}
+    </div>
+    {hasAside && <div class="aside"><slot name="aside" /></div>}
+  </div>
+  {jump?.length && <HeroJump links={jump} />}
+</section>
+
+<style>
+  .page-hero {
+    /* Width of the layout the headline sits in; the ribbon reaches back
+       from the headline to the window edge by the margin this leaves. */
+    --stage-w: calc(var(--content-max) + 2 * var(--gutter));
+    position: relative;
+    overflow: hidden;
+    padding-block: clamp(4rem, 3rem + 6vw, 8rem) clamp(3rem, 2rem + 4vw, 6rem);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* The ribbon fades in from the right so it never runs behind the copy. */
+  .page-hero :global(.hero-ribbon) {
+    top: auto;
+    height: 75%;
+    opacity: 0.7;
+    -webkit-mask-image: linear-gradient(to right, transparent 25%, black 70%);
+    mask-image: linear-gradient(to right, transparent 25%, black 70%);
+  }
+
+  /* Full width: the band fills the hero, fading in from the left where the
+     copy sits, with soft top and bottom edges. */
+  .band-full :global(.hero-ribbon) {
+    top: 0;
+    height: 100%;
+    opacity: 0.85;
+    -webkit-mask-image:
+      linear-gradient(to right, rgb(0 0 0 / 0.12) 0%, rgb(0 0 0 / 0.3) 30%, rgb(0 0 0 / 0.7) 55%, black 80%),
+      linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, rgb(0 0 0 / 0.12) 0%, rgb(0 0 0 / 0.3) 30%, rgb(0 0 0 / 0.7) 55%, black 80%),
+      linear-gradient(to bottom, transparent 0%, black 22%, black 78%, transparent 100%);
+    mask-composite: intersect;
+  }
+
+  /* The homepage's hero ribbon: centred on the headline, as on the
+     homepage, and spanning the whole viewport. The headline sits at the
+     container's content edge, so the ribbon reaches back by that offset. */
+  .headline {
+    position: relative;
+  }
+
+  .backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .headline > :global(.wide-ribbon) {
+    inset: auto;
+    top: 50%;
+    left: calc((min(100vw, var(--stage-w)) - 100vw) / 2 - var(--gutter));
+    z-index: -2;
+    width: 100vw;
+    height: max(56.25vw, 100% + 14rem);
+    transform: translateY(-50%);
+  }
+
+  .headline h1 {
+    position: relative;
+  }
+
+  /* With the ribbon running behind the copy, the ribbon itself is dimmed
+     where the text sits, with no shape of its own: evenly on narrow screens,
+     where the copy spans the width, and fading in from left to right on wide
+     ones, so it runs at full strength beside the copy. A halo that follows
+     each letter does the rest. */
+  .wide .headline > :global(.wide-ribbon) {
+    -webkit-mask-image: linear-gradient(rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.4));
+    mask-image: linear-gradient(rgb(0 0 0 / 0.4), rgb(0 0 0 / 0.4));
+  }
+
+  @media (min-width: 64rem) {
+    .wide .headline > :global(.wide-ribbon) {
+      -webkit-mask-image: linear-gradient(90deg, rgb(0 0 0 / 0.3) 0%, rgb(0 0 0 / 0.3) 38%, #000 62%);
+      mask-image: linear-gradient(90deg, rgb(0 0 0 / 0.3) 0%, rgb(0 0 0 / 0.3) 38%, #000 62%);
+    }
+  }
+
+  .wide .copy {
+    position: relative;
+    text-shadow:
+      0 0 3px var(--bg),
+      0 0 14px var(--bg),
+      0 0 32px color-mix(in oklab, var(--bg) 85%, transparent);
+  }
+
+  .has-jump {
+    padding-bottom: 0;
+  }
+
+  /* ---- Fit to the screen (desktop) ----
+     Everything is sized against the viewport height below the header, so
+     zooming the browser in or out changes the scale, never the fit. */
+  @media (min-width: 64rem) and (min-height: 34rem) {
+    .fit {
+      --hero-h: calc(100svh - var(--header-h));
+      --stage-w: min(92vw, 100rem);
+      display: flex;
+      flex-direction: column;
+      min-height: var(--hero-h);
+      padding-block: clamp(1rem, 4vh, 3rem) 0;
+    }
+
+    /* A wider stage than the page text, so the visual can grow. */
+    .fit .inner {
+      flex: 1;
+      align-content: center;
+      max-width: var(--stage-w);
+      gap: clamp(2rem, 4vw, 5rem);
+    }
+
+    .fit.split.aside-wide .inner {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    }
+
+    .fit .after {
+      margin-top: clamp(0.25rem, 1.4vh, 1rem);
+    }
+
+    .fit.split.aside-narrow .inner {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    }
+
+    /* For a visual that needs the room: the copy takes a little over a third. */
+    .fit.split.aside-xl .inner {
+      grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+    }
+
+    .fit .copy {
+      gap: clamp(0.6rem, 2.2vh, 1.25rem);
+    }
+
+    .fit h1 {
+      font-size: clamp(2rem, min(3.9vw, 6.6vh), 5rem);
+    }
+
+    .fit .lead-wrap {
+      font-size: clamp(0.95rem, 2.15vh, 1.6rem);
+    }
+
+    .fit .lead-wrap :global(> * + *) {
+      margin-top: clamp(0.5rem, 1.6vh, 1.1rem);
+    }
+
+    .fit .actions-row {
+      margin-top: clamp(0.25rem, 1vh, 0.5rem);
+    }
+
+  }
+
+  /* Narrower desktops: even columns, so the copy keeps its line length. */
+  @media (min-width: 64rem) and (max-width: 80rem) and (min-height: 34rem) {
+    .fit.split.aside-wide .inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .fit.split.aside-xl .inner {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    }
+  }
+
+  /* Short or narrower screens (or zoomed in): compact buttons that stay on
+     one row. */
+  @media (min-width: 64rem) and (max-height: 50rem), (min-width: 64rem) and (max-width: 80rem) {
+    .fit .actions-row {
+      flex-wrap: nowrap;
+    }
+
+    .fit .actions-row :global(.btn-lg) {
+      min-height: 2.6rem;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.95rem;
+    }
+  }
+
+  .inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+  }
+
+  .copy {
+    display: grid;
+    gap: var(--space-5);
+    max-width: 44rem;
+  }
+
+  h1 {
+    font-size: var(--step-5);
+    font-weight: 700;
+  }
+
+  .lead-wrap {
+    color: var(--text-muted);
+    font-size: var(--step-1);
+    line-height: 1.55;
+  }
+
+  .lead-wrap :global(strong) {
+    color: var(--text);
+  }
+
+  .actions-row {
+    margin-top: var(--space-2);
+  }
+
+  @media (min-width: 64rem) {
+    .split .inner {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    }
+  }
+</style>

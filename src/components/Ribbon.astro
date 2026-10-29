@@ -1,0 +1,72 @@
+---
+// The line ribbon, as a decorative backdrop.
+//
+// Live: the release animation's WebGL2 shader (src/scripts/ribbon.ts) draws
+// into the canvas and fades in once its first frame is ready.
+// Fallback: the static SVG built from the same curve
+// (/ribbon/<variant>-<theme>.svg, src/pages/ribbon/[name].svg.ts), set as a
+// CSS background so only the active theme's file downloads. It shows only
+// without JS, or when the shader can't run (the script then sets
+// data-fallback). With JS the ribbon starts empty and the shader's first
+// frame fades in, so the coarser SVG never flashes before it.
+import type { PaletteName } from '../lib/ribbon-palettes';
+import { ribbonFile } from '../lib/ribbon';
+
+interface Props {
+  variant?: 'hero' | 'band';
+  /** The colours (ribbon-palettes.ts); BasicSwap Blue and Violet by default. */
+  palette?: PaletteName;
+  /** Dim the centre for copy on top (0 to 1), as the original dims its type. */
+  zone?: number;
+  class?: string;
+}
+const { variant = 'hero', palette = 'brand', zone = 0, class: className } = Astro.props;
+const style = `--ribbon-dark: url(/ribbon/${ribbonFile(`${variant}-dark`, palette)}.svg); --ribbon-light: url(/ribbon/${ribbonFile(`${variant}-light`, palette)}.svg)`;
+---
+
+<div class:list={['ribbon', variant, className]} style={style} aria-hidden="true">
+  <canvas data-ribbon data-zone={zone} data-palette={palette === 'brand' ? undefined : palette}></canvas>
+</div>
+
+<script>
+  import '../scripts/ribbon';
+</script>
+
+<style>
+  .ribbon {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  :global(html:not([data-js])) .ribbon,
+  .ribbon[data-fallback] {
+    background: var(--ribbon-dark) center / cover no-repeat;
+  }
+
+  :global(html[data-theme='light']:not([data-js])) .ribbon,
+  :global(html[data-theme='light']) .ribbon[data-fallback] {
+    background-image: var(--ribbon-light);
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 600ms var(--ease);
+  }
+
+  canvas[data-live] {
+    opacity: 1;
+  }
+
+  /* The hero ribbon needs no mask: the shader fades its own edges. Bands
+     fade at the top and bottom so sections meet cleanly. Chromium before
+     v120 and older Safari only support the -webkit- prefixed property. */
+  .band {
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+  }
+</style>

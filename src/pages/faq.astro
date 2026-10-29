@@ -1,0 +1,192 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import FaqBackdrop from '../components/backdrops/FaqBackdrop.astro';
+import { breadcrumb } from '../lib/seo';
+import pages from '../data/pages.json';
+import faq from '../data/faq.json';
+import schema from '../data/schema/faq.json';
+
+// Answers are trusted HTML extracted from the legacy page. External links
+// open in a new tab, like every other external link on the site.
+const withTargets = (html: string) => html.replace(/<a href="(https?:)/g, '<a target="_blank" rel="noopener noreferrer" href="$1');
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+---
+
+<BaseLayout {...pages.faq} jsonLd={[...schema, breadcrumb('FAQ', '/faq')]}>
+  <PageHero ribbon="none" title={'Frequently asked questions\nabout BasicSwap'}>
+    <FaqBackdrop slot="backdrop" />
+    <p>Find an answer to the most frequently asked questions that you may have about BasicSwap DEX.</p>
+  </PageHero>
+
+  <div class="container faq-layout">
+    <nav class="toc" aria-label="FAQ sections">
+      <ul role="list">
+        {faq.map(({ title }) => <li><a href={`#${slug(title)}`}>{title}</a></li>)}
+      </ul>
+    </nav>
+
+    <div class="groups">
+      {
+        faq.map(({ title, items }) => (
+          <section class="group" aria-labelledby={slug(title)}>
+            <h2 id={slug(title)}>{title}</h2>
+            {items.map(({ q, a }) => (
+              <details class="qa">
+                <summary>
+                  <h3>{q}</h3>
+                  <span class="chev" aria-hidden="true" />
+                </summary>
+                <div class="answer flow">
+                  {a.map((para) => (
+                    <p set:html={withTargets(para)} />
+                  ))}
+                </div>
+              </details>
+            ))}
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .faq-layout {
+    display: grid;
+    gap: var(--space-7);
+    padding-block: var(--section);
+  }
+
+  .toc ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc a {
+    display: block;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .toc a:hover {
+    border-color: var(--primary);
+    color: var(--text);
+  }
+
+  .groups {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .group h2 {
+    margin-bottom: var(--space-4);
+    font-size: var(--step-3);
+  }
+
+  .qa {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .qa:first-of-type {
+    border-top: 1px solid var(--border);
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-5);
+    padding: var(--space-5) 0;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary h3 {
+    font-size: var(--step-1);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    transition: color var(--dur) var(--ease);
+  }
+
+  summary:hover h3 {
+    color: var(--link);
+  }
+
+  .chev {
+    flex: none;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-right: 2px solid var(--text-subtle);
+    border-bottom: 2px solid var(--text-subtle);
+    transform: translateY(-25%) rotate(45deg);
+    transition: transform var(--dur) var(--ease);
+  }
+
+  .qa[open] .chev {
+    transform: translateY(25%) rotate(-135deg);
+    border-color: var(--brand);
+  }
+
+  .answer {
+    max-width: var(--prose-max);
+    padding-bottom: var(--space-6);
+    color: var(--text-muted);
+  }
+
+  /* Smooth open where supported; instant elsewhere. */
+  @supports (interpolate-size: allow-keywords) {
+    .qa {
+      interpolate-size: allow-keywords;
+    }
+
+    .qa::details-content {
+      height: 0;
+      overflow: clip;
+      transition: height var(--dur-slow) var(--ease), content-visibility var(--dur-slow) allow-discrete;
+    }
+
+    .qa[open]::details-content {
+      height: auto;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .faq-layout {
+      grid-template-columns: 14rem minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-6));
+    }
+
+    .toc ul {
+      flex-direction: column;
+    }
+
+    .toc a {
+      border: 0;
+      border-left: 2px solid var(--border);
+      border-radius: 0;
+      padding-block: var(--space-2);
+    }
+
+    .toc a:hover {
+      border-left-color: var(--brand);
+    }
+  }
+</style>

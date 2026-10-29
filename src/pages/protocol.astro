@@ -1,0 +1,371 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import ProtocolBackdrop from '../components/backdrops/ProtocolBackdrop.astro';
+import CodeBlock from '../components/sections/CodeBlock.astro';
+import SectionHead from '../components/sections/SectionHead.astro';
+import Icon from '../components/Icon.astro';
+import MessageSequence from '../components/protocol/MessageSequence.astro';
+import { breadcrumb } from '../lib/seo';
+import pages from '../data/pages.json';
+
+const electrum = `// 1. Subscribe to the chain tip
+tip  = electrum.blockchain.headers.subscribe()
+
+// 2. Read history + transactions on demand
+hist = electrum.blockchain.scripthash.get_history(scripthash)
+tx   = electrum.blockchain.transaction.get(txid)
+
+// 3. Track confirmation depth against the tip
+confs = tip.height - hist.height + 1
+
+// 4. Light mode trusts the server's view.
+//    Run a full coin core to verify first-party.`;
+---
+
+<BaseLayout {...pages.protocol} jsonLd={[breadcrumb('Protocol', '/protocol')]}>
+  <PageHero ribbon="none" title={'An open atomic swap protocol,\nbuilt on three primitives.'}>
+    <ProtocolBackdrop slot="backdrop" />
+    <p>
+      BasicSwap is a decentralized coordination layer for atomic swaps. It holds no funds and does not process,
+      initiate, or execute swaps on your behalf. It carries the encrypted messages traders use to find each other and
+      agree on terms; settlement happens entirely on the blockchains of the coins being traded.
+    </p>
+    <p>
+      In that sense it is a SWIFT for cross-chain atomic swaps, except there is no company or operator anyone can
+      compel, censor, or switch off.
+    </p>
+    <a slot="actions" class="btn btn-outline btn-lg" href="#what-basicswap-is-not">What BasicSwap is, and what it is not</a>
+  </PageHero>
+
+  <section class="section container is-isnt" id="what-basicswap-is-not">
+    <div class="col is">
+      <p class="kicker">what basicswap is</p>
+      <h2>A decentralized messaging protocol that facilitates atomic swaps.</h2>
+      <ul class="marks" role="list">
+        <li>An end-to-end encrypted mesh that gossips offers, bids, and lock signatures between peers.</li>
+        <li>A set of open atomic swap protocols (HTLC, OtVES, SwapLock) executed on each coin's own chain.</li>
+        <li>Open source under MIT. Anyone can read, audit, fork, or extend it.</li>
+      </ul>
+    </div>
+    <div class="col isnt">
+      <p class="kicker">what basicswap is not</p>
+      <h2>Not an exchange. Not a custodian. Not a server.</h2>
+      <ul class="marks" role="list">
+        <li>BasicSwap does not initiate, process, or execute swaps. Each chain does that itself.</li>
+        <li>BasicSwap does not hold funds, issue wallets, or generate keys. Core wallets do that.</li>
+        <li>BasicSwap does not run servers or central matching. No operator can pause it.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section band primitive">
+    <div class="container split">
+      <div class="flow">
+        <p class="kicker">primitive 01</p>
+        <h2>Adaptor signatures.<br />Atomicity without a Monero script.</h2>
+        <p class="muted">
+          The Bitcoin side of a BTC&#8596;XMR swap has script. The Monero side does not. That asymmetry is what blocked
+          cross-chain atomic swaps for years. One-Time Verifiably Encrypted Signatures (OtVES) fix it.
+        </p>
+        <p class="muted">
+          The signature that redeems the Bitcoin is encrypted under one party's half of the Monero spend key.
+          Broadcasting that spend reveals the half on-chain; combined with the other half, it unlocks the Monero. On
+          Monero, atomicity is pure cryptography. The Bitcoin side still uses ordinary script and timelocks, which the
+          paper calls semi-scriptless.
+        </p>
+        <p class="muted">
+          BasicSwap was the first DEX to implement OtVES for XMR atomic swaps, working since 2020. The <a
+            href="/bitcoin-to-monero">Bitcoin to Monero page</a
+          > walks through a single swap in full.
+        </p>
+        <p>
+          <a class="ext" href="https://eprint.iacr.org/2020/1126" target="_blank" rel="noopener noreferrer"
+            >Read the BTC&#8596;XMR atomic-swap paper<Icon name="external" size={13} /></a
+          >
+        </p>
+      </div>
+      <figure class="panel">
+        <figcaption class="panel-label data">otves &middot; simplified</figcaption>
+        <ol class="mini" role="list">
+          <li><span class="data">01</span><span>Alice locks her XMR under a key split between both parties.</span></li>
+          <li><span class="data">02</span><span>Bob locks his BTC, redeemable by Alice with a signature <em>missing a secret</em>.</span></li>
+          <li><span class="data">03</span><span>Alice redeems the BTC. The chain forces her to reveal the secret.</span></li>
+          <li><span class="data">04</span><span>Bob reads the secret, completes the Monero key, and claims the XMR.</span></li>
+        </ol>
+        <p class="fallback data">if anyone walks away &rarr; presigned refunds</p>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section band-surface primitive">
+    <div class="container split reverse">
+      <figure class="panel">
+        <figcaption class="panel-label data">smsg &middot; message cryptography</figcaption>
+        <dl class="spec">
+          <div><dt>key exchange</dt><dd class="data">ECDH (secp256k1)</dd></div>
+          <div><dt>encryption</dt><dd class="data">AES-256-CBC</dd></div>
+          <div><dt>auth</dt><dd class="data">HMAC-SHA256</dd></div>
+          <div><dt>storage</dt><dd class="data">1-hour buckets, 31-day TTL</dd></div>
+          <div><dt>spam resistance</dt><dd class="data">PoW &middot; on-chain fees</dd></div>
+        </dl>
+      </figure>
+      <div class="flow">
+        <p class="kicker">primitive 02</p>
+        <h2>SMSG.<br />An encrypted message mesh.</h2>
+        <p class="muted">
+          SMSG is the secure-messaging layer inside Particl's P2P network. It carries the BasicSwap order book and
+          every step of the swap conversation. End-to-end encrypted, peer-to-peer, with no central matcher to subpoena.
+        </p>
+        <p class="muted">
+          The mesh is many small nodes gossiping. Any node can carry any message. No node is privileged. A bid
+          disappears from the open layer once it's delivered: messages live in time-bucketed storage that ages out
+          after 31 days.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band primitive">
+    <div class="container split">
+      <div class="flow">
+        <p class="kicker">primitive 03</p>
+        <h2>Lightweight node fetching.<br />No chain to install.</h2>
+        <p class="muted">
+          Phones don't run full nodes. So BasicSwap Mobile reads chain state from public Electrum nodes directly. No
+          daemon to install, no 50 GB sync, no explorer dependency. The thin client speaks the same protocol the heavy
+          client does.
+        </p>
+        <p class="muted">
+          For Monero, the same pattern works against public RPC endpoints with view-only proofs. The phone never syncs
+          a chain. The swap's atomicity holds either way; the trade-off is that light mode trusts the node's view of the
+          chain, where a full coin core verifies it first-hand.
+        </p>
+      </div>
+      <CodeBlock label="electrum · read pattern" code={electrum} />
+    </div>
+  </section>
+
+  <section class="section band-surface">
+    <div class="container">
+      <SectionHead kicker="otves · the swap, message by message" title={'Eight messages.\nThen settlement, on chain.'}>
+        <p>
+          A BasicSwap OtVES swap is a sequence of eight signed messages on the SMSG mesh, plus on-chain transactions.
+          The sequence below traces one XMR &#8596; BTC swap, and shows who sends what.
+        </p>
+      </SectionHead>
+      <MessageSequence />
+    </div>
+  </section>
+
+  <section class="section container">
+    <SectionHead kicker="get started" title="Ready to use BasicSwap? Pick a surface." />
+    <div class="surfaces">
+      <a class="surface" href="/desktop">
+        <span class="kicker">desktop</span>
+        <h3>Run the full protocol</h3>
+        <p>
+          Self-host a node and your own coin core wallets. Make markets, manage offers, and settle across all 12 chains,
+          with nothing held back.
+        </p>
+        <span class="go">Explore BasicSwap Desktop</span>
+      </a>
+      <a class="surface" href="/mobile">
+        <span class="kicker">mobile</span>
+        <h3>Swap from anywhere</h3>
+        <p>
+          The consumer surface, in a browser or mobile wallet. No node to run, no chain to sync, the same atomic
+          guarantees underneath.
+        </p>
+        <span class="go">Explore BasicSwap Mobile</span>
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .is-isnt {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .col {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  .col h2 {
+    font-size: var(--step-3);
+  }
+
+  .marks {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+    color: var(--text-muted);
+  }
+
+  .marks li {
+    position: relative;
+    padding-left: var(--space-5);
+  }
+
+  .marks li::before {
+    content: '';
+    position: absolute;
+    top: 0.65em;
+    left: 0;
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 1px;
+    background: var(--mark);
+  }
+
+  .is { --mark: var(--success); }
+  .isnt { --mark: var(--destructive); }
+  .isnt .kicker { color: color-mix(in oklab, var(--destructive) 75%, var(--text)); }
+
+  .split {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+
+  .split h2 {
+    font-size: var(--step-4);
+  }
+
+  .ext {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-weight: 600;
+  }
+
+  .panel {
+    padding: var(--space-6);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+  }
+
+  .panel-label {
+    margin-bottom: var(--space-5);
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  .mini {
+    display: grid;
+    gap: var(--space-4);
+    padding: 0;
+    list-style: none;
+  }
+
+  .mini li {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: var(--space-3);
+    color: var(--text-muted);
+  }
+
+  .mini li > :first-child {
+    color: var(--link);
+  }
+
+  .mini em {
+    color: var(--text);
+  }
+
+  .fallback {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--border-strong);
+    color: var(--warning);
+    font-size: var(--step--1);
+  }
+
+  .spec {
+    display: grid;
+    gap: 0;
+  }
+
+  .spec div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .spec div:last-child {
+    border-bottom: 0;
+  }
+
+  .spec dt {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .spec dd {
+    margin: 0;
+    color: var(--text);
+    text-align: right;
+  }
+
+  .surfaces {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .surface {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .surface:hover {
+    border-color: var(--primary);
+  }
+
+  .surface h3 {
+    font-size: var(--step-2);
+  }
+
+  .surface p {
+    color: var(--text-muted);
+  }
+
+  .go {
+    margin-top: var(--space-2);
+    color: var(--link);
+    font-weight: 600;
+  }
+
+  @media (min-width: 64rem) {
+    .is-isnt,
+    .surfaces {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .split {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    }
+
+    .split.reverse {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    }
+  }
+</style>

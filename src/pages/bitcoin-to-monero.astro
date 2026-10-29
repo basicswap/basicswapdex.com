@@ -1,0 +1,463 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import SectionHead from '../components/sections/SectionHead.astro';
+import Icon from '../components/Icon.astro';
+import AdaptorDiagram from '../components/btm/AdaptorDiagram.astro';
+import SwapFilm from '../components/btm/SwapFilm.astro';
+import SwapTour from '../components/btm/SwapTour.astro';
+import AvoidsLedger from '../components/btm/AvoidsLedger.astro';
+import StallsStepper from '../components/btm/StallsStepper.astro';
+import CompareSpectrum from '../components/btm/CompareSpectrum.astro';
+import QuestionsAccordion from '../components/btm/QuestionsAccordion.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import { MARKETS_URL, SITE_URL } from '../config/site';
+import { breadcrumb } from '../lib/seo';
+import { gitDate } from '../lib/git-date';
+import pages from '../data/pages.json';
+import schema from '../data/schema/bitcoin-to-monero.json';
+import tables from '../data/btm-tables.json';
+import btm from '../data/btm.json';
+
+
+// The animated explainer, served from public/video. It only downloads once
+// someone presses play.
+const FILM = { src: '/video/bitcoin-to-monero.mp4', poster: '/video/bitcoin-to-monero.webp' };
+const filmLd = {
+  '@context': 'https://schema.org',
+  '@type': 'VideoObject',
+  name: btm.film.title,
+  description: btm.film.description,
+  duration: btm.film.duration,
+  uploadDate: '2026-10-20',
+  thumbnailUrl: SITE_URL + FILM.poster,
+  contentUrl: SITE_URL + FILM.src,
+  transcript: btm.film.transcript.join(' '),
+};
+
+// 24 x 24 stroke icons for the five things a swap avoids, each struck through.
+const STRIKE = '<path d="M4 4l16 16"/>';
+const AVOID_ICONS = [
+  // wrapped coins: a token
+  '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>',
+  // intermediary coin: a third coin between the two
+  '<circle cx="4.5" cy="12" r="2.5"/><circle cx="19.5" cy="12" r="2.5"/><circle cx="12" cy="12" r="3.5"/><path d="M7 12h1.5M15.5 12H17"/>',
+  // bridge: an arch over the water line
+  '<path d="M2.5 17h19M4.5 17v-3.5M19.5 17v-3.5M2.5 13.5Q12 5 21.5 13.5M8.5 17v-4.5M15.5 17v-4.5"/>',
+  // custodian: a bank
+  '<path d="M3.5 9.5 12 4l8.5 5.5M5.5 10v7.5M10 10v7.5M14 10v7.5M18.5 10v7.5M3.5 20h17"/>',
+  // protocol fee: a price tag
+  '<path d="M3.5 11.5v-7a1 1 0 0 1 1-1h7l8.5 8.5-8 8z"/><circle cx="8" cy="8" r="1.4"/>',
+];
+const avoids = btm.avoids.map((a, i) => ({ ...a, icon: AVOID_ICONS[i] + STRIKE }));
+
+
+// The answers were last checked when this page or its data last changed.
+const updated = [gitDate('src/pages/bitcoin-to-monero.astro'), gitDate('src/data/btm.json')]
+  .filter((d): d is Date => !!d)
+  .sort((a, b) => b.valueOf() - a.valueOf())[0];
+const updatedLabel = updated?.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+---
+
+<BaseLayout {...pages['bitcoin-to-monero']} jsonLd={[breadcrumb('Bitcoin to Monero', '/bitcoin-to-monero'), ...schema, filmLd]}>
+  <PageHero
+    ribbon="hero"
+    palette="btc-xmr"
+    fit
+    aside="xl"
+    jump={[
+      { href: '#film', label: 'Watch it' },
+      { href: '#settle', label: 'How it settles' },
+      { href: '#stalls', label: 'If it stalls' },
+      { href: '#compare', label: 'How it compares' },
+      { href: '#practice', label: 'Do one yourself' },
+      { href: '#questions', label: 'Questions' },
+    ]}
+    title="Bitcoin to Monero atomic swaps.">
+    <p>
+      Trade BTC for XMR, or XMR for BTC, and let the two chains settle it between them. No bridge, no wrapped token, and
+      nobody holding the coins while the trade goes through.
+    </p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary btn-lg" href="/desktop"><Icon name="download" />Install Desktop</a>
+      <a class="btn btn-outline btn-lg" href={MARKETS_URL} target="_blank" rel="noopener noreferrer"
+        >See the live order book<Icon name="external" size={14} /></a
+      >
+    </Fragment>
+    <SwapTour slot="aside" />
+  </PageHero>
+
+  <section class="section band-surface" id="film">
+    <div class="container">
+      <SectionHead kicker="the three-minute version" title="Watch a swap play out.">
+        <p>The film follows two traders through one swap, including what happens when one of them walks off partway.</p>
+      </SectionHead>
+      <figure class="film">
+        <video controls playsinline preload="none" poster={FILM.poster} width="1920" height="1080">
+          <source src={FILM.src} type="video/mp4" />
+          <a href={FILM.src}>Download the film</a>
+        </video>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section container split">
+    <div class="flow muted-body">
+      <p class="kicker">the hard part</p>
+      <h2>The pair that was supposed to be impossible.</h2>
+      <p>
+        Bitcoin has a scripting language and Monero does not. Nearly every atomic swap design leans on script, which left
+        Monero outside cross-chain trading for years while wrapped tokens and custodial swappers filled the gap.
+      </p>
+      <p>
+        Adaptor signatures move the condition to the Bitcoin side. The signature that pays out the Bitcoin is locked to
+        half of the Monero key, so claiming the Bitcoin reveals that half, and whoever holds the other one can open the
+        Monero.
+      </p>
+      <p>
+        Monero needs no contract at all. Its key simply stays incomplete until the Bitcoin moves, and with script on
+        one side only, the research calls the design semi-scriptless.
+      </p>
+      <p>
+        We shipped the first working version in 2020. Early implementations only ran from Bitcoin into Monero, and you
+        may still read that this is a limit. BasicSwap has settled swaps in both directions since 2023, so selling XMR
+        for BTC works the same as buying.
+      </p>
+    </div>
+    <AdaptorDiagram />
+  </section>
+
+  <section class="section band-surface" id="settle">
+    <div class="container">
+      <SectionHead kicker="four moves, in order" title="How the two chains settle it.">
+        <p>
+          Both traders sign the refunds before either of them locks a coin. If the swap stalls partway, the timelocks
+          open those refunds, and neither trader can end up holding both sides.
+        </p>
+      </SectionHead>
+      <SwapFilm moves={btm.moves} />
+    </div>
+  </section>
+
+  <section class="section" id="stalls">
+    <div class="container">
+      <SectionHead kicker="if a swap stalls" title="When someone stops partway.">
+        <p>Which way a stalled swap ends depends on who stopped and when.</p>
+        <p>
+          As in the moves above, <strong>you start with the Bitcoin and the seller with the Monero</strong>. If you are
+          the one selling Monero, read each case from the seller's side.
+        </p>
+      </SectionHead>
+      <StallsStepper stalls={btm.stalls} />
+      <p class="note measure">
+        The maker picks the timelock when posting the offer. The offer form starts at 24 hours and goes no higher, while
+        BasicSwap itself accepts anything from 2 to 96 hours, so a maker who wants a longer window to recover from a
+        stalled swap can set one through the <a href="/docs/api">API</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="section band-surface" id="avoids">
+    <div class="container">
+      <SectionHead kicker="what the swap avoids" title="Five things that never enter the trade." />
+      <AvoidsLedger items={avoids} />
+    </div>
+  </section>
+
+
+  <section class="section" id="compare">
+    <div class="container">
+      <SectionHead kicker="the alternatives" title="How this compares.">
+        <p>
+          Several tools will move you from Bitcoin into Monero. They differ mostly in who is holding the coins while it
+          happens, and in who can stop the trade once it starts.
+        </p>
+      </SectionHead>
+      <CompareSpectrum {...tables.compare} />
+    </div>
+  </section>
+
+  <section class="section band-surface" id="practice">
+    <div class="container">
+      <SectionHead kicker="in practice" title="Doing one yourself.">
+        <p>
+          Today you swap Bitcoin and Monero yourself with BasicSwap Desktop. Mobile is in beta and comes to Monero through
+          the wallets adding it, and Web is still in development.
+        </p>
+      </SectionHead>
+
+      <div class="surface desktop-way">
+        <div class="surface-head">
+          <span class="surface-icon"><Icon name="monitor" size={20} /></span>
+          <h3>Desktop</h3>
+          <span class="status live">Available now</span>
+        </div>
+        <ol class="practice" role="list">
+          {
+            btm.practice.map(({ title, body }, i) => (
+              <li id={`step-${i + 1}`}>
+                <p class="step-label data">step {i + 1}</p>
+                <h4>{title}</h4>
+                <p set:html={body} />
+              </li>
+            ))
+          }
+        </ol>
+        <div class="surface-actions">
+          <a class="btn btn-primary btn-lg" href="/desktop"><Icon name="download" />Install BasicSwap Desktop</a>
+          <p class="docs-note">
+            The docs cover each step, from <a href="/docs/user-guides/take-offer">taking an offer</a> to <a href="/docs/user-guides/make-offer">posting your own</a>.
+          </p>
+        </div>
+      </div>
+
+      <div class="soon-grid">
+        {
+          btm.surfaces.map(({ k, name, icon, status, body, steps, links }) => (
+            <div class={`surface soon soon-${k}`}>
+              <div class="surface-head">
+                <span class="surface-icon">
+                  <Icon name={icon as 'phone' | 'globe'} size={20} />
+                </span>
+                <h3>{name}</h3>
+                <span class="status">{status}</span>
+              </div>
+              <p class="surface-body">{body}</p>
+              <ol class="mini-steps" role="list">
+                {steps.map((step) => (
+                  <li>{step}</li>
+                ))}
+              </ol>
+              <p class="surface-links">
+                {links.map(({ href, label }) => (
+                  <a href={href}>
+                    {label}
+                    <Icon name="arrowRight" size={14} />
+                  </a>
+                ))}
+              </p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="questions">
+    <div class="container">
+      <SectionHead kicker="btc to xmr, asked and answered" title="Questions about this pair." />
+      <QuestionsAccordion faq={btm.faq} />
+      {updated && <p class="updated">Last updated <time datetime={updated.toISOString().slice(0, 10)} data-parity="new">{updatedLabel}</time></p>}
+    </div>
+  </section>
+
+  <CtaBand title="Monero trades against more than Bitcoin." palette="btc-xmr">
+    <p>
+      The same adaptor signature protocol carries XMR against Litecoin, Particl, and the rest of the supported coins.
+      The compatibility table on the Desktop page shows which method each pair uses.
+    </p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary btn-lg" href="/desktop#coins">See every pair</a>
+      <a class="btn btn-outline btn-lg" href="/protocol">Read the protocol</a>
+    </Fragment>
+  </CtaBand>
+</BaseLayout>
+
+<style>
+  .split {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+
+  .muted-body > p:not(.kicker) {
+    color: var(--text-muted);
+  }
+
+  .note {
+    margin-top: var(--space-5);
+    color: var(--text-muted);
+  }
+
+  /* ---- doing one yourself: Desktop now, Mobile and Web on their way ---- */
+  .surface {
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius-xl) + 0.25rem);
+    /* the section sits on the surface band, so the cards take the page colour */
+    background: var(--bg);
+  }
+
+  .desktop-way {
+    border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+    background:
+      radial-gradient(60% 80% at 0% 0%, color-mix(in oklab, var(--primary) 10%, transparent), transparent 70%),
+      var(--bg);
+  }
+
+  .surface-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .surface-head h3 {
+    font-size: var(--step-1);
+  }
+
+  .surface-icon {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid color-mix(in oklab, var(--primary) 40%, var(--border));
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--primary) 10%, var(--surface));
+    color: var(--link);
+  }
+
+  .status {
+    margin-left: auto;
+    padding: 0.15em 0.7em;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-full);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  .status.live {
+    border-color: color-mix(in oklab, var(--success) 50%, transparent);
+    background: color-mix(in oklab, var(--success) 12%, transparent);
+    color: var(--success);
+  }
+
+  .practice {
+    display: grid;
+    gap: var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .practice li {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+    scroll-margin-top: calc(var(--header-h) + var(--space-5));
+  }
+
+  .step-label {
+    color: var(--link);
+    font-size: var(--step--1);
+  }
+
+  .practice h4 {
+    font-size: var(--step-0);
+  }
+
+  .practice li > p:last-child {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .surface-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-6);
+  }
+
+  .docs-note {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .soon-grid {
+    display: grid;
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+
+  .surface-body {
+    color: var(--text-muted);
+  }
+
+  .mini-steps {
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+    counter-reset: mini;
+  }
+
+  .mini-steps li {
+    position: relative;
+    padding-left: 2rem;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    counter-increment: mini;
+  }
+
+  .mini-steps li::before {
+    content: counter(mini);
+    position: absolute;
+    top: -0.05em;
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-full);
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+  }
+
+  .surface-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    margin-top: auto;
+  }
+
+  .surface-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  .soon {
+    align-content: start;
+  }
+
+  .updated {
+    margin-top: var(--space-6);
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  @media (min-width: 48rem) {
+    .practice,
+    .soon-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .split {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    }
+
+    .practice {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,0 +1,62 @@
+---
+// One row of <Features>: an icon beside a title and its text. Without a
+// title the text leads (its own bold lead-in carries the point).
+import Icon, { type IconName } from '../../Icon.astro';
+
+interface Props {
+  icon: IconName;
+  title?: string;
+}
+const { icon, title } = Astro.props;
+---
+
+<li class="feature">
+  <span class="icon"><Icon name={icon} size={18} /></span>
+  <div class="body">
+    {title && <p class="title">{title}</p>}
+    <div class="text"><slot /></div>
+  </div>
+</li>
+
+<style>
+  .feature {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    margin: 0;
+  }
+
+  .icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--gradient-extended);
+    color: #fff;
+  }
+
+  .body {
+    padding-top: 0.2rem;
+  }
+
+  .title {
+    color: var(--text);
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .text {
+    margin-top: 0.15rem;
+    color: var(--text-muted);
+  }
+
+  .text :global(p) {
+    margin: 0;
+  }
+
+  .text :global(strong) {
+    color: var(--text);
+  }
+</style>

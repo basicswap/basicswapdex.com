@@ -1,0 +1,18 @@
+---
+// The intro section's illustration: trading through a middleman, then
+// directly, with the swap secured. Decorative SVG with no text; see
+// ./direct/Braid.astro for how it plays.
+import Braid from './direct/Braid.astro';
+---
+
+<div class="direct" aria-hidden="true">
+  <Braid />
+</div>
+
+<style>
+  .direct {
+    width: 100%;
+    max-width: 36rem;
+    margin-inline: auto;
+  }
+</style>

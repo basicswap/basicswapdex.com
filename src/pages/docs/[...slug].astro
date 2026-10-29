@@ -1,0 +1,546 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import Icon from '../../components/Icon.astro';
+import { docComponents } from '../../components/docs/mdx';
+import {
+  DOCS_REPO_EDIT,
+  DOCS_TITLE,
+  DOC_SECTIONS,
+  type Doc,
+  type DocSection,
+  breadcrumbs,
+  cardPath,
+  docFile,
+  docPath,
+  docUpdated,
+  markdownPath,
+  formatUpdated,
+  getDocs,
+  navLabel,
+  prevNext,
+  sectionOf,
+} from '../../lib/docs';
+import { SITE_NAME, SITE_URL } from '../../config/site';
+
+export const getStaticPaths = (async () => {
+  const docs = await getCollection('docs');
+  return [
+    // the intro is the docs home, /docs
+    ...docs.map((doc) => ({ params: { slug: doc.id === 'intro' ? undefined : doc.id }, props: { doc } })),
+    // each section's own page lists its pages
+    ...DOC_SECTIONS.filter((s) => s.slug).map((section) => ({ params: { slug: section.slug }, props: { section } })),
+  ];
+}) satisfies GetStaticPaths;
+
+type Props = { doc: Doc; section?: undefined } | { section: DocSection; doc?: undefined };
+const { doc, section } = Astro.props as Props;
+const docs = await getDocs();
+
+const crumbLd = (items: { label: string; href?: string }[], here: string) => ({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+    { '@type': 'ListItem', position: 2, name: 'Docs', item: `${SITE_URL}/docs` },
+    ...items.map((c, i) => ({ '@type': 'ListItem', position: i + 3, name: c.label, item: `${SITE_URL}${c.href ?? here}` })),
+  ],
+});
+
+const ORG = { '@type': 'Organization', name: SITE_NAME, url: SITE_URL, logo: `${SITE_URL}/images/icon-512.png` };
+const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+
+let page;
+let Content: Awaited<ReturnType<typeof render>>['Content'] | undefined;
+if (doc) {
+  const path = docPath(doc.id);
+  const rendered = await render(doc);
+  Content = rendered.Content;
+  const { headings } = rendered;
+  const crumbs = breadcrumbs(doc.id, docs);
+  const updated = docUpdated(doc);
+  const published = doc.data.published ?? updated;
+  const section = sectionOf(doc.id)?.title;
+  page = {
+    kind: 'doc' as const,
+    path,
+    title: doc.data.title,
+    seoTitle: doc.data.seoTitle ?? doc.data.title,
+    description: doc.data.description,
+    toc: headings.filter((h) => h.depth === 2 || h.depth === 3),
+    crumbs,
+    updated,
+    edit: `${DOCS_REPO_EDIT}/${docFile(doc.id).slice('src/content/docs/'.length)}`,
+    ...prevNext(doc.id, docs),
+    article: {
+      published: published && isoDay(published),
+      modified: updated && isoDay(updated),
+      section: section === 'Overview' ? undefined : section,
+    },
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'TechArticle',
+        headline: doc.data.seoTitle ?? doc.data.title,
+        description: doc.data.description,
+        url: `${SITE_URL}${path}`,
+        image: `${SITE_URL}${cardPath(path)}`,
+        ...(published && { datePublished: isoDay(published) }),
+        ...(updated && { dateModified: isoDay(updated) }),
+        author: ORG,
+        publisher: ORG,
+        mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}${path}` },
+      },
+      crumbLd(path === '/docs' ? [] : crumbs, path),
+    ],
+    current: doc.id,
+  };
+} else {
+  const s = section!;
+  const path = `/docs/${s.slug}`;
+  page = {
+    kind: 'section' as const,
+    path,
+    title: s.title,
+    seoTitle: s.seoTitle ?? s.title,
+    description: s.description ?? '',
+    section: s,
+    crumbs: [{ label: s.title }],
+    article: undefined,
+    jsonLd: [crumbLd([{ label: s.title }], path)],
+    current: `section:${s.slug}`,
+  };
+}
+const isHome = page.path === '/docs';
+---
+
+<DocsLayout
+  title={`${page.seoTitle} | ${DOCS_TITLE}`}
+  description={page.description}
+  path={page.path}
+  ogType={page.kind === 'doc' ? 'article' : 'website'}
+  ogImage={cardPath(page.path)}
+  ogImageAlt={page.title}
+  article={page.article}
+  jsonLd={page.jsonLd}
+  current={page.current}
+>
+  {page.kind === 'doc' && <link slot="head" rel="alternate" type="text/markdown" href={markdownPath(page.current)} />}
+  <div class:list={['doc-grid', { 'has-toc': page.kind === 'doc' && page.toc.length > 1 }]}>
+    <article class="doc">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="/docs" class="home" aria-label="Docs home"><Icon name="book" size={15} /></a>
+        {
+          (isHome ? [{ label: 'Introduction' }] : page.crumbs).map((c) => (
+            <>
+              <span class="sep" aria-hidden="true">/</span>
+              {c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+            </>
+          ))
+        }
+      </nav>
+
+      <header class="doc-head">
+        <h1>{page.title}</h1>
+        {page.description && <p class="lead">{page.description}</p>}
+      </header>
+
+      {
+        page.kind === 'doc' && Content ? (
+          <div class="prose">
+            <Content components={docComponents} />
+          </div>
+        ) : (
+          <ul class="section-list" role="list">
+            {section!.items.map((id) => {
+              const d = docs.get(id);
+              return (
+                d && (
+                  <li>
+                    <a href={docPath(id)}>
+                      <span class="name">{navLabel(d)}</span>
+                      <span class="desc">{d.data.description}</span>
+                      <Icon name="arrowRight" size={16} class="go" />
+                    </a>
+                  </li>
+                )
+              );
+            })}
+          </ul>
+        )
+      }
+
+      {
+        page.kind === 'doc' && (
+          <footer class="doc-foot">
+            <div class="meta">
+              <a href={page.edit} target="_blank" rel="noopener noreferrer">
+                <Icon name="pen" size={14} />
+                Edit this page
+              </a>
+              {page.updated && (
+                <span>
+                  Last updated on <time datetime={isoDay(page.updated)}>{formatUpdated(page.updated)}</time>
+                </span>
+              )}
+            </div>
+            {(page.prev || page.next) && (
+              <nav class="pager" aria-label="Previous and next pages">
+                {page.prev ? (
+                  <a class="prev" href={page.prev.href} rel="prev">
+                    <span class="dir">
+                      <Icon name="arrowLeft" size={14} />
+                      Previous
+                    </span>
+                    <span class="sec">{page.prev.section}</span>
+                    <span class="title">{page.prev.title}</span>
+                  </a>
+                ) : (
+                  <span />
+                )}
+                {page.next && (
+                  <a class="next" href={page.next.href} rel="next">
+                    <span class="dir">
+                      Next
+                      <Icon name="arrowRight" size={14} />
+                    </span>
+                    <span class="sec">{page.next.section}</span>
+                    <span class="title">{page.next.title}</span>
+                  </a>
+                )}
+              </nav>
+            )}
+          </footer>
+        )
+      }
+    </article>
+
+    {
+      page.kind === 'doc' && page.toc.length > 1 && (
+        <aside class="toc" aria-labelledby="toc-title">
+          <p id="toc-title">On this page</p>
+          <ol role="list">
+            {page.toc.map((h) => (
+              <li class={`d${h.depth}`}>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      )
+    }
+  </div>
+</DocsLayout>
+
+<style>
+  .doc-grid {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .doc {
+    min-width: 0;
+    max-width: 48rem;
+  }
+
+  @media (min-width: 80rem) {
+    .doc-grid.has-toc {
+      grid-template-columns: minmax(0, 48rem) 14rem;
+      justify-content: space-between;
+    }
+  }
+
+  /* ---- Header ---- */
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .crumbs a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .crumbs a:hover {
+    color: var(--text);
+  }
+
+  .crumbs .home {
+    display: inline-flex;
+  }
+
+  .crumbs [aria-current] {
+    color: var(--text);
+  }
+
+  .doc-head {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    padding-bottom: var(--space-6);
+    margin-bottom: var(--space-7);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .doc-head::before {
+    content: '';
+    position: absolute;
+    inset: -6rem -10rem auto -6rem;
+    height: 16rem;
+    z-index: -1;
+    background:
+      radial-gradient(closest-side at 30% 50%, color-mix(in oklab, var(--brand) 14%, transparent), transparent),
+      radial-gradient(closest-side at 75% 40%, color-mix(in oklab, var(--accent) 9%, transparent), transparent);
+    pointer-events: none;
+  }
+
+  .doc-head::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 4rem;
+    height: 2px;
+    background: var(--gradient-extended);
+  }
+
+  h1 {
+    font-size: var(--step-5);
+    font-weight: 700;
+  }
+
+  .lead {
+    color: var(--text-muted);
+    font-size: var(--step-1);
+    line-height: 1.5;
+  }
+
+  /* ---- Section page ---- */
+  .section-list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .section-list a {
+    position: relative;
+    display: grid;
+    gap: 0.2rem;
+    padding: var(--space-4) var(--space-8) var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .section-list a:hover {
+    border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+  }
+
+  .section-list .name {
+    font-weight: 650;
+  }
+
+  .section-list .desc {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .section-list :global(.go) {
+    position: absolute;
+    top: 50%;
+    right: var(--space-5);
+    color: var(--text-subtle);
+    translate: 0 -50%;
+    transition: color var(--dur) var(--ease), translate var(--dur) var(--ease);
+  }
+
+  .section-list a:hover :global(.go) {
+    color: var(--link);
+    translate: 3px -50%;
+  }
+
+  /* ---- Footer ---- */
+  .doc-foot {
+    margin-top: var(--space-8);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .meta a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--link);
+    text-decoration: none;
+  }
+
+  .meta a:hover {
+    text-decoration: underline;
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+  }
+
+  .pager a {
+    display: grid;
+    gap: 0.15rem;
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .pager a:hover {
+    border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+  }
+
+  .pager .next {
+    grid-column: 2;
+    text-align: right;
+  }
+
+  .dir {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .next .dir {
+    justify-content: flex-end;
+  }
+
+  .sec {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  .pager .title {
+    color: var(--text);
+    font-weight: 650;
+  }
+
+  @media (max-width: 36rem) {
+    .pager {
+      grid-template-columns: 1fr;
+    }
+
+    .pager .next {
+      grid-column: 1;
+    }
+  }
+
+  /* ---- On this page ---- */
+  .toc {
+    display: none;
+  }
+
+  @media (min-width: 80rem) {
+    .toc {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-7));
+      display: block;
+      align-self: start;
+      max-height: calc(100dvh - var(--header-h) - var(--space-8));
+      overflow-y: auto;
+    }
+  }
+
+  .toc p {
+    margin-bottom: var(--space-3);
+    color: var(--text);
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--border);
+    list-style: none;
+  }
+
+  .toc a {
+    display: block;
+    margin-left: -1px;
+    padding: 0.28rem 0 0.28rem 0.8rem;
+    border-left: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: 1.4;
+    text-decoration: none;
+    transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+
+  .toc .d3 a {
+    padding-left: 1.6rem;
+    font-size: var(--step--2);
+  }
+
+  .toc a:hover {
+    color: var(--text);
+  }
+
+  .toc a[aria-current='true'] {
+    border-left-color: var(--primary);
+    color: var(--text);
+  }
+</style>
+
+<script>
+  // Mark the section being read in "On this page".
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.toc a')];
+  if (links.length) {
+    const targets = links.map((a) => document.getElementById(decodeURIComponent(a.hash.slice(1))));
+    const mark = () => {
+      const y = window.scrollY + window.innerHeight * 0.2;
+      let current = 0;
+      targets.forEach((t, i) => {
+        if (t && t.offsetParent && t.getBoundingClientRect().top + window.scrollY <= y) current = i;
+      });
+      links.forEach((a, i) => a.setAttribute('aria-current', String(i === current)));
+    };
+    let ticking = false;
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          mark();
+          ticking = false;
+        });
+      },
+      { passive: true },
+    );
+    mark();
+  }
+</script>

@@ -1,0 +1,410 @@
+---
+// "What mobile gets you": the section head, then the four benefits round a
+// BasicSwap centrepiece: the mark in a lit disc, inside three rings. Below
+// 64rem the centrepiece sits above the cards. Without props it shows
+// Mobile's head and benefits.
+import SectionHead from '../sections/SectionHead.astro';
+
+const ARROWS =
+  'M5.4,10.6C5.4,9.1,6.6,8,8,8h11.8l-2,2c-0.3,0.3-0.3,0.9,0,1.2s0.9,0.3,1.2,0l3.4-3.4c0.2-0.1,0.3-0.4,0.3-0.7c0-0.2-0.1-0.5-0.3-0.6L19,3c-0.3-0.3-0.9-0.3-1.2,0c-0.3,0.3-0.3,0.9,0,1.2l2,2H8c-2.4,0-4.3,2-4.3,4.4v8.1c0,0.5,0.4,0.9,0.9,0.9s0.9-0.4,0.9-0.9L5.4,10.6L5.4,10.6z M18.1,24H6.3l2-2c0.3-0.3,0.3-0.9,0-1.2c-0.3-0.3-0.9-0.3-1.2,0l-3.4,3.4c-0.2,0.1-0.3,0.4-0.3,0.7c0,0.2,0.1,0.5,0.3,0.6L7.1,29c0.3,0.3,0.9,0.3,1.2,0s0.3-0.9,0-1.2l-2-2h11.8c2.4,0,4.3-2,4.3-4.4v-8.1c0-0.5-0.4-0.9-0.9-0.9s-0.9,0.4-0.9,0.9v8.1C20.7,22.9,19.5,24,18.1,24z';
+
+// 24 x 24 stroke icons.
+export const ICONS = {
+  wallet: '<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18M15.5 14.5h2.5"/><path d="M6 6l9-3 1.2 3"/>',
+  sync: '<path d="M7 18h10a4 4 0 0 0 .8-7.9A6 6 0 0 0 6.3 9.2 4.5 4.5 0 0 0 7 18Z"/><path d="M4 4l16 16"/>',
+  pin: '<path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11Z"/><circle cx="12" cy="10" r="2.2"/>',
+  people: '<circle cx="9" cy="9" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="8.5" r="2.4"/><path d="M15.8 13.7A4.6 4.6 0 0 1 21 18.5"/>',
+};
+
+const MOBILE_ITEMS = [
+  {
+    icon: ICONS.wallet,
+    title: 'Built into your wallet',
+    body: 'No separate app and no node. The swap screens live inside a wallet you already use.',
+  },
+  {
+    icon: ICONS.sync,
+    title: 'Nothing to download or sync',
+    body: 'Instead of storing whole blockchains, the light client asks public remote nodes for just the data each swap needs.',
+  },
+  {
+    icon: ICONS.pin,
+    title: 'Swap wherever you are',
+    body: 'Start a swap from anywhere and get on with your day. It carries on in the background until it settles.',
+    mark: true,
+  },
+  {
+    icon: ICONS.people,
+    title: 'Every offer on the network',
+    body: 'Take offers from the same order book Desktop makers post to, and pick the best price among them.',
+  },
+];
+
+interface Props {
+  kicker?: string;
+  title?: string;
+  /** The intro under the title. */
+  intro?: string;
+  /** A card with `mark` gets an asterisk that points to `note`, under the cards. */
+  items?: { icon: string; title: string; body: string; mark?: boolean }[];
+  note?: string;
+}
+const {
+  kicker = 'what mobile gets you',
+  title = 'The same swaps as Desktop, without the setup.',
+  intro = 'BasicSwap Mobile runs the same swaps as Desktop as a light client, with your keys on your phone and nothing to sync.',
+  items = MOBILE_ITEMS,
+  note = 'Background services can be less reliable on iOS. On an iPhone, open the app now and then until the swap completes.',
+} = Astro.props;
+
+---
+
+<div class="benefits">
+  <SectionHead kicker={kicker} title={title} class="hub-head">
+    <p data-parity="new">{intro}</p>
+  </SectionHead>
+
+  <div class="hub">
+    <div class="violet" aria-hidden="true"><i class="w1"></i><i class="w2"></i><i class="w3"></i></div>
+    <div class="core-col" aria-hidden="true">
+      <div class="core">
+        <div class="orbit">
+          <span class="ring r3" /><span class="ring r2" /><span class="ring r1" />
+          <span class="disc">
+            <svg viewBox="3 2 20 28"><path fill="url(#hub-orbit)" d={ARROWS} /></svg>
+          </span>
+          <svg width="0" height="0" style="position:absolute">
+            <linearGradient id="hub-orbit" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#60a5fa" />
+              <stop offset="1" stop-color="#0073ff" />
+            </linearGradient>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <ul class="hub-cards" role="list">
+      {
+        items.map((it, i) => (
+          <li class={`card c${i + 1}`}>
+            <span class="glyph">
+              <svg viewBox="0 0 24 24" set:html={it.icon} />
+            </span>
+            <h3>{it.title}</h3>
+            <p>
+              {it.body}
+              {it.mark && <span class="ast" aria-hidden="true">*</span>}
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  {items.some((it) => it.mark) && note && <p class="hub-note"><span aria-hidden="true">* </span>{note}</p>}
+</div>
+
+<style>
+  /* ---- layout ---- */
+  :global(.hub-head) {
+    justify-items: center;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .ast {
+    color: var(--link);
+    font-weight: 600;
+  }
+
+  .hub-note {
+    max-width: 40rem;
+    margin: var(--space-6) auto 0;
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+    text-align: center;
+  }
+
+  .hub {
+    --core-w: 17rem;
+    --gap-x: var(--space-7);
+    position: relative;
+    display: grid;
+    gap: var(--space-7);
+    isolation: isolate;
+  }
+
+  /* Spotlight, rings and a dot field round the centre. */
+  .hub::before {
+    content: '';
+    position: absolute;
+    inset: -12% -4%;
+    z-index: -1;
+    background:
+      radial-gradient(26% 38% at 50% 50%, color-mix(in oklab, var(--brand) 28%, transparent), transparent 70%),
+      repeating-radial-gradient(circle at 50% 50%, transparent 0 54px, color-mix(in oklab, var(--brand) 14%, transparent) 54px 55px),
+      radial-gradient(circle, var(--dot) 1px, transparent 1.5px) 0 0 / 22px 22px;
+    mask: radial-gradient(50% 55% at 50% 50%, black 25%, transparent 85%);
+    pointer-events: none;
+  }
+
+  /* The violet in the spotlight: about a quarter of the glow, a wisp of
+     liquid smoke drifting round the whole of the blue (inside the gap the
+     cards leave around the mark). The cluster drifts side to side and up and
+     down on their own clocks; inside it, two stretched glows turn opposite
+     ways and swell out of step, so they flow into each other, and a soft
+     spiral arm curls round on top like smoke. Only translate, transform,
+     scale and rotate move, so it all stays on the GPU. With reduced motion it
+     rests up and right of the centre. */
+  .violet {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: -1;
+    width: 24%;
+    height: 34%;
+    margin: -17% 0 0 -12%;
+    translate: 32% -26%;
+    animation:
+      hub-violet-x 17s ease-in-out infinite alternate,
+      hub-violet-y 13s ease-in-out infinite alternate;
+    pointer-events: none;
+    will-change: translate, transform;
+  }
+
+  .violet i {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    filter: blur(14px);
+    will-change: transform, scale, rotate;
+  }
+
+  /* a long glow, turning one way */
+  .w1 {
+    background: radial-gradient(58% 30% at 42% 50%, color-mix(in oklab, var(--accent) 30%, transparent), transparent 72%);
+    animation:
+      hub-wisp-turn 19s linear infinite,
+      hub-wisp-swell 7s ease-in-out infinite alternate;
+  }
+
+  /* a rounder glow, a touch bluer, turning the other way */
+  .w2 {
+    background: radial-gradient(40% 52% at 60% 44%, color-mix(in oklab, color-mix(in oklab, var(--accent) 75%, var(--brand)) 26%, transparent), transparent 72%);
+    animation:
+      hub-wisp-turn 27s linear infinite reverse,
+      hub-wisp-swell 11s ease-in-out infinite alternate-reverse;
+  }
+
+  /* the smoke: a spiral arm, faded at the centre and the edge */
+  .w3 {
+    background: conic-gradient(
+      from 30deg,
+      transparent 0deg,
+      color-mix(in oklab, var(--accent) 24%, transparent) 70deg,
+      transparent 150deg,
+      color-mix(in oklab, var(--accent) 14%, transparent) 230deg,
+      transparent 320deg
+    );
+    -webkit-mask-image: radial-gradient(closest-side, transparent 18%, #000 45%, transparent 92%);
+    mask-image: radial-gradient(closest-side, transparent 18%, #000 45%, transparent 92%);
+    animation:
+      hub-wisp-turn 12s linear infinite,
+      hub-wisp-curl 9s ease-in-out infinite alternate;
+  }
+
+  @keyframes hub-violet-x {
+    from { translate: -36% 0; }
+    to { translate: 36% 0; }
+  }
+
+  @keyframes hub-violet-y {
+    from { transform: translateY(-48%); }
+    to { transform: translateY(48%); }
+  }
+
+  @keyframes hub-wisp-turn {
+    to { rotate: 360deg; }
+  }
+
+  @keyframes hub-wisp-swell {
+    0% { scale: 1.25 0.8; }
+    50% { scale: 0.9 1.1; }
+    100% { scale: 0.8 1.3; }
+  }
+
+  @keyframes hub-wisp-curl {
+    from { scale: 0.85 1.15; }
+    to { scale: 1.2 0.9; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .violet,
+    .violet i {
+      animation: none;
+    }
+  }
+
+  .core-col {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 16rem;
+  }
+
+  .core {
+    display: grid;
+    place-items: center;
+    width: 12rem;
+    aspect-ratio: 1;
+  }
+
+  .orbit {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hub-cards {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  /* ---- cards ---- */
+  .card {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border: 1px solid transparent;
+    border-radius: 1.25rem;
+    background:
+      linear-gradient(to bottom, color-mix(in oklab, var(--surface) 70%, var(--bg)), color-mix(in oklab, var(--bg) 92%, transparent)) padding-box,
+      linear-gradient(180deg, color-mix(in oklab, var(--brand) 40%, var(--border)), var(--border) 45%) border-box;
+    box-shadow:
+      0 1px 0 color-mix(in oklab, white 6%, transparent) inset,
+      0 24px 48px -32px hsl(var(--shadow-color) / 0.9);
+    transition: translate var(--dur-slow) var(--ease), box-shadow var(--dur-slow) var(--ease);
+  }
+
+  .card:hover {
+    translate: 0 -2px;
+    box-shadow:
+      0 1px 0 color-mix(in oklab, white 8%, transparent) inset,
+      0 28px 56px -30px color-mix(in oklab, var(--brand) 55%, transparent);
+  }
+
+  .glyph {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: var(--space-2);
+    border: 1px solid transparent;
+    border-radius: 0.8rem;
+    background:
+      linear-gradient(160deg, color-mix(in oklab, var(--brand) 24%, var(--bg)), var(--bg)) padding-box,
+      linear-gradient(150deg, color-mix(in oklab, var(--brand) 80%, white), color-mix(in oklab, var(--accent) 45%, transparent) 60%, var(--border)) border-box;
+    box-shadow: 0 10px 24px -12px color-mix(in oklab, var(--brand) 70%, transparent);
+    color: color-mix(in oklab, var(--brand) 55%, var(--text));
+  }
+
+  .glyph svg {
+    width: 55%;
+    height: 55%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  h3 {
+    font-size: var(--step-1);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  p {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  @media (min-width: 40rem) {
+    .hub-cards {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* ---- wide: the cards round the centre ---- */
+  @media (min-width: 64rem) {
+    .hub {
+      grid-template-columns: 1fr var(--core-w) 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 0 var(--gap-x);
+    }
+
+    .core-col {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: stretch;
+    }
+
+    .hub-cards {
+      display: contents;
+    }
+
+    .card {
+      margin-block: var(--space-3);
+    }
+
+    .c1, .c3 { grid-column: 1; }
+    .c2, .c4 { grid-column: 3; }
+    .c1, .c2 { grid-row: 1; }
+    .c3, .c4 { grid-row: 2; }
+  }
+
+  /* ---- the centrepiece ---- */
+  .orbit .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid color-mix(in oklab, var(--brand) 30%, transparent);
+  }
+
+  .orbit .r1 { inset: 18%; border-color: color-mix(in oklab, var(--brand) 45%, transparent); }
+  .orbit .r2 { inset: 4%; }
+  .orbit .r3 { inset: -10%; border-style: dashed; border-color: color-mix(in oklab, var(--brand) 22%, transparent); }
+
+  .orbit .disc {
+    display: grid;
+    place-items: center;
+    width: 64%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--surface) 80%, white 6%), var(--bg) 75%);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--brand) 50%, transparent),
+      0 0 0 8px color-mix(in oklab, var(--brand) 8%, transparent),
+      0 0 60px -6px color-mix(in oklab, var(--brand) 60%, transparent),
+      0 20px 40px -20px rgb(0 0 0 / 0.8);
+  }
+
+  .orbit .disc svg {
+    width: 48%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card,
+    .card:hover {
+      transition: none;
+      translate: none;
+    }
+  }
+</style>

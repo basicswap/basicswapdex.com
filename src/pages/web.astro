@@ -1,0 +1,493 @@
+---
+// BasicSwap Web: BasicSwap's atomic swaps in a browser tab. Not released yet,
+// so the page explains how it will work and what a site can and can't do, and
+// points to Desktop and Mobile for swapping today. Sections, in order:
+//   hero        the web swap played in a made-up exchange site (SwapTour)
+//   how         three steps from opening a site to a settled swap
+//   benefits    three things Web gives you that the others don't
+//   trust       what the site, your wallet and the blockchains each hold
+//   today       Mobile and Desktop, for swapping now
+//   questions   a short FAQ (also the FAQPage structured data)
+//   other-ways  Desktop and Mobile again, to close
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import SectionHead from '../components/sections/SectionHead.astro';
+import SwapTour from '../components/btm/SwapTour.astro';
+import QuestionsAccordion from '../components/btm/QuestionsAccordion.astro';
+import BenefitVisual from '../components/web/BenefitVisual.astro';
+import TodayDevices from '../components/web/TodayDevices.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { breadcrumb } from '../lib/seo';
+import pages from '../data/pages.json';
+
+// 24 x 24 stroke icons.
+const ICONS = {
+  browser: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9h18M6.5 6.6h.01M9 6.6h.01"/>',
+  form: '<rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8 9h8M8 13h5"/>',
+  chains: '<rect x="3" y="9" width="6" height="6" rx="1"/><rect x="15" y="9" width="6" height="6" rx="1"/><path d="M9 12h6"/>',
+};
+
+const steps = [
+  {
+    icon: ICONS.browser,
+    title: 'Open a site with it built in',
+    body: "Go to a website or web wallet that runs BasicSwap. There's nothing to install and nothing to sync.",
+  },
+  {
+    icon: ICONS.form,
+    title: 'Pick an amount and an offer',
+    body: 'Enter what you want to swap and the address to receive at, then take an offer from the shared order book.',
+  },
+  {
+    icon: ICONS.chains,
+    title: 'Let the chains settle it',
+    body: "Both coins lock on their own chains, and the swap completes there. Keep the tab open until it's done.",
+  },
+];
+
+const benefits = [
+  {
+    title: 'Nothing to install, on any computer',
+    body: "The swap screens work as soon as the page loads, on Windows, macOS or Linux. There's no node to run and nothing to keep updated.",
+  },
+  {
+    title: 'Your keys stay with you',
+    body: 'The site shows you the swap, but it never holds your coins. Your keys stay in your own wallet the whole time, and each swap settles on the two blockchains.',
+  },
+  {
+    title: 'One order book with Desktop and Mobile',
+    body: 'Every site that adds BasicSwap joins the same shared order book as Desktop and Mobile, so you meet more traders and have a better chance at a good price.',
+  },
+];
+
+const can = [
+  'Show you the offers on the shared order book',
+  'Run the swap screens and walk you through each step',
+  'Ask you to approve the swap from your wallet',
+];
+
+// Each question names BasicSwap Web, the way people search for it. Answers
+// lead with the answer and may hold internal links (trusted HTML).
+const faq = [
+  {
+    q: 'When does BasicSwap Web launch?',
+    a: "There's no date yet. We'll announce it on this page when BasicSwap Web goes live.",
+  },
+  {
+    q: 'What is BasicSwap Web?',
+    a: 'BasicSwap Web brings BasicSwap, the decentralized exchange for cross-chain atomic swaps, to your web browser. You trade directly with another person from a browser tab, with nothing to install or sync, and the two blockchains settle the swap. It runs the same <a href="/protocol">protocol</a> as BasicSwap Desktop and Mobile.',
+  },
+  {
+    q: 'Is BasicSwap Web safe to use in a browser?',
+    a: "BasicSwap Web never holds your coins, and every swap settles on the two blockchains under the same rules as <a href=\"/desktop\">BasicSwap Desktop</a>. What you do rely on is the site serving BasicSwap's real code, as with any web wallet. If you'd rather not rely on that, Desktop runs the code on your own machine.",
+  },
+  {
+    q: 'Do I need an account or KYC to use BasicSwap Web?',
+    a: "No. BasicSwap has no accounts and no identity checks, so a swap needs nothing but your wallet. If a website asks you to sign in, that's for its own services, and the swap itself doesn't depend on it.",
+  },
+  {
+    q: 'What are the fees on BasicSwap Web?',
+    a: "BasicSwap's protocol charges no fee. You pay the ordinary network fee on each of the two chains, and the price is whatever the offer you take sets.",
+  },
+  {
+    q: 'Which coins will BasicSwap Web support?',
+    a: 'BasicSwap Web runs the same protocol as Desktop and Mobile, so it draws on the same list of coins, and its offers share one order book with them. The <a href="/desktop#coins">coin table on the Desktop page</a> lists every coin and pair BasicSwap supports today.',
+  },
+  {
+    q: 'Can I swap Bitcoin to Monero with BasicSwap Web?',
+    a: 'Not yet. BasicSwap Web hasn\'t launched, and today you swap Bitcoin for Monero with BasicSwap Desktop. <a href="/bitcoin-to-monero">Bitcoin to Monero atomic swaps</a> explains how that trade settles and how to do one.',
+  },
+  {
+    q: 'How is BasicSwap Web different from an instant swap website?',
+    a: 'An instant swap website takes your coins and sends you others from its own reserves, so it holds your funds in between and can freeze them or ask for ID. BasicSwap Web never takes your coins. You trade with another person, and the two chains settle the swap between your wallets.',
+  },
+  {
+    q: 'What can I use until BasicSwap Web launches?',
+    a: '<a href="/desktop">BasicSwap Desktop</a> swaps every supported coin and pair today, on your own computer. <a href="/mobile">BasicSwap Mobile</a> is in beta inside the Litecoin Nexus Wallet on iOS and Android.',
+  },
+];
+// Search engines get the answers as plain text, without the links.
+const plain = (html: string) => html.replace(/<[^>]+>/g, '');
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map(({ q, a }) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: plain(a) } })),
+};
+---
+
+<BaseLayout {...pages.web} jsonLd={[breadcrumb('Web', '/web'), faqLd]}>
+  <PageHero
+    ribbon="hero"
+    fit
+    jump={[
+      { href: '#how', label: 'How it works' },
+      { href: '#benefits', label: 'What you get' },
+      { href: '#trust', label: 'What a site can do' },
+      { href: '#questions', label: 'Questions' },
+    ]}
+    title={'Cross-chain atomic swaps\nin your browser.'}
+  >
+    <p slot="after" class="not-out">
+      <strong>Not released yet.</strong> Until it launches, <a href="/desktop">Desktop</a> and <a href="/mobile">Mobile</a> have the same swaps.
+    </p>
+    <p>
+      BasicSwap Web brings the protocol to the websites and web wallets you already use. They build it into their own
+      pages, so you can swap from a browser tab with nothing to install, while your keys stay in your own wallet.
+    </p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary btn-lg" href="#how">See how it works</a>
+      <a class="btn btn-outline btn-lg" href="#today">Swap today</a>
+    </Fragment>
+    <div slot="aside" class="hero-aside">
+      <SwapTour only="web" />
+    </div>
+  </PageHero>
+
+  <!-- how it works: three steps on a track, like the swap's own progress bar -->
+  <section class="section container" id="how">
+    <SectionHead kicker="how it works" title="A swap in a browser tab." class="centred" />
+    <ol class="track" role="list">
+      {
+        steps.map(({ icon, title, body }, i) => (
+          <li>
+            <span class="node" aria-hidden="true">
+              <svg viewBox="0 0 24 24" set:html={icon} />
+            </span>
+            <span class="node-n data">step {i + 1}</span>
+            <h3>{title}</h3>
+            <p>{body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <!-- what you get: text and picture swap sides on each row -->
+  <section class="section band-surface" id="benefits">
+    <div class="container">
+      <SectionHead kicker="what web gets you" title={'The swaps you know,\nwithout the setup.'} />
+      <ul class="zig" role="list">
+        {
+          benefits.map(({ title, body }, i) => (
+            <li>
+              <div class="zig-copy">
+                <span class="zig-n data">0{i + 1}</span>
+                <h3>{title}</h3>
+                <p>{body}</p>
+              </div>
+              <div class="zig-art">
+                <BenefitVisual kind={i} />
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- what the site can and can't do -->
+  <section class="section container" id="trust">
+    <SectionHead kicker="trust" title="What a website can and can't do.">
+      <p>A site with BasicSwap built in runs the screens you swap on, while the swap itself runs on the two blockchains.</p>
+    </SectionHead>
+    <div class="zones">
+      <div class="zone site">
+        <p class="zone-head"><Icon name="globe" size={16} />The site</p>
+        <ul role="list">{can.map((t) => <li><Icon name="check" size={13} />{t}</li>)}</ul>
+      </div>
+      <div class="zone wallet">
+        <p class="zone-head"><Icon name="key" size={16} />Your wallet</p>
+        <p>Your coins and keys stay here. The site can't hold them at any point, and nothing moves without your approval.</p>
+      </div>
+      <div class="zone chain">
+        <p class="zone-head"><svg viewBox="0 0 24 24" width="16" height="16" set:html={ICONS.chains} />The two blockchains</p>
+        <p>Once both sides lock, the chains enforce the terms. The site can't change them.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- swap today -->
+  <section class="section band-surface" id="today">
+    <div class="container">
+      <SectionHead kicker="swap today" title="Can't wait for Web?" class="centred" />
+      <TodayDevices />
+    </div>
+  </section>
+
+  <!-- questions -->
+  <section class="section" id="questions">
+    <div class="container">
+      <SectionHead kicker="basicswap web, asked and answered" title="Questions about Web." />
+      <QuestionsAccordion faq={faq} />
+    </div>
+  </section>
+
+  <CtaBand kicker="until web launches" title="Swap today with Desktop or Mobile." id="other-ways">
+    <p>
+      BasicSwap Web is still in development. The same atomic swaps already run on your own computer with BasicSwap
+      Desktop, and on your phone inside the Litecoin Nexus Wallet with BasicSwap Mobile.
+    </p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary btn-lg" href="/desktop"><Icon name="download" />Get Desktop</a>
+      <a class="btn btn-outline btn-lg" href="/mobile">See Mobile</a>
+    </Fragment>
+  </CtaBand>
+</BaseLayout>
+
+<style>
+  /* Not released yet: a plain note under the buttons, its lead-in in
+     BasicSwap yellow (a darker gold on the light theme, for contrast). */
+  .not-out {
+    --yellow: #f7b500;
+    max-width: 34rem;
+    margin-top: var(--space-2);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  :global(html[data-theme='light']) .not-out {
+    --yellow: #9a6b00;
+  }
+
+  .not-out strong {
+    color: var(--yellow);
+    font-weight: 600;
+  }
+
+  .not-out a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--border-strong);
+    text-underline-offset: 0.2em;
+  }
+
+  .hero-aside {
+    display: grid;
+  }
+
+  /* Fitted to the screen: the window gives way on short screens (or when
+     zoomed in) so the whole hero stays on one screen. */
+  @media (min-width: 64rem) and (min-height: 34rem) {
+    .hero-aside {
+      justify-self: end;
+      width: min(100%, calc((var(--hero-h, 100svh) - 15rem) * 1.5));
+    }
+  }
+
+  ul,
+  ol {
+    padding: 0;
+    list-style: none;
+  }
+
+  h3 {
+    font-size: var(--step-1);
+  }
+
+  /* ---- how it works: nodes on a track ---- */
+  #how :global(.centred),
+  #today :global(.centred) {
+    justify-items: center;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .track {
+    position: relative;
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .track li {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    text-align: center;
+  }
+
+  .node {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 3.75rem;
+    height: 3.75rem;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background:
+      linear-gradient(var(--bg), var(--bg)) padding-box,
+      linear-gradient(150deg, var(--brand), var(--accent)) border-box;
+    box-shadow:
+      0 0 0 0.5rem var(--bg),
+      0 12px 30px -10px color-mix(in oklab, var(--brand) 70%, transparent);
+    color: color-mix(in oklab, var(--brand) 55%, var(--text));
+  }
+
+  .node svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .node-n {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  .track p {
+    max-width: 22rem;
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .track {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    /* the track runs from the first node to the last */
+    .track::before {
+      content: '';
+      position: absolute;
+      top: 1.85rem;
+      right: calc(100% / 6);
+      left: calc(100% / 6);
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--brand), var(--accent));
+    }
+  }
+
+  /* ---- what you get: alternating rows ---- */
+  .zig {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  .zig li {
+    display: grid;
+    gap: var(--space-5);
+    align-items: center;
+  }
+
+  .zig-copy {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 30rem;
+  }
+
+  .zig-copy h3 {
+    font-size: var(--step-2);
+  }
+
+  .zig-copy p {
+    color: var(--text-muted);
+  }
+
+  .zig-n {
+    color: var(--link);
+    font-size: var(--step--1);
+  }
+
+  .zig-art {
+    display: grid;
+    place-items: center;
+    min-height: 13rem;
+    padding: var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius-xl) + 0.25rem);
+    background:
+      radial-gradient(70% 80% at 50% 100%, color-mix(in oklab, var(--brand) 14%, transparent), transparent),
+      var(--bg);
+  }
+
+  @media (min-width: 48rem) {
+    .zig li {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-8);
+    }
+
+    .zig li:nth-child(even) .zig-copy {
+      order: 2;
+    }
+  }
+
+  /* ---- what a site can and can't do: who holds what ---- */
+  .zones {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .zone {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius-xl) + 0.25rem);
+    color: var(--text-muted);
+  }
+
+  .zone-head {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .zone-head svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .zone li {
+    display: flex;
+    gap: var(--space-2);
+    padding-block: 0.3rem;
+    color: var(--text);
+  }
+
+  .zone li :global(svg) {
+    flex: none;
+    margin-top: 0.3rem;
+    color: var(--success);
+  }
+
+  /* the site only runs the screens, so its zone is drawn lightest */
+  .zone.site {
+    border-style: dashed;
+    border-color: var(--border-strong);
+  }
+
+  .zone.wallet {
+    border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
+    background: color-mix(in oklab, var(--accent) 6%, transparent);
+  }
+
+  .zone.chain {
+    border-color: color-mix(in oklab, var(--brand) 50%, var(--border));
+    background: color-mix(in oklab, var(--brand) 6%, transparent);
+  }
+
+  .zone.wallet .zone-head :global(svg) {
+    color: color-mix(in oklab, var(--accent) 70%, var(--text));
+  }
+
+  .zone.chain .zone-head svg {
+    color: var(--link);
+  }
+
+  @media (min-width: 64rem) {
+    .zones {
+      grid-template-columns: 1.3fr 1fr 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,665 @@
+---
+// "How the two chains settle it" on the Bitcoin to Monero page: the four
+// moves of an adaptor signature swap, in the order BasicSwap runs them
+// (basicswap.py, v0.19.0), played on a Bitcoin lane and a Monero lane with
+// the move cards underneath:
+//   1. You (the leader) lock the Bitcoin in a 2-of-2. The refunds were
+//      signed first (XMR_SWAP_MSG_SCRIPT_LOCK_TX_SIGS).
+//   2. The seller locks the Monero under the split key.
+//   3. Once that lock confirms, you send the encrypted signature for the
+//      lock spend (sendXmrBidLockRelease). Only the seller's key half
+//      finishes it; they do, take the Bitcoin, and the finished signature
+//      on chain gives their half away.
+//   4. You recover that half, add yours, and the Monero opens.
+// Your key half is gold and the seller's orange, as in the film.
+//
+// One 22 s loop (film.ts). The cards are radio pairs like the hero tabs, so
+// picking one replays from that move. It pauses off screen; with reduced
+// motion it holds on the settled swap.
+import { Image } from 'astro:assets';
+import { Film, type Step } from '../desktop/film';
+import bitcoin from '../../assets/coins/bitcoin-circle.png';
+import monero from '../../assets/coins/monero-circle.png';
+
+interface Props {
+  /** The four moves: [what happens, what that means]. */
+  moves: string[][];
+}
+const { moves } = Astro.props;
+
+const LOOP = 22;
+const STEPS = [0, 5, 10, 15.5];
+const end = (i: number) => STEPS[i + 1] ?? LOOP;
+const CHAIN = ['Bitcoin', 'Monero', 'Bitcoin', 'Monero'];
+
+// Where things sit, in percent of the stage's width (x) and height (y).
+const X = { you: 12, lock: 50, seller: 88, chipFrom: 22, chipTo: 76, pub: 68, slotYours: 45, slotTheirs: 55 };
+const Y = { head: 7, chip: 17, btc: 42, xmr: 77, slot: 85 };
+const at = (x: number, y: number) => `translate:${x}cqw ${y}cqh`;
+
+const modes = STEPS.flatMap((t, i) => [
+  { when: `.settle:has(#mv-${i}:checked)`, delay: -t, suffix: `-${i}` },
+  { when: `.settle:has(#mv-${i}b:checked)`, delay: -t, suffix: `-${i}b` },
+]);
+const film = new Film('.st', LOOP, 0, LOOP, modes);
+const ease = 'cubic-bezier(0.55, 0, 0.25, 1)';
+// a coin's trip, fading back to its start for the next loop
+const trip = (name: string, sel: string, from: string, stops: Step[]) =>
+  film.track(name, sel, [
+    [0, `${from};opacity:1`],
+    ...stops.map(([t, v]): Step => [t, `${v};opacity:1`]),
+    [21.3, `${stops.at(-1)![1]};opacity:1`],
+    [21.6, `${stops.at(-1)![1]};opacity:0`],
+    [21.65, `${from};opacity:0`],
+    [LOOP, `${from};opacity:1`],
+  ], ease);
+const vault = (name: string, sel: string, lock: number, open: number) =>
+  film.track(name, sel, [[0, '--on:0;--open:0'], [lock - 0.1, '--on:0;--open:0'], [lock + 0.2, '--on:1;--open:0'], [open - 0.1, '--on:1;--open:0'], [open + 0.3, '--on:0;--open:1'], [21.4, '--on:0;--open:1'], [21.8, '--on:0;--open:0']], 'ease-out');
+const pop = (name: string, sel: string, t: number) =>
+  film.track(name, sel, [[0, 'opacity:0;scale:0.4'], [t, 'opacity:0;scale:0.4'], [t + 0.25, 'opacity:1;scale:1.15'], [t + 0.45, 'opacity:1;scale:1'], [21.3, 'opacity:1;scale:1'], [21.6, 'opacity:0;scale:1']], 'ease-out');
+
+// 1. the Bitcoin goes into the 2-of-2
+trip('btc', '.coin-btc', at(X.you, Y.btc), [[0.6, at(X.you, Y.btc)], [1.8, at(X.lock, Y.btc)], [13.1, at(X.lock, Y.btc)], [14.1, at(X.seller, Y.btc)]]);
+vault('v-btc', '.vault-btc', 1.8, 13.0);
+
+// 2. the Monero goes under the split key
+trip('xmr', '.coin-xmr', at(X.seller, Y.xmr), [[5.4, at(X.seller, Y.xmr)], [6.6, at(X.lock, Y.xmr)], [17.3, at(X.lock, Y.xmr)], [18.3, at(X.you, Y.xmr)]]);
+vault('v-xmr', '.vault-xmr', 6.6, 17.0);
+
+// 3. the signature: sent once the Monero is locked, finished by their half
+film.track('chip', '.chip', [
+  [0, `${at(X.chipFrom, Y.chip)};opacity:0;scale:0.6`],
+  [10.0, `${at(X.chipFrom, Y.chip)};opacity:0;scale:0.6`],
+  [10.3, `${at(X.chipFrom, Y.chip)};opacity:1;scale:1`],
+  [11.3, `${at(X.chipTo, Y.chip)};opacity:1;scale:1`],
+  [12.1, `${at(X.chipTo, Y.chip)};opacity:1;scale:1`],
+  [12.9, `${at(X.lock, Y.btc - 14)};opacity:1;scale:1`],
+  [13.15, `${at(X.lock, Y.btc - 14)};opacity:0;scale:0.7`],
+], ease);
+film
+  .show('q', '.chip .q', [[0, 11.6]], 0.1)
+  .track('ck', '.chip .ck', [[0, 'opacity:0;scale:0.4'], [11.5, 'opacity:0;scale:0.4'], [11.75, 'opacity:1;scale:1.25'], [11.95, 'opacity:1;scale:1']], 'ease-out')
+  .track('theirs', '.key-theirs', [[0, 'scale:1'], [11.35, 'scale:1'], [11.55, 'scale:1.3'], [11.8, 'scale:1']], 'ease-out')
+  .show('route', '.route', [[10.2, 11.5]], 0.25);
+// their half, now public on the Bitcoin chain, then on to the Monero vault
+film.track('pub', '.pub', [
+  [0, `${at(X.pub, Y.btc)};opacity:0;scale:0.4`],
+  [13.2, `${at(X.pub, Y.btc)};opacity:0;scale:0.4`],
+  [13.5, `${at(X.pub, Y.btc)};opacity:1;scale:1.2`],
+  [13.7, `${at(X.pub, Y.btc)};opacity:1;scale:1`],
+  [15.8, `${at(X.pub, Y.btc)};opacity:1;scale:1`],
+  [16.8, `${at(X.slotTheirs, Y.slot)};opacity:1;scale:1`],
+  [21.3, `${at(X.slotTheirs, Y.slot)};opacity:1;scale:1`],
+  [21.6, `${at(X.slotTheirs, Y.slot)};opacity:0;scale:1`],
+], ease);
+film.show('pub-tag', '.pub-tag', [[13.6, 15.8]], 0.25);
+
+// 4. your half joins it, and the Monero opens
+film.track('yours', '.key-yours', [
+  [0, at(X.you, Y.chip)],
+  [15.8, at(X.you, Y.chip)],
+  [16.8, at(X.slotYours, Y.slot)],
+  [21.3, at(X.slotYours, Y.slot)],
+  [21.8, at(X.you, Y.chip)],
+], ease);
+pop('done-btc', '.done-btc', 14.1);
+pop('done-xmr', '.done-xmr', 18.3);
+
+// the cards: lit, with their bar filling, while their move plays
+const cardCss = modes
+  .flatMap(({ when, delay, suffix }) =>
+    STEPS.map((t, i) => {
+      const a = +((t / LOOP) * 100).toFixed(3);
+      const b = +((end(i) / LOOP) * 100).toFixed(3);
+      const lit = `0%{--lit:0}${a}%{--lit:1}${b}%{--lit:0}`;
+      const fill = b >= 100 ? `0%{scale:0 1}${a}%{scale:0 1}100%{scale:1 1}` : `0%{scale:0 1}${a}%{scale:0 1}${b}%{scale:1 1}${b + 0.01}%,100%{scale:0 1}`;
+      return (
+        `@keyframes mv-lit-${i}${suffix}{${lit}}@keyframes mv-fill-${i}${suffix}{${fill}}` +
+        `${when} .mv-${i}{animation:mv-lit-${i}${suffix} ${LOOP}s step-end ${delay}s infinite}` +
+        `${when} .mv-${i} .bar i{animation:mv-fill-${i}${suffix} ${LOOP}s linear ${delay}s infinite}`
+      );
+    }),
+  )
+  .join('\n');
+const pickCss = STEPS.map(
+  (_, i) => `.settle:has(#mv-${i}:checked) .mv-${i} .main-hit{display:none}.settle:has(#mv-${i}:checked) .mv-${i} .alt-hit{display:block}`,
+).join('\n');
+const css = film.css() + '\n' + cardCss + '\n' + pickCss;
+
+const KEY = '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8m-3 3 2 2m-4 0 2 2"/></g>';
+const LOCK = '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/>';
+const UNLOCK = '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 6.8-1.2"/>';
+const CHECK = '<path d="M5 12.5 10 17.5 19 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>';
+const label =
+  "An animation of one swap. You lock Bitcoin in a 2-of-2, with the refunds already signed. The seller locks Monero under a key split between you. Once it is locked, you send a signature that only the seller's key half can finish. They finish it and take the Bitcoin, which puts their half on the Bitcoin chain. You add it to your own half, and the Monero is yours.";
+---
+
+<div class="settle">
+  {
+    STEPS.map((_, i) => (
+      <>
+        <input type="radio" name="settle" id={`mv-${i}`} class="pick" checked={i === 0} aria-label={`Play from move ${i + 1}`} />
+        <input type="radio" name="settle" id={`mv-${i}b`} class="pick" aria-label={`Play from move ${i + 1}`} tabindex="-1" />
+      </>
+    ))
+  }
+  <figure class="st" role="img" aria-label={label}>
+    <div class="head" style={`--x:${X.you}`}><span class="who">You</span></div>
+    <div class="head mid" style={`--x:${X.lock}`}><span class="who">Locked on chain</span></div>
+    <div class="head" style={`--x:${X.seller}`}><span class="who">The seller</span></div>
+
+    <div class="lane lane-btc" style={`--y:${Y.btc}`}>
+      <span class="lane-name"><Image src={bitcoin} alt="" width={32} height={32} />Bitcoin chain</span>
+      <span class="rail"></span>
+    </div>
+    <div class="lane lane-xmr" style={`--y:${Y.xmr}`}>
+      <span class="lane-name"><Image src={monero} alt="" width={32} height={32} />Monero chain</span>
+      <span class="rail"></span>
+    </div>
+
+    <div class="vault vault-btc" style={`--x:${X.lock};--y:${Y.btc};--c:var(--btc)`}>
+      <span class="v-name">2-of-2</span>
+      <span class="pad"><svg class="shut" viewBox="0 0 24 24" set:html={LOCK} /><svg class="open" viewBox="0 0 24 24" set:html={UNLOCK} /></span>
+    </div>
+    <div class="vault vault-xmr" style={`--x:${X.lock};--y:${Y.xmr};--c:var(--xmr)`}>
+      <span class="v-name">split key</span>
+      <span class="pad"><svg class="shut" viewBox="0 0 24 24" set:html={LOCK} /><svg class="open" viewBox="0 0 24 24" set:html={UNLOCK} /></span>
+    </div>
+
+    <span class="route" style={`--from:${X.chipFrom};--to:${X.chipTo};--y:${Y.chip}`}></span>
+    <span class="el key key-theirs fixed" style={`--x:${X.seller};--y:${Y.chip}`}><svg viewBox="0 0 24 24" set:html={KEY} /></span>
+
+    <span class="el coin coin-btc" style={at(X.seller, Y.btc)}><Image src={bitcoin} alt="" width={96} height={96} /></span>
+    <span class="el coin coin-xmr" style={at(X.you, Y.xmr)}><Image src={monero} alt="" width={96} height={96} /></span>
+
+    <span class="el chip" style={`${at(X.lock, Y.btc - 14)};opacity:0`}>
+      <span class="chip-body">
+        <span class="sig">sig +</span>
+        <span class="cslot"><span class="q">?</span><span class="ck"><svg viewBox="0 0 24 24" set:html={KEY} /></span></span>
+      </span>
+    </span>
+
+    <span class="el key key-pub pub" style={at(X.slotTheirs, Y.slot)}><svg viewBox="0 0 24 24" set:html={KEY} /></span>
+    <span class="pub-tag" style={`--x:${X.pub};--y:${Y.btc}`}>now public</span>
+    <span class="el key key-yours" style={at(X.slotYours, Y.slot)}><svg viewBox="0 0 24 24" set:html={KEY} /></span>
+
+    <span class="el done done-btc" style={at(X.seller + 3.2, Y.btc - 6)}><svg viewBox="0 0 24 24" set:html={CHECK} /></span>
+    <span class="el done done-xmr" style={at(X.you + 3.2, Y.xmr - 6)}><svg viewBox="0 0 24 24" set:html={CHECK} /></span>
+  </figure>
+
+  <ol class="moves" role="list">
+    {
+      moves.map(([main, sub], i) => (
+        <li class={`mv-${i}`}>
+          <label for={`mv-${i}`} class="hit main-hit" aria-hidden="true" />
+          <label for={`mv-${i}b`} class="hit alt-hit" aria-hidden="true" />
+          <span class="bar" aria-hidden="true"><i /></span>
+          <p class="meta">
+            <span class="n data">0{i + 1}</span>
+            <span class="chain data">
+              <Image src={CHAIN[i] === 'Bitcoin' ? bitcoin : monero} alt="" width={32} height={32} />
+              {CHAIN[i].toLowerCase()}
+            </span>
+          </p>
+          <p class="main">{main}</p>
+          <p class="sub">{sub}</p>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  // Pause the loop while it is off screen.
+  document.querySelectorAll<HTMLElement>('.settle').forEach((el) => {
+    new IntersectionObserver(([entry]) => el.classList.toggle('off', !entry.isIntersecting)).observe(el);
+  });
+</script>
+
+<style>
+  @property --on {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 0;
+  }
+
+  @property --open {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+  }
+
+  @property --lit {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 0;
+  }
+
+  .settle {
+    --btc: #f7b500;
+    --xmr: #ff6600;
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .settle.off :global(*) {
+    animation-play-state: paused !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .settle :global(*) {
+      animation: none !important;
+    }
+  }
+
+  .pick {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ---- the stage ---- */
+  .st {
+    position: relative;
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    container-type: size;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius-xl) + 0.25rem);
+    background:
+      radial-gradient(60% 50% at 50% 0%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 70%),
+      var(--bg);
+    box-shadow: 0 30px 60px -36px hsl(var(--shadow-color) / 0.7);
+  }
+
+  @media (max-width: 47.99rem) {
+    .st {
+      aspect-ratio: 4 / 3.2;
+    }
+  }
+
+  .head {
+    position: absolute;
+    top: 7cqh;
+    left: calc(var(--x) * 1cqw);
+    translate: -50% -50%;
+  }
+
+  .who {
+    color: var(--text);
+    font-size: clamp(0.7rem, 2.6cqmin, 0.95rem);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .mid .who {
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+    font-size: clamp(0.65rem, 2.2cqmin, 0.8rem);
+    font-weight: 400;
+  }
+
+  /* each chain is a lane with a rail the coins ride along */
+  .lane {
+    position: absolute;
+    top: calc(var(--y) * 1cqh);
+    left: 3cqw;
+    right: 3cqw;
+    height: 28cqh;
+    translate: 0 -50%;
+    border: 1px solid color-mix(in oklab, var(--c) 18%, var(--border));
+    border-radius: var(--radius-xl);
+    background: linear-gradient(90deg, color-mix(in oklab, var(--c) 6%, transparent), transparent 40%, transparent 60%, color-mix(in oklab, var(--c) 6%, transparent));
+  }
+
+  .lane-btc {
+    --c: var(--btc);
+  }
+
+  .lane-xmr {
+    --c: var(--xmr);
+  }
+
+  .lane-name {
+    position: absolute;
+    top: 1.4cqh;
+    left: 1.2cqw;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    color: var(--text-subtle);
+    font-family: var(--font-mono);
+    font-size: clamp(0.6rem, 2cqmin, 0.75rem);
+  }
+
+  .lane-name :global(img) {
+    width: 1.1em;
+    height: 1.1em;
+  }
+
+  .rail {
+    position: absolute;
+    top: 50%;
+    left: 6cqw;
+    right: 6cqw;
+    height: 0;
+    border-top: 1px dashed color-mix(in oklab, var(--c) 35%, var(--border));
+  }
+
+  /* ---- the vaults ---- */
+  .vault {
+    position: absolute;
+    top: calc(var(--y) * 1cqh);
+    left: calc(var(--x) * 1cqw);
+    width: 20cqw;
+    height: 22cqh;
+    translate: -50% -50%;
+    border: 1px solid color-mix(in oklab, var(--c) calc(var(--on) * 70% + 10%), var(--border-strong));
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--c) calc(var(--on) * 8%), var(--surface));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      0 0 calc(var(--on) * 40px) calc(var(--on) * -6px) color-mix(in oklab, var(--c) 70%, transparent);
+  }
+
+  .v-name {
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 1.2cqw);
+    translate: 0 -50%;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: clamp(0.6rem, 2cqmin, 0.78rem);
+    white-space: nowrap;
+    padding: 0.15em 0.5em;
+    border-radius: var(--radius-full);
+    background: var(--bg);
+  }
+
+  .pad {
+    position: absolute;
+    top: 0.9cqh;
+    right: 0.6cqw;
+    width: clamp(0.8rem, 3.2cqmin, 1.1rem);
+    height: clamp(0.8rem, 3.2cqmin, 1.1rem);
+    color: color-mix(in oklab, var(--c) calc(var(--on) * 80% + 20%), var(--text-subtle));
+  }
+
+  .pad svg {
+    position: absolute;
+    inset: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .pad .shut {
+    opacity: calc(1 - var(--open));
+  }
+
+  .pad .open {
+    color: var(--success);
+    opacity: var(--open);
+  }
+
+  /* ---- moving parts ---- */
+  .el {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+  }
+
+  .coin {
+    width: 11cqmin;
+    height: 11cqmin;
+    margin: -5.5cqmin 0 0 -5.5cqmin;
+    border-radius: var(--radius-full);
+    filter: drop-shadow(0 0.8cqmin 1.4cqmin rgb(0 0 0 / 0.35));
+  }
+
+  .coin :global(img) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .key {
+    display: grid;
+    place-items: center;
+    width: 7cqmin;
+    height: 7cqmin;
+    margin: -3.5cqmin 0 0 -3.5cqmin;
+    border-radius: var(--radius-full);
+  }
+
+  .key svg {
+    width: 62%;
+    height: 62%;
+  }
+
+  .fixed {
+    top: calc(var(--y) * 1cqh);
+    left: calc(var(--x) * 1cqw);
+  }
+
+  .key-yours {
+    border: 1px solid color-mix(in oklab, var(--btc) 70%, transparent);
+    background: color-mix(in oklab, var(--btc) 16%, var(--bg));
+    color: color-mix(in oklab, var(--btc) 75%, var(--text));
+    box-shadow: 0 0 22px -6px color-mix(in oklab, var(--btc) 80%, transparent);
+  }
+
+  .key-theirs,
+  .key-pub {
+    border: 1px solid color-mix(in oklab, var(--xmr) 70%, transparent);
+    background: color-mix(in oklab, var(--xmr) 16%, var(--bg));
+    color: color-mix(in oklab, var(--xmr) 75%, var(--text));
+    box-shadow: 0 0 22px -6px color-mix(in oklab, var(--xmr) 80%, transparent);
+  }
+
+  .pub-tag {
+    position: absolute;
+    top: calc(var(--y) * 1cqh + 5.5cqmin);
+    left: calc(var(--x) * 1cqw);
+    z-index: 2;
+    translate: -50% 0;
+    color: color-mix(in oklab, var(--xmr) 75%, var(--text));
+    font-family: var(--font-mono);
+    font-size: clamp(0.6rem, 2cqmin, 0.75rem);
+    white-space: nowrap;
+    opacity: 0;
+  }
+
+  /* the signature you send: incomplete until their half fills the slot.
+     The outer element rides the track; the body centres on it. */
+  .chip-body {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    height: 7cqmin;
+    padding: 0 0.4em 0 0.8em;
+    translate: -50% -50%;
+    border: 1px solid color-mix(in oklab, var(--primary) 55%, var(--border-strong));
+    border-radius: var(--radius-full);
+    background: var(--surface);
+    box-shadow: 0 0 26px -8px color-mix(in oklab, var(--primary) 80%, transparent);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: clamp(0.65rem, 2.4cqmin, 0.85rem);
+    white-space: nowrap;
+  }
+
+  .cslot {
+    display: grid;
+    place-items: center;
+    width: 5.2cqmin;
+    height: 5.2cqmin;
+  }
+
+  .cslot > * {
+    grid-area: 1 / 1;
+  }
+
+  .q {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border: 1.5px dashed color-mix(in oklab, var(--xmr) 60%, var(--border-strong));
+    border-radius: var(--radius-full);
+    color: color-mix(in oklab, var(--xmr) 70%, var(--text-muted));
+  }
+
+  .ck {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-full);
+    background: color-mix(in oklab, var(--xmr) 20%, var(--bg));
+    color: color-mix(in oklab, var(--xmr) 80%, var(--text));
+  }
+
+  .ck svg {
+    width: 62%;
+    height: 62%;
+  }
+
+  .route {
+    position: absolute;
+    top: calc(var(--y) * 1cqh);
+    left: calc(var(--from) * 1cqw);
+    width: calc((var(--to) - var(--from)) * 1cqw);
+    border-top: 1.5px dashed color-mix(in oklab, var(--primary) 50%, transparent);
+    opacity: 0;
+  }
+
+  .done {
+    display: grid;
+    place-items: center;
+    width: 4.4cqmin;
+    height: 4.4cqmin;
+    margin: -2.2cqmin 0 0 -2.2cqmin;
+    border-radius: var(--radius-full);
+    background: var(--success);
+    box-shadow: 0 0 16px -2px color-mix(in oklab, var(--success) 80%, transparent);
+    color: #fff;
+  }
+
+  .done svg {
+    width: 64%;
+    height: 64%;
+  }
+
+  /* ---- the move cards ---- */
+  .moves {
+    display: grid;
+    gap: var(--space-4);
+    padding: 0;
+    list-style: none;
+  }
+
+  .moves li {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--primary) calc(var(--lit) * 60%), var(--border));
+    border-radius: var(--radius-xl);
+    background: color-mix(in oklab, var(--primary) calc(var(--lit) * 6%), var(--surface));
+    box-shadow: 0 0 40px -18px color-mix(in oklab, var(--primary) calc(var(--lit) * 70%), transparent);
+    cursor: pointer;
+    transition: translate var(--dur) var(--ease);
+  }
+
+  .moves li:hover {
+    translate: 0 -2px;
+  }
+
+  .hit {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    cursor: pointer;
+  }
+
+  .alt-hit {
+    display: none;
+  }
+
+  .settle:has(.pick:focus-visible) .moves {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+    border-radius: var(--radius-lg);
+  }
+
+  .bar {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    background: color-mix(in oklab, var(--text) 8%, transparent);
+  }
+
+  .bar i {
+    position: absolute;
+    inset: 0;
+    background: var(--primary);
+    transform-origin: left;
+    scale: 0 1;
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .n {
+    color: var(--link);
+    font-size: var(--step--1);
+  }
+
+  .chain {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  .chain :global(img) {
+    width: 1.1em;
+    height: 1.1em;
+  }
+
+  .main {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .sub {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  @media (min-width: 40rem) {
+    .moves {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .moves {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,0 +1,85 @@
+---
+// A highlighted note in a post or a docs page. The type sets its color and
+// icon; note, tip, caution and danger are the docs' admonition types.
+type Kind = 'info' | 'warning' | 'error' | 'success' | 'pro-tip' | 'resource' | 'note' | 'tip' | 'caution' | 'danger';
+interface Props {
+  type?: Kind;
+  title?: string;
+}
+const { type = 'info', title } = Astro.props;
+
+const ICONS: Record<Kind, string> = {
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.1"/>',
+  warning: '<path d="M12 4 2.8 19.5h18.4L12 4Z"/><path d="M12 10v4.2M12 16.9v.1"/>',
+  error: '<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6m0-6-6 6"/>',
+  success: '<circle cx="12" cy="12" r="9"/><path d="m8 12.3 2.7 2.7L16.2 9.5"/>',
+  'pro-tip': '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z"/>',
+  resource: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  note: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  tip: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z"/>',
+  caution: '<path d="M12 4 2.8 19.5h18.4L12 4Z"/><path d="M12 10v4.2M12 16.9v.1"/>',
+  danger: '<path d="M8.5 3h7L21 8.5v7L15.5 21h-7L3 15.5v-7Z"/><path d="M12 8v5M12 16v.1"/>',
+};
+---
+
+<aside class:list={['callout', type]}>
+  <div class="head">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" set:html={ICONS[type] ?? ICONS.info} />
+    {title && <p class="title">{title}</p>}
+  </div>
+  <div class="body flow"><slot /></div>
+</aside>
+
+<style>
+  .callout {
+    --tone: var(--primary);
+    margin-block: var(--space-6);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid color-mix(in oklab, var(--tone) 30%, var(--border));
+    border-left: 3px solid var(--tone);
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--tone) 7%, var(--bg));
+  }
+
+  .warning { --tone: var(--warning); }
+  .error { --tone: var(--destructive); }
+  .success { --tone: var(--success); }
+  .pro-tip { --tone: var(--accent); }
+  .resource { --tone: var(--brand); }
+  .note { --tone: var(--gray-400); }
+  .tip { --tone: var(--success); }
+  .caution { --tone: var(--warning); }
+  .danger { --tone: var(--destructive); }
+
+  .head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+    color: color-mix(in oklab, var(--tone) 70%, var(--text));
+  }
+
+  svg {
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .title {
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .body {
+    --flow: var(--space-3);
+    color: var(--text-muted);
+    font-size: 0.96em;
+  }
+
+  .body :global(strong) {
+    color: var(--text);
+  }
+</style>

@@ -1,0 +1,253 @@
+---
+// Install instructions per operating system, as CSS-only tabs (a radio group
+// styled as tabs). Every panel is in the HTML, so all instructions are
+// crawlable and readable without JS. Linux is selected by default; there is
+// no OS detection, by design.
+import CodeBlock from '../sections/CodeBlock.astro';
+
+const scriptPrereq = 'sudo apt install curl git   # pacman / dnf on Arch / Fedora';
+const scriptInstall = `git clone https://github.com/nahuhh/basicswap-bash && cd basicswap-bash
+./basicswap-install.sh
+
+# Scripts move to ~/.local/bin, so the clone can go
+cd .. && rm -rf basicswap-bash`;
+const docker = `# Dependencies + Docker engine
+sudo apt install curl jq git
+# install Docker -> docs.docker.com/engine/install
+
+# Build the image
+git clone https://github.com/basicswap/basicswap.git
+cd basicswap/docker && cp example.env .env
+docker compose build
+
+# Configure (example: monero + bitcoin)
+export COINDATA_PATH=/var/data/coinswaps
+CURRENT_XMR_HEIGHT=$(curl -s http://node2.monerodevs.org:18089/get_info | jq .height)
+docker run --rm -t --name swap_prepare -v $COINDATA_PATH:/coindata i_swapclient \\
+  basicswap-prepare --datadir=/coindata --withcoins=monero,bitcoin \\
+  --htmlhost=0.0.0.0 --wshost=0.0.0.0 \\
+  --xmrrestoreheight=$CURRENT_XMR_HEIGHT --usebtcfastsync
+
+# Start, then open http://localhost:12700
+docker compose up`;
+const macPrereq = `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install python git gnupg pkg-config jq zeromq`;
+const macBuild = `export SWAP_DATADIR=/Users/$USER/coinswaps
+python3 -m venv "$SWAP_DATADIR/venv"
+. $SWAP_DATADIR/venv/bin/activate && python3 -V
+cd $SWAP_DATADIR
+git clone https://github.com/basicswap/basicswap.git
+cd $SWAP_DATADIR/basicswap
+sudo python3 bin/install_certifi.py
+pip3 install --require-hashes -r requirements.txt
+pip3 install .`;
+const macRun = `CURRENT_XMR_HEIGHT=$(curl -s http://node2.monerodevs.org:18089/get_info | jq .height)
+basicswap-prepare --datadir=$SWAP_DATADIR --withcoins=monero,bitcoin \\
+  --xmrrestoreheight=$CURRENT_XMR_HEIGHT --usebtcfastsync
+
+basicswap-run --datadir=$SWAP_DATADIR
+# open http://localhost:12700`;
+const wslOpen = `# Windows + R  ->  type "wsl"  ->  Enter
+sudo apt update && sudo apt install curl git`;
+const wslInstall = `git clone https://github.com/nahuhh/basicswap-bash && cd basicswap-bash
+./basicswap-install.sh
+cd .. && rm -rf basicswap-bash`;
+
+const bsx = [
+  ['basicswap-bash', 'run BasicSwap'],
+  ['bsx-update', 'update BSX + coin cores'],
+  ['bsx-addcoin', 'enable a coin'],
+  ['bsx-removecoin', 'disable a coin'],
+  ['bsx-enabletor', 'route through Tor'],
+  ['bsx-clientauth', 'set a client password'],
+];
+const dockerNote = 'The official Docker path (basicswap/basicswap). Builds the image from source and runs it with Compose.';
+---
+
+<div class="os-tabs">
+  <input type="radio" name="os" id="os-linux" checked />
+  <input type="radio" name="os" id="os-macos" />
+  <input type="radio" name="os" id="os-windows" />
+
+  <div class="tablist" role="presentation">
+    <label for="os-linux">Linux</label>
+    <label for="os-macos">macOS</label>
+    <label for="os-windows">Windows</label>
+  </div>
+
+  <section class="panel p-linux" aria-labelledby="h-linux">
+    <header class="os-head">
+      <h3 id="h-linux">Linux</h3>
+      <p class="platforms">Debian, Ubuntu, Arch, Fedora</p>
+    </header>
+    <div class="methods">
+      <article class="method">
+        <h4>Script suite</h4>
+        <p>The community script suite (nahuhh/basicswap-bash) builds BasicSwap and its coin cores and installs the bsx-* management commands.</p>
+        <CodeBlock label="prerequisites" code={scriptPrereq} />
+        <CodeBlock label="install" code={scriptInstall} />
+        <dl class="cmds">{bsx.map(([cmd, what]) => <div><dt><code>{cmd}</code></dt><dd>{what}</dd></div>)}</dl>
+      </article>
+      <article class="method">
+        <h4>Docker</h4>
+        <p>{dockerNote}</p>
+        <CodeBlock label="install" code={docker} />
+      </article>
+    </div>
+  </section>
+
+  <section class="panel p-macos" aria-labelledby="h-macos">
+    <header class="os-head">
+      <h3 id="h-macos">macOS</h3>
+      <p class="platforms">Intel + Apple Silicon</p>
+    </header>
+    <div class="methods">
+      <article class="method">
+        <h4>Build from source</h4>
+        <p>macOS builds from source with Homebrew. Docker is not available on macOS.</p>
+        <CodeBlock label="prerequisites" code={macPrereq} />
+        <CodeBlock label="build" code={macBuild} />
+        <CodeBlock label="configure + run" code={macRun} />
+      </article>
+    </div>
+  </section>
+
+  <section class="panel p-windows" aria-labelledby="h-windows">
+    <header class="os-head">
+      <h3 id="h-windows">Windows</h3>
+      <p class="platforms">Windows 10/11 &middot; via WSL</p>
+    </header>
+    <div class="methods">
+      <article class="method">
+        <h4>Script suite (WSL)</h4>
+        <p>Inside WSL2, the community script suite (nahuhh/basicswap-bash) builds BasicSwap and its coin cores and installs the bsx-* management commands. An unstable .exe installer also exists but is not recommended.</p>
+        <CodeBlock label="open wsl" code={wslOpen} />
+        <CodeBlock label="install" code={wslInstall} />
+        <dl class="cmds">{bsx.map(([cmd, what]) => <div><dt><code>{cmd}</code></dt><dd>{what}</dd></div>)}</dl>
+      </article>
+      <article class="method">
+        <h4>Docker</h4>
+        <p>{dockerNote}</p>
+        <CodeBlock label="install" code={docker} />
+      </article>
+    </div>
+  </section>
+</div>
+
+<style>
+  .os-tabs > input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tablist {
+    display: inline-flex;
+    gap: var(--space-1);
+    padding: var(--space-1);
+    margin-bottom: var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+
+  label {
+    padding: var(--space-2) var(--space-5);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+
+  label:hover {
+    color: var(--text);
+  }
+
+  #os-linux:checked ~ .tablist [for='os-linux'],
+  #os-macos:checked ~ .tablist [for='os-macos'],
+  #os-windows:checked ~ .tablist [for='os-windows'] {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  #os-linux:focus-visible ~ .tablist [for='os-linux'],
+  #os-macos:focus-visible ~ .tablist [for='os-macos'],
+  #os-windows:focus-visible ~ .tablist [for='os-windows'] {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  .panel {
+    display: none;
+  }
+
+  #os-linux:checked ~ .p-linux,
+  #os-macos:checked ~ .p-macos,
+  #os-windows:checked ~ .p-windows {
+    display: block;
+  }
+
+  .os-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    margin-bottom: var(--space-5);
+  }
+
+  .platforms {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .methods {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .method {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    min-width: 0;
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  h4 {
+    font-size: var(--step-1);
+  }
+
+  .method > p {
+    color: var(--text-muted);
+  }
+
+  .cmds {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--step--1);
+  }
+
+  .cmds div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .cmds dd {
+    margin: 0;
+    color: var(--text-subtle);
+  }
+
+  @media (min-width: 64rem) {
+    .methods {
+      grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    }
+  }
+</style>

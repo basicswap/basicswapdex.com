@@ -1,0 +1,167 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Ribbon from '../components/Ribbon.astro';
+import Logo from '../components/Logo.astro';
+import Icon, { type IconName } from '../components/Icon.astro';
+import { BLOG_URL, DOCS_URL, MARKETS_URL, SOCIAL, linkAttrs } from '../config/site';
+import { breadcrumb } from '../lib/seo';
+import pages from '../data/pages.json';
+
+const YOUTUBE = 'https://www.youtube.com/@basicswap';
+
+const links: { label: string; href: string; icon: IconName }[] = [
+  { label: 'Live Markets Stats', href: MARKETS_URL, icon: 'chart' },
+  { label: 'Provide Liquidity (via WizardSwap.io)', href: 'http://wizardswap.io/?ref=12b0e1d34d', icon: 'droplet' },
+  { label: 'X Account (formerly Twitter)', href: SOCIAL.x, icon: 'x' },
+  { label: 'YouTube Channel', href: YOUTUBE, icon: 'youtube' },
+  { label: 'Documentation', href: DOCS_URL, icon: 'book' },
+  { label: 'GitHub', href: SOCIAL.github, icon: 'github' },
+  { label: 'Community Chat (Matrix)', href: SOCIAL.matrix, icon: 'matrix' },
+  { label: 'Blog', href: BLOG_URL, icon: 'pen' },
+  { label: 'Support BasicSwap Development', href: '/donations', icon: 'heart' },
+];
+---
+
+<BaseLayout {...pages.links} jsonLd={[breadcrumb('Links', '/links')]}>
+  <section class="links-page">
+    <Ribbon variant="hero" zone={1} />
+    <div class="card">
+      <Logo height={36} />
+      <p class="kicker">official links</p>
+      <h1>Official BasicSwap links</h1>
+      <p class="intro">
+        Swap cryptocurrencies peer-to-peer and on-chain. BasicSwap is the decentralized exchange where you meet other
+        traders to settle atomic swaps directly.
+      </p>
+      <p class="status"><span class="pulse" aria-hidden="true"></span>Protocol live on mainnet</p>
+
+      <div class="socials">
+        <a href={SOCIAL.x} target="_blank" rel="noopener noreferrer" title="Follow us on X"><Icon name="x" label="BasicSwap on X" /></a>
+        <a href={YOUTUBE} target="_blank" rel="noopener noreferrer" title="YouTube channel"><Icon name="youtube" label="BasicSwap on YouTube" /></a>
+        <a href={SOCIAL.matrix} target="_blank" rel="noopener noreferrer" title="Join us on Matrix"><Icon name="matrix" label="BasicSwap on Matrix" /></a>
+        <a href={SOCIAL.github} target="_blank" rel="noopener noreferrer" title="View on GitHub"><Icon name="github" label="BasicSwap on GitHub" /></a>
+      </div>
+
+      <ul class="list" role="list">
+        {
+          links.map(({ label, href, icon }) => (
+            <li>
+              <a href={href} {...linkAttrs(href)}>
+                <Icon name={icon} size={18} />
+                <span>{label}</span>
+                {href.startsWith('http') && <Icon name="external" size={14} class="ext" />}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .links-page {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(3rem, 2rem + 4vw, 6rem) var(--gutter);
+  }
+
+  .card {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: var(--space-4);
+    max-width: 32rem;
+    margin-inline: auto;
+    padding: var(--space-7) var(--space-6);
+    border: 1px solid var(--border-strong);
+    border-radius: 1.25rem;
+    background: color-mix(in oklab, var(--bg) 88%, transparent);
+    backdrop-filter: blur(14px);
+    text-align: center;
+  }
+
+  h1 {
+    font-size: var(--step-4);
+  }
+
+  .intro {
+    color: var(--text-muted);
+  }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid color-mix(in oklab, var(--success) 35%, transparent);
+    border-radius: var(--radius-full);
+    color: var(--success);
+    font-size: var(--step--2);
+    font-weight: 600;
+  }
+
+  .pulse {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  .socials {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .socials a {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    color: var(--text-muted);
+  }
+
+  .socials a:hover {
+    border-color: var(--primary);
+    color: var(--text);
+  }
+
+  .list {
+    display: grid;
+    gap: var(--space-2);
+    width: 100%;
+    padding: 0;
+    list-style: none;
+  }
+
+  .list a {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+
+  .list a:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+  }
+
+  .list span {
+    flex: 1;
+  }
+
+  .list :global(.ext) {
+    color: var(--text-subtle);
+  }
+</style>

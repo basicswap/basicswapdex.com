@@ -1,0 +1,318 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import AboutBackdrop from '../components/backdrops/AboutBackdrop.astro';
+import SectionHead from '../components/sections/SectionHead.astro';
+import Icon from '../components/Icon.astro';
+import { SOCIAL } from '../config/site';
+import { breadcrumb } from '../lib/seo';
+import pages from '../data/pages.json';
+
+const timeline = [
+  {
+    year: '2014',
+    title: 'Secure messaging',
+    body: 'An encrypted, serverless way for peers to message each other first ships, born as an alternative to BitMessage with several concepts borrowed from it. Built for private communication, not trading, it would later turn out to be exactly the coordination layer a decentralized order book needs.',
+  },
+  {
+    year: '2017',
+    title: 'SMSG',
+    body: "Particl adopts and hardens that messaging layer as SMSG, where it really starts to branch off more significantly from its BitMessage roots. It becomes the gossip mesh every later BasicSwap component depends on.",
+  },
+  {
+    year: '2017',
+    title: 'First atomic swap',
+    body: 'Particl runs its first cross-chain atomic swap: an HTLC exchange with Decred, via the open Decred atomicswap tool. Proof the concept worked, years before a usable protocol existed.',
+  },
+  {
+    year: '2019',
+    title: 'BasicSwap Protocol',
+    body: 'First proper atomic swap protocol built natively on SMSG: decentralized order book, no matching engine, full-node operation. Run through a bare-bones, self-hosted web UI.',
+  },
+  {
+    year: '2020',
+    title: 'OtVES adaptor signatures',
+    body: 'One-Time Verifiably Encrypted Signatures bring atomic swaps to Monero and other coins that lack on-chain script.',
+  },
+  {
+    year: '2022',
+    title: 'User-facing GUI',
+    body: 'The first real user-focused interface arrives, turning what was a developer tool into something anyone can run.',
+  },
+  {
+    year: '2023',
+    title: 'Bidirectional Monero swaps',
+    body: 'Bidirectional adaptor-signature swaps were not thought feasible. By combining the OtVES protocol with SMSG message coordination, BasicSwap made them real: two-way atomic swaps for Monero and other OtVES pairs, XMR &#8596; BTC, LTC, and more. The <a href="/bitcoin-to-monero">Bitcoin to Monero pair</a> is walked through step by step.',
+  },
+  {
+    year: '2026',
+    title: 'BasicSwap Desktop + Mobile',
+    body: 'Two surfaces of the same protocol: Desktop for makers and LPs running full nodes, Mobile for casual takers on phones and browsers. Same atomic guarantees underneath.',
+  },
+];
+
+const values = [
+  {
+    label: 'open source',
+    title: 'Everything we ship is auditable.',
+    body: 'MIT-licensed. Source on GitHub. Anyone can read, fork, or extend the code. We publish protocol specs alongside implementations.',
+  },
+  {
+    label: 'non-custodial',
+    title: 'You hold the keys.',
+    body: "BasicSwap never touches your funds. Keys live in your own coin's core wallets. There is no custody surface for an attacker to target or a regulator to subpoena.",
+  },
+  {
+    label: 'decentralized in operation',
+    title: 'No operator to switch off.',
+    body: 'No server, no central point of failure, no operator. The system is as decentralized as current technology allows. Maintainers steward the codebase like any open-source project but cannot force a node to upgrade; users choose which release they run.',
+  },
+];
+---
+
+<BaseLayout {...pages.about} jsonLd={[breadcrumb('About', '/about')]}>
+  <PageHero ribbon="none" title={'BasicSwap puts cryptography\nfirst, then everything else.'}>
+    <AboutBackdrop slot="backdrop" />
+    <p>
+      BasicSwap is the latest layer in over a decade of work. The encrypted peer-to-peer messaging it rides on first
+      shipped in 2014 and was hardened into Particl's SMSG in 2017.
+    </p>
+    <p>
+      Atomic swap research has been moving since 2013; we are the team that connected the dots into a usable protocol,
+      and we are now closing the gaps that kept it locked away from mainstream users.
+    </p>
+  </PageHero>
+
+  <section class="section container mission">
+    <div>
+      <p class="kicker">mission</p>
+      <h2>Make peer-to-peer cross-chain trading easy.</h2>
+    </div>
+    <div class="flow lead">
+      <p>
+        Crypto removed the middleman from sending value. Trading is the last place one still stands. Atomic swaps are
+        the answer most faithful to that original intent: peer-to-peer, no middle software, no operator, and nothing to
+        trust but the cryptography. Their one real weakness is user experience.
+      </p>
+      <p>
+        BasicSwap exists to remove that weakness without giving anything up. We build a full protocol around the atomic
+        swap, from the order book and messaging to light clients and interfaces, along with several quality-of-life
+        improvements, so a swap feels as easy as a centralized exchange while keeping the same non-custody, security,
+        and trustlessness end to end.
+      </p>
+    </div>
+  </section>
+
+  <section class="section band-surface">
+    <div class="container">
+      <SectionHead kicker="origin · 2014 → today" title="How we got here." />
+      <ol class="timeline" role="list">
+        {
+          timeline.map(({ year, title, body }) => (
+            <li>
+              <span class="year data">{year}</span>
+              <div>
+                <h3>{title}</h3>
+                <p set:html={body} />
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section container">
+    <SectionHead kicker="what we hold to" title="Three things we will not trade." />
+    <ul class="values" role="list">
+      {
+        values.map(({ label, title, body }) => (
+          <li>
+            <p class="kicker">{label}</p>
+            <h3>{title}</h3>
+            <p>{body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section band">
+    <div class="container">
+      <SectionHead kicker="get involved" title="Open issues. Open chat. Open repo.">
+        <p>
+          Pull requests, bug reports, and protocol discussion all happen in public. GitHub is the primary code; Matrix
+          is the primary chat.
+        </p>
+      </SectionHead>
+      <div class="channels">
+        <a class="channel" href={SOCIAL.githubOrg} target="_blank" rel="noopener noreferrer">
+          <span class="kicker">code</span>
+          <h3><Icon name="github" size={22} />GitHub</h3>
+          <p>Read the source, open issues, and send pull requests. Every release ships here.</p>
+          <span class="go">Open GitHub <Icon name="external" size={13} /></span>
+        </a>
+        <a class="channel" href={SOCIAL.matrix} target="_blank" rel="noopener noreferrer">
+          <span class="kicker">chat</span>
+          <h3><Icon name="matrix" size={22} />Matrix</h3>
+          <p>Ask questions, discuss the protocol, and coordinate with maintainers in the open.</p>
+          <span class="go">Open Matrix <Icon name="external" size={13} /></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band funding">
+    <div class="container flow">
+      <p class="kicker">how basicswap is funded</p>
+      <h2>No tokens. No investors. Just contributors.</h2>
+      <p class="lead measure">
+        Every line of BasicSwap is funded by the people who use it. It's the only funding model that keeps an open
+        protocol free and sovereign.
+      </p>
+      <p><a class="btn btn-outline" href="/donations">Support the project</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .mission {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .mission .kicker {
+    margin-bottom: var(--space-4);
+  }
+
+  .timeline {
+    position: relative;
+    display: grid;
+    gap: var(--space-6);
+    padding: 0;
+    list-style: none;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 0.6rem;
+    bottom: 0.6rem;
+    left: 2.6rem;
+    width: 1px;
+    background: linear-gradient(var(--brand), var(--accent));
+    opacity: 0.6;
+  }
+
+  .timeline li {
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+
+  .year {
+    position: relative;
+    color: var(--text);
+    font-size: var(--step--1);
+    line-height: 1.9;
+  }
+
+  .year::after {
+    content: '';
+    position: absolute;
+    top: 0.55rem;
+    left: calc(2.6rem - 4px);
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--brand);
+  }
+
+  .timeline h3 {
+    font-size: var(--step-1);
+  }
+
+  .timeline p {
+    max-width: var(--prose-max);
+    margin-top: var(--space-2);
+    color: var(--text-muted);
+  }
+
+  .values,
+  .channels {
+    display: grid;
+    gap: var(--space-5);
+    padding: 0;
+    list-style: none;
+  }
+
+  .values li {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+  }
+
+  .values h3 {
+    font-size: var(--step-1);
+  }
+
+  .values p:last-child {
+    color: var(--text-muted);
+  }
+
+  .channel {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  .channel:hover {
+    border-color: var(--primary);
+  }
+
+  .channel h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--step-2);
+  }
+
+  .channel p {
+    color: var(--text-muted);
+  }
+
+  .go {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    color: var(--link);
+    font-weight: 600;
+  }
+
+  .funding .kicker {
+    margin-bottom: var(--space-2);
+  }
+
+  @media (min-width: 64rem) {
+    .mission {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    }
+
+    .values {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .channels {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

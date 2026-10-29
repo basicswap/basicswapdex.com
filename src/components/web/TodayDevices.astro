@@ -1,0 +1,594 @@
+---
+// "Can't wait for Web?" on the Web page: BasicSwap Mobile and Desktop drawn as
+// a phone and a laptop, each with its name, where it runs and a button.
+// The phone shows a swap inside the Litecoin Nexus Wallet; the laptop shows
+// BasicSwap Desktop's price chart and offers. The frames are graphite in both
+// themes and the screens follow the theme. Example figures.
+import { Image } from 'astro:assets';
+import Icon from '../Icon.astro';
+import Logo from '../Logo.astro';
+import { priceSeries } from '../desktop/film';
+import bitcoin from '../../assets/coins/bitcoin-circle.png';
+import monero from '../../assets/coins/monero-circle.png';
+import litecoin from '../../assets/coins/litecoin-circle.png';
+import dogecoin from '../../assets/coins/dogecoin-circle.png';
+import dash from '../../assets/coins/dash-circle.png';
+
+const chart = priceSeries(7, 34, { x0: 0, x1: 200, y0: 8, y1: 58 }, 0.35, 2.2);
+const offers = [
+  { a: bitcoin, b: monero, m: '+0.42%', up: true },
+  { a: litecoin, b: monero, m: '-0.85%', up: false },
+  { a: dogecoin, b: bitcoin, m: '+1.10%', up: true },
+  { a: dash, b: monero, m: '-0.30%', up: false },
+];
+---
+
+<div class="devices">
+  <div class="device">
+    <div class="art">
+      <div class="phone" aria-hidden="true">
+        <span class="key k1"></span>
+        <span class="key k2"></span>
+        <span class="key k3"></span>
+        <div class="phone-screen">
+          <span class="island"></span>
+          <div class="ps-status data">
+            <span>9:41</span>
+            <span class="ps-sig"><i></i><i></i><i></i></span>
+          </div>
+          <p class="ps-app">Nexus Wallet</p>
+          <div class="ps-card">
+            <p class="ps-label">You send</p>
+            <div class="ps-field">
+              <Image src={litecoin} alt="" width={40} height={40} />
+              <span class="data">LTC</span>
+              <b class="data">2.40</b>
+            </div>
+            <span class="ps-flip"><Icon name="arrowRight" size={10} /></span>
+            <p class="ps-label">You get</p>
+            <div class="ps-field">
+              <Image src={bitcoin} alt="" width={40} height={40} />
+              <span class="data">BTC</span>
+              <b class="data">0.0022</b>
+            </div>
+          </div>
+          <span class="ps-go">Swap</span>
+          <span class="ps-by"><Logo mark height={10} />BasicSwap</span>
+          <span class="ps-home"></span>
+        </div>
+      </div>
+    </div>
+    <p class="name">BasicSwap Mobile <span class="tag data">beta</span></p>
+    <p class="text">In the Litecoin Nexus Wallet, on iOS and Android</p>
+    <a class="btn btn-outline" href="/mobile">See Mobile <Icon name="arrowRight" size={16} /></a>
+  </div>
+
+  <div class="device">
+    <div class="art">
+      <div class="laptop" aria-hidden="true">
+        <div class="lid">
+          <span class="cam"></span>
+          <div class="lt-screen">
+            <div class="lt-bar">
+              <Logo height={14} />
+              <span class="lt-nav"><i></i><i></i><i></i></span>
+            </div>
+            <div class="lt-body">
+              <div class="lt-chart">
+                <span class="lt-pair data">
+                  <Image src={monero} alt="" width={40} height={40} />
+                  XMR / BTC
+                </span>
+                <svg viewBox="0 0 200 64" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="lt-fill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="#3b82f6" stop-opacity="0.35"></stop>
+                      <stop offset="1" stop-color="#3b82f6" stop-opacity="0"></stop>
+                    </linearGradient>
+                  </defs>
+                  <path d={chart.area} fill="url(#lt-fill)"></path>
+                  <path d={chart.line} class="lt-line" vector-effect="non-scaling-stroke"></path>
+                </svg>
+              </div>
+              <div class="lt-offers">
+                {
+                  offers.map(({ a, b, m, up }) => (
+                    <div class="lt-row">
+                      <span class="lt-coins">
+                        <Image src={a} alt="" width={40} height={40} />
+                        <Image src={b} alt="" width={40} height={40} />
+                      </span>
+                      <span class="lt-sk" />
+                      <span class:list={['lt-m', 'data', up ? 'up' : 'down']}>{m}</span>
+                      <span class="lt-btn">Swap</span>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="deck"><span class="notch"></span></div>
+      </div>
+    </div>
+    <p class="name">BasicSwap Desktop <span class="tag data live">available now</span></p>
+    <p class="text">The whole protocol on your own computer, every coin and pair</p>
+    <a class="btn btn-primary" href="/desktop">Get Desktop <Icon name="arrowRight" size={16} /></a>
+  </div>
+</div>
+
+<style>
+  .devices {
+    display: grid;
+    gap: var(--space-8);
+    justify-content: center;
+  }
+
+  .device {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    text-align: center;
+  }
+
+  /* both devices stand on the same line, with a soft shadow under each */
+  .art {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: var(--space-5);
+  }
+
+  .art::after {
+    content: '';
+    position: absolute;
+    bottom: -0.9rem;
+    left: 50%;
+    width: 80%;
+    height: 1.4rem;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, hsl(var(--shadow-color) / 0.55), transparent);
+    transform: translateX(-50%);
+  }
+
+  .name {
+    font-size: var(--step-1);
+    font-weight: 650;
+  }
+
+  .text {
+    max-width: 19rem;
+    margin-bottom: var(--space-3);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+  }
+
+  .btn {
+    gap: var(--space-2);
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.05em 0.6em;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-full);
+    color: var(--text-muted);
+    font-size: var(--step--2);
+    font-weight: 400;
+    vertical-align: middle;
+  }
+
+  .tag.live {
+    border-color: color-mix(in oklab, var(--success) 50%, transparent);
+    background: color-mix(in oklab, var(--success) 12%, transparent);
+    color: var(--success);
+  }
+
+  /* ---- the phone: the screen inside is sized in cqw of the frame ---- */
+  .phone {
+    --frame: linear-gradient(145deg, #4a5264, #1a1f2b 30%, #0d1018 62%, #343b4b);
+    position: relative;
+    width: 10rem;
+    aspect-ratio: 9 / 19;
+    container-type: inline-size;
+    /* the frame's own sizes can't use its cqw, only what's inside can */
+    padding: 0.32rem;
+    border-radius: 1.7rem;
+    background: var(--frame);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.14),
+      inset 0 0 0 0.24rem #07090e,
+      0 2px 0 rgb(255 255 255 / 0.05),
+      0 30px 60px -30px rgb(0 0 0 / 0.75);
+  }
+
+  .key {
+    position: absolute;
+    width: 2cqw;
+    border-radius: 2cqw;
+    background: linear-gradient(90deg, #2a303d, #4a5264);
+  }
+
+  .k1 {
+    top: 22%;
+    left: -1.4cqw;
+    height: 7%;
+  }
+
+  .k2 {
+    top: 32%;
+    left: -1.4cqw;
+    height: 12%;
+  }
+
+  .k3 {
+    top: 28%;
+    right: -1.4cqw;
+    height: 16%;
+    background: linear-gradient(270deg, #2a303d, #4a5264);
+  }
+
+  .phone-screen {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 3.2cqw;
+    height: 100%;
+    overflow: hidden;
+    padding: 4cqw 6cqw 5cqw;
+    border-radius: 14cqw;
+    background:
+      radial-gradient(90% 45% at 50% 0%, color-mix(in oklab, var(--brand) 22%, transparent), transparent),
+      var(--bg);
+    font-size: 6.4cqw;
+    text-align: left;
+  }
+
+  /* a faint sheen across the glass */
+  .phone-screen::after,
+  .lt-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgb(255 255 255 / 0.07), transparent 38%);
+    pointer-events: none;
+  }
+
+  .island {
+    align-self: center;
+    flex: none;
+    width: 30cqw;
+    height: 8cqw;
+    border-radius: 8cqw;
+    background: #05070b;
+  }
+
+  .ps-status {
+    position: absolute;
+    top: 5.4cqw;
+    right: 8cqw;
+    left: 9cqw;
+    display: flex;
+    justify-content: space-between;
+    font-size: 5.6cqw;
+  }
+
+  .ps-sig {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.8cqw;
+  }
+
+  .ps-sig i {
+    width: 1.6cqw;
+    border-radius: 1cqw;
+    background: var(--text);
+  }
+
+  .ps-sig i:nth-child(1) {
+    height: 2cqw;
+  }
+
+  .ps-sig i:nth-child(2) {
+    height: 3cqw;
+  }
+
+  .ps-sig i:nth-child(3) {
+    height: 4cqw;
+  }
+
+  .ps-app {
+    margin-top: 2cqw;
+    font-size: 8.4cqw;
+    font-weight: 700;
+  }
+
+  .ps-card {
+    display: grid;
+    gap: 2cqw;
+    padding: 5cqw;
+    border: 1px solid var(--border);
+    border-radius: 8cqw;
+    background: var(--surface);
+  }
+
+  .ps-label {
+    color: var(--text-subtle);
+    font-size: 5.2cqw;
+  }
+
+  .ps-field {
+    display: flex;
+    align-items: center;
+    gap: 3cqw;
+    padding: 3cqw 3.6cqw;
+    border-radius: 5cqw;
+    background: var(--bg);
+  }
+
+  .ps-field img,
+  .lt-pair img {
+    flex: none;
+    width: 1em;
+    height: 1em;
+  }
+
+  .ps-field b {
+    margin-left: auto;
+    font-weight: 600;
+  }
+
+  .ps-flip {
+    display: grid;
+    place-items: center;
+    width: 9cqw;
+    height: 9cqw;
+    margin: -1cqw auto -1cqw;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--link);
+    rotate: 90deg;
+  }
+
+  .ps-flip :global(svg) {
+    width: 5cqw;
+    height: 5cqw;
+  }
+
+  .ps-go {
+    padding: 4cqw;
+    border-radius: 6cqw;
+    background: var(--brand);
+    color: #fff;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .ps-by {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.6cqw;
+    color: var(--text-subtle);
+    font-size: 5cqw;
+  }
+
+  .ps-by :global(.logo) {
+    width: auto;
+    height: 5.6cqw;
+  }
+
+  .ps-home {
+    align-self: center;
+    width: 34cqw;
+    height: 1.6cqw;
+    margin-top: auto;
+    border-radius: 2cqw;
+    background: var(--text-subtle);
+  }
+
+  /* ---- the laptop: also in cqw, so it shrinks to fit a phone screen ---- */
+  .laptop {
+    width: min(100%, 30rem);
+    container-type: inline-size;
+  }
+
+  .lid {
+    position: relative;
+    width: 86cqw;
+    aspect-ratio: 16 / 10.4;
+    margin: 0 auto;
+    padding: 2.4cqw 2.4cqw 3cqw;
+    border-radius: 3.4cqw 3.4cqw 1cqw 1cqw;
+    background: linear-gradient(160deg, #3a4152, #151924 40%, #0d1018);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.12),
+      inset 0 0 0 1.4cqw #07090e;
+  }
+
+  .cam {
+    position: absolute;
+    top: 0.9cqw;
+    left: 50%;
+    width: 0.9cqw;
+    height: 0.9cqw;
+    border-radius: 50%;
+    background: #1d2433;
+    box-shadow: inset 0 0 0 0.25cqw #2f3a52;
+    transform: translateX(-50%);
+  }
+
+  .lt-screen {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 1.2cqw;
+    background: var(--bg);
+    font-size: 2.2cqw;
+    text-align: left;
+  }
+
+  .lt-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.6cqw 2.4cqw;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .lt-bar :global(.logo) {
+    width: auto;
+    height: 3cqw;
+  }
+
+  .lt-nav {
+    display: flex;
+    gap: 1.4cqw;
+  }
+
+  .lt-nav i {
+    width: 6cqw;
+    height: 1cqw;
+    border-radius: 1cqw;
+    background: var(--border-strong);
+  }
+
+  .lt-body {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 2cqw;
+    padding: 2.4cqw;
+  }
+
+  .lt-chart {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 1cqw;
+    padding: 1.6cqw;
+    border: 1px solid var(--border);
+    border-radius: 1.4cqw;
+    background: var(--surface);
+  }
+
+  .lt-pair {
+    display: inline-flex;
+    align-items: center;
+    gap: 1cqw;
+    font-size: 2.2cqw;
+  }
+
+  .lt-chart svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .lt-line {
+    fill: none;
+    stroke: #3b82f6;
+    stroke-width: 1.5;
+  }
+
+  .lt-offers {
+    display: grid;
+    align-content: start;
+    gap: 1.1cqw;
+  }
+
+  .lt-row {
+    display: flex;
+    align-items: center;
+    gap: 1.4cqw;
+    padding: 1.1cqw 1.4cqw;
+    border: 1px solid var(--border);
+    border-radius: 1.2cqw;
+    background: var(--surface);
+  }
+
+  .lt-coins {
+    display: flex;
+    flex: none;
+  }
+
+  .lt-coins img {
+    width: 3.2cqw;
+    height: 3.2cqw;
+  }
+
+  .lt-coins img + img {
+    margin-left: -1cqw;
+  }
+
+  .lt-sk {
+    flex: 1;
+    height: 1cqw;
+    border-radius: 1cqw;
+    background: var(--border-strong);
+  }
+
+  .lt-m {
+    font-size: 1.9cqw;
+  }
+
+  .lt-m.up {
+    color: var(--success);
+  }
+
+  .lt-m.down {
+    color: var(--destructive);
+  }
+
+  .lt-btn {
+    padding: 0.5cqw 1.4cqw;
+    border-radius: 0.8cqw;
+    background: var(--brand);
+    color: #fff;
+    font-size: 1.8cqw;
+    font-weight: 600;
+  }
+
+  /* the base: a thin aluminium deck with the opening notch */
+  .deck {
+    position: relative;
+    height: 3.4cqw;
+    border-radius: 0.6cqw 0.6cqw 50% 50% / 0.6cqw 0.6cqw 100% 100%;
+    background: linear-gradient(180deg, #5a6275, #2a303d 55%, #161a23);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
+  }
+
+  .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 15cqw;
+    height: 1.2cqw;
+    border-radius: 0 0 1.4cqw 1.4cqw;
+    background: linear-gradient(#141821, #2a303d);
+    transform: translateX(-50%);
+  }
+
+  /* side by side, the devices share rows, so both stand on one line and
+     their names and buttons line up */
+  @media (min-width: 48rem) {
+    .devices {
+      grid-template-columns: auto minmax(0, 30rem);
+      column-gap: clamp(3rem, 2rem + 4vw, 7rem);
+      /* the shared rows take this gap, not each device's own */
+      row-gap: var(--space-2);
+    }
+
+    .device {
+      grid-row: span 4;
+      grid-template-rows: subgrid;
+    }
+
+    .art {
+      align-self: end;
+    }
+  }
+</style>

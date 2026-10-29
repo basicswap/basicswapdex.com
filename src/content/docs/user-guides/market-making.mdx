@@ -1,0 +1,63 @@
+---
+title: "Automated market making (AMM)"
+sidebar: "Market Making (AMM)"
+seoTitle: "Automated Market Making (AMM) in BasicSwap"
+description: "Use BasicSwap's built-in AMM to keep offers posted, follow market prices with a set premium, resize offers after partial fills and place automated bids."
+published: 2025-03-14
+---
+BasicSwap's AMM keeps offers on the order book for you. You describe each offer once, as a template, and the AMM posts it, reposts it when it expires, moves its rate with the market, and shrinks it as it fills. It runs inside BasicSwap, and you set it up entirely from the **AMM** page.
+
+## What it does
+
+- **Reposts offers.** Offers on BasicSwap expire, so a lasting presence on the order book means posting them again and again. The AMM does that, using each template's validity time.
+- **Follows the market.** Each offer's rate can follow the market, from BasicSwap's [price sources](/docs/user-guides/price-data), from the order book, or from both, plus or minus a percentage you choose, and never below your minimum rate.
+- **Tracks your inventory.** After partial fills, the next offer is smaller, so it never offers more than you have left. How far it goes depends on the template's offer type.
+- **Fills existing offers first**, if you want it to. Before posting, the AMM can bid on offers that already fill what you want, and then post only the rest.
+
+## Running the AMM
+
+Open **AMM** from the menu, where **Start AMM** runs every enabled template. The control panel beside it shows whether the AMM is running and lets you stop it, and a box there starts it automatically whenever BasicSwap starts. **Global Settings** sets how often it posts new offers and checks the old ones.
+
+## Add an offer template
+
+Click **Add New Item** under **Offer Templates** and fill in:
+
+| Field | What it does |
+|---|---|
+| **Name** | A private label for the template. |
+| **Enabled** | Disabled templates aren't posted. |
+| **Maker** and **Taker** | The coin you offer, and the coin you want for it. |
+| **Offer Amount** | How much of the maker coin each offer sells. |
+| **Minimum Rate** | The lowest rate the AMM will ever post, whatever the market does. |
+| **Rate Tweak Percent** | How far above or below the market rate to post, as a positive or negative percentage, so that 1 posts 1% above the market. |
+| **Adjust Rates Based on Market** | Where the market rate comes from, explained in the next section. |
+| **Offer Type** | **Standing** repeats until your wallet would drop below **Minimum Balance**, **One-time** posts once and stops when that offer has filled, and **Fixed total** stops once **Total to Sell** is reached. These match the [offer types](/docs/user-guides/make-offer#offer-types) of a single offer. |
+| **Offer Valid Seconds** | How long each offer stays up before the AMM reposts it, with a fresh rate. Shorter means the rate tracks the market more closely. |
+| **Swap Type** | Adaptor Sig, the default, or Secret Hash. |
+| **Contract Lock Period** | How long a swap has to complete before refunds are possible, 24 hours by default. |
+| **Min Swap Amount** and **Offer Size Increment** | The smallest bid the AMM accepts, and the step by which it shrinks the offer after partial fills. |
+| **Auto Accept Bids** | Accept All Bids, Accept Known Identities, or No Auto Accept. |
+| **SMSG Address / Identity** | The address the offers come from. |
+
+## Where rates come from
+
+**Adjust Rates Based on Market** chooses the base rate that the tweak applies to:
+
+| Option | Base rate |
+|---|---|
+| **Oracle** | The [oracle rate](/docs/user-guides/price-data), skipping the offer if no oracle has one. |
+| **Orderbook** | The best auto-accept offers on the order book, skipping the offer if there are none. |
+| **Either** | The higher of the oracle and order book rates, skipping the offer only if both are missing. |
+| **Both** | The higher of the two, skipping the offer if either one is missing. |
+| **Orderbook (Fallback)** | The order book, or your minimum rate if there's nothing there. |
+| **Static** | Your minimum rate only. |
+
+The AMM posts the base rate times (1 + tweak ÷ 100), but never less than your minimum rate. When it skips an offer for want of a rate, it tries again on the next cycle.
+
+## Fill offers before posting
+
+With **Attempt Bids First** on, before posting an offer the AMM looks for offers going the other way that would fill it, bids on them, and posts an offer only for what's left. **Bidding Strategy** sets how keen it is. **Aggressive** bids on everything compatible, **Balanced**, the default, mixes bids and offers, **Conservative** only bids on offers that match your auto-accept strategy, and the last option does the same while picking the best rates first.
+
+## Experimental bid templates
+
+The AMM can also run bid templates, which buy a coin up to a maximum rate by bidding on existing offers. They're experimental, so the **Bids** tab only appears with **Debug Mode** and **Debug UI** turned on under **Settings → General**. A bid template sets the coins, the amount, the **Maximum Rate**, a **Min Coin To Balance** to keep in the wallet and the number of **Max Concurrent** bids. Its **Offers to Bid On** setting then picks between auto-accept offers only, which is the default, all offers, or only those from known identities.

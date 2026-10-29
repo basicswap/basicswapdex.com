@@ -1,0 +1,164 @@
+---
+import { FOOTER_COLUMNS, FOOTER_TAGLINE, SOCIAL, isExternal, linkAttrs } from '../config/site';
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+---
+
+<footer class="site-footer">
+  <div class="container top">
+    <div class="about">
+      <a class="brand" href="/" aria-label="BasicSwap DEX home"><Logo height={30} /></a>
+      <p class="tagline">{FOOTER_TAGLINE}</p>
+    </div>
+
+    {
+      FOOTER_COLUMNS.map(({ title, links }) => (
+        <div class="col">
+          <h2 class="col-title">{title}</h2>
+          <ul>
+            {links.map(({ label, href, fresh }) => (
+              <li data-parity={fresh ? 'new' : undefined}>
+                <a href={href} {...linkAttrs(href)}>
+                  {label}
+                  {isExternal(href) && <Icon name="external" size={12} class="ext" />}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="container bottom">
+    <p class="legal">
+      <span class="year">&copy; 2026~</span>
+      <span>BasicSwapDEX</span>
+      <a href="/mediakit/mediakit-basicswap.zip">Mediakit</a>
+    </p>
+    <div class="social">
+      <a href={SOCIAL.x} target="_blank" rel="noopener noreferrer" title="Follow us on X"><Icon name="x" size={16} label="BasicSwap on X" /></a>
+      <a href={SOCIAL.matrix} target="_blank" rel="noopener noreferrer" title="Join us on Matrix"><Icon name="matrix" size={18} label="BasicSwap on Matrix" /></a>
+      <a href={SOCIAL.github} target="_blank" rel="noopener noreferrer" title="View on GitHub"><Icon name="github" size={16} label="BasicSwap on GitHub" /></a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: var(--section);
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    font-size: var(--step--1);
+  }
+
+  .top {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-7) var(--space-5);
+    padding-block: var(--space-8) var(--space-7);
+  }
+
+  .about {
+    grid-column: 1 / -1;
+  }
+
+  .brand {
+    display: inline-flex;
+    border-radius: var(--radius-md);
+  }
+
+  .tagline {
+    max-width: 22rem;
+    margin-top: var(--space-4);
+    color: var(--text-muted);
+  }
+
+  .col-title {
+    margin-bottom: var(--space-4);
+    color: var(--text);
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  ul {
+    display: grid;
+    gap: var(--space-3);
+    list-style: none;
+    padding: 0;
+  }
+
+  a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color var(--dur) var(--ease);
+  }
+
+  a:hover {
+    color: var(--text);
+  }
+
+  .col a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+  }
+
+  .col :global(.ext) {
+    opacity: 0.6;
+  }
+
+  .bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-block: var(--space-5) var(--space-6);
+    border-top: 1px solid var(--border);
+    color: var(--text-subtle);
+  }
+
+  .legal {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .year {
+    color: var(--text);
+  }
+
+  .legal a {
+    margin-inline-start: var(--space-3);
+    color: var(--text-subtle);
+  }
+
+  .social {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .social a {
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-lg);
+    color: var(--text-subtle);
+  }
+
+  .social a:hover {
+    color: var(--text);
+  }
+
+  @media (min-width: 48rem) {
+    .top {
+      grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
+    }
+
+    .about {
+      grid-column: auto;
+    }
+  }
+</style>

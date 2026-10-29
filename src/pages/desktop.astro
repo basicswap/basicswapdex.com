@@ -1,0 +1,227 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import SectionHead from '../components/sections/SectionHead.astro';
+import ProtocolFeatures from '../components/desktop/ProtocolFeatures.astro';
+import AppTour from '../components/tour/AppTour.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import CompatMatrix from '../components/desktop/CompatMatrix.astro';
+import OsTabs from '../components/desktop/OsTabs.astro';
+import VerifyRelease from '../components/desktop/VerifyRelease.astro';
+import { getLatestRelease, RELEASES_URL } from '../lib/release';
+import { breadcrumb } from '../lib/seo';
+import schema from '../data/schema/desktop.json';
+import { SOCIAL } from '../config/site';
+import pages from '../data/pages.json';
+
+const release = await getLatestRelease();
+
+const features = [
+  {
+    n: '01',
+    title: 'Fully self-hosted',
+    body: 'Runs the actual coin core wallets on your machine, each one a validating node. Funds stay in wallets only you control, and your node checks every swap against the chains itself.',
+  },
+  {
+    n: '02',
+    title: 'Truly decentralized',
+    body: 'A distributed order book carried over peer-to-peer messaging. No coordinator, no matching engine, no operator who can throttle, censor, or front-run your offers.',
+  },
+  {
+    n: '03',
+    title: 'Maximum privacy',
+    body: 'Everything runs locally, optionally over Tor, and no one logs your trades. Adaptor signatures leave no fingerprint on-chain, so nothing proves a transaction is a swap or links the two payments across chains to reveal who you traded with.',
+  },
+  {
+    n: '04',
+    title: '0% protocol fees',
+    body: 'The protocol takes no cut, for makers or takers. You pay only the on-chain network cost of each swap.',
+  },
+  {
+    n: '05',
+    title: 'All 12 coins',
+    body: 'Bitcoin, Monero, Litecoin (with MWEB), Particl (with anon variants), Bitcoin Cash, Dash, Decred, Firo, Dogecoin, Namecoin, PIVX, Wownero. The complete protocol coin list, every supported pair. See <a href="/bitcoin-to-monero">how a BTC to XMR swap settles</a>.',
+  },
+  {
+    n: '06',
+    title: 'Built-in AMM',
+    body: 'Run automated market making, manage liquidity across pairs, and schedule offer refreshes. The same surface partner integrators build on.',
+  },
+];
+---
+
+<BaseLayout
+  {...pages.desktop}
+  jsonLd={[...schema, breadcrumb('Desktop', '/desktop')]}
+>
+  <PageHero
+    ribbon="hero"
+    fit
+    jump={[
+      { href: '#verify', label: 'Verify your download' },
+      { href: '#protocol', label: 'The full protocol' },
+      { href: '#coins', label: 'Coins & features' },
+      { href: '#install', label: 'Install' },
+      { href: '#other-ways', label: 'Mobile or Web' },
+    ]}
+    title={'A self-hosted DEX\nwith no coordinator.'}>
+    <p>The full BasicSwap protocol, <strong>self-hosted</strong> and running end to end on your own machine.</p>
+    <p>
+      Post swap offers, run automated market making strategies, and settle straight to your wallets across 12 chains.
+      No operator stands in between. Trustless by your node, not by anyone's promise.
+    </p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary btn-lg" href={release?.url ?? RELEASES_URL} target="_blank" rel="noopener noreferrer">
+        <Icon name="download" />Get latest release{release && <span class="data version" data-parity="new">{release.tag}</span>}
+      </a>
+      <a class="btn btn-outline btn-lg" href={SOCIAL.githubOrg} target="_blank" rel="noopener noreferrer">
+        View on GitHub<Icon name="external" size={14} />
+      </a>
+    </Fragment>
+    <div slot="after" class="fee-wrap">
+      <div class="fee">
+        <p class="fee-figure"><span class="data">0%</span> fees</p>
+        <div>
+          <p>No protocol fees for makers or takers.</p>
+          <p class="fee-note">pay only the on-chain network cost</p>
+        </div>
+      </div>
+    </div>
+    <div slot="aside" class="hero-aside">
+      <AppTour />
+    </div>
+  </PageHero>
+
+  <section class="section container" id="verify">
+    <VerifyRelease release={release} />
+  </section>
+
+  <section class="section band" id="protocol">
+    <div class="container">
+      <ProtocolFeatures items={features} />
+    </div>
+  </section>
+
+  <section class="section band-surface" id="coins">
+    <div class="container">
+      <SectionHead kicker="12 coins · one protocol" title="Cross-chain, end to end.">
+        <p>
+          Not every coin can swap with every other, and the cryptographic method depends on the pair. Here is exactly
+          what is possible, and how each swap settles.
+        </p>
+      </SectionHead>
+      <CompatMatrix />
+    </div>
+  </section>
+
+  <section class="section container" id="install">
+    <SectionHead kicker="runs on" title="Wherever you run software.">
+      <p>Every method below builds BasicSwap and its coin cores from source.</p>
+      <p>
+        <a class="guide" href="/docs/user-guides/install"
+          >install guide</a
+        >
+      </p>
+    </SectionHead>
+    <OsTabs />
+  </section>
+
+  <CtaBand kicker="other ways to swap" title="Just want to swap, not run a node?" id="other-ways">
+    <p>
+      BasicSwap Mobile and BasicSwap Web give you the same atomic swaps without running any nodes. Mobile is in beta
+      inside the Litecoin Nexus Wallet, and Web will bring BasicSwap to a browser tab once it launches.
+    </p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary btn-lg" href="/mobile">See BasicSwap Mobile</a>
+      <a class="btn btn-outline btn-lg" href="/web">See BasicSwap Web</a>
+    </Fragment>
+  </CtaBand>
+</BaseLayout>
+
+<style>
+  .version {
+    padding: 0.05rem 0.4rem;
+    border-radius: var(--radius-md);
+    background: color-mix(in oklab, white 18%, transparent);
+    font-size: 0.85em;
+  }
+
+  .hero-aside {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  /* The 0% fees card sits under the actions. */
+  .fee-wrap {
+    max-width: 34rem;
+  }
+
+  /* Fitted to the screen: the app window gives way on short screens (or
+     when zoomed in) so the whole hero stays on one screen. */
+  @media (min-width: 64rem) and (min-height: 34rem) {
+    .hero-aside {
+      justify-self: end;
+      width: min(100%, calc((var(--hero-h, 100svh) - 17rem) * 1.55));
+      gap: clamp(0.5rem, 1.6vh, 1rem);
+    }
+
+    .fee {
+      gap: clamp(0.75rem, 2.4vh, 1.5rem);
+      padding: clamp(0.6rem, 1.6vh, 1rem) clamp(0.9rem, 2.2vh, 1.25rem);
+    }
+
+    .fee p {
+      font-size: clamp(0.85rem, 1.9vh, 1.0625rem);
+    }
+
+    .fee .fee-note,
+    .fee-figure {
+      font-size: clamp(0.75rem, 1.6vh, 0.875rem);
+    }
+
+    .fee-figure .data {
+      font-size: clamp(1.4rem, 3.6vh, 2.0625rem);
+    }
+  }
+
+  .fee {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: color-mix(in oklab, var(--surface) 85%, transparent);
+    backdrop-filter: blur(8px);
+  }
+
+  .fee-figure {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    white-space: nowrap;
+  }
+
+  .fee-figure .data {
+    color: var(--success);
+    font-size: var(--step-3);
+    font-weight: 600;
+  }
+
+  .fee p {
+    color: var(--text);
+  }
+
+  .fee .fee-note {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .guide {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    font-size: var(--step-0);
+    font-weight: 600;
+  }
+</style>

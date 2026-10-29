@@ -1,0 +1,281 @@
+---
+// "The protocol, uncompromised." on the Desktop page: the section head, then
+// the six features as a bento of tiles, each with an icon and some with a
+// small picture (the nodes, a big 0%, the Tor path, the coin logos).
+import { Image } from 'astro:assets';
+import SectionHead from '../sections/SectionHead.astro';
+import bitcoin from '../../assets/coins/bitcoin-circle.png';
+import monero from '../../assets/coins/monero-circle.png';
+import litecoin from '../../assets/coins/litecoin-circle.png';
+import particl from '../../assets/coins/particl-circle.png';
+import bch from '../../assets/coins/bitcoin-cash-circle.png';
+import dash from '../../assets/coins/dash-circle.png';
+import decred from '../../assets/coins/decred-circle.png';
+import firo from '../../assets/coins/firo-circle.png';
+import doge from '../../assets/coins/dogecoin-circle.png';
+import pivx from '../../assets/coins/pivx-circle.png';
+import wownero from '../../assets/coins/wownero-circle.png';
+
+interface Props {
+  items: { n: string; title: string; body: string }[];
+}
+const { items } = Astro.props;
+
+const KICKER = 'no shortcuts';
+const TITLE = 'The protocol, uncompromised.';
+const INTRO =
+  "This is BasicSwap with nothing held back. Your own coin core wallets, your own full nodes, and the strongest privacy, decentralization, and security the protocol can offer. Whether you're making markets or just taking a trade.";
+
+// 24 x 24 stroke icons, one per feature, in the features' order.
+const ICONS = [
+  // self-hosted: a stack of nodes
+  '<rect x="4" y="3.5" width="16" height="6" rx="1.5"/><rect x="4" y="14.5" width="16" height="6" rx="1.5"/><path d="M7.5 6.5h.01M7.5 17.5h.01M12 9.5v5"/>',
+  // decentralized: a mesh
+  '<circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="19" r="2"/><circle cx="12" cy="11" r="1.6"/><path d="M6.7 7l3.9 2.4M17.3 7l-3.9 2.4M12 12.6V17M6.2 7.8l4.8 9.4M17.8 7.8l-4.8 9.4"/>',
+  // privacy: an eye, crossed out
+  '<path d="M10.6 5.1A9.8 9.8 0 0 1 12 5c5 0 8.5 4.5 9.5 7a13 13 0 0 1-2.6 3.7M6.3 6.3C4.4 7.6 3 9.6 2.5 12c1 2.5 4.5 7 9.5 7 1.8 0 3.4-.5 4.7-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/>',
+  // fees: percent
+  '<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>',
+  // coins: two stacked coins
+  '<ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v4c0 1.7 2.7 3 6 3s6-1.3 6-3V7"/><path d="M9 14v3c0 1.7 2.7 3 6 3s6-1.3 6-3v-4c0-1.6-2.4-2.9-5.5-3"/>',
+  // AMM: a loop of arrows
+  '<path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+];
+const feats = items.map((f, i) => ({ ...f, icon: ICONS[i] }));
+const coins = [bitcoin, monero, litecoin, particl, bch, dash, decred, firo, doge, pivx, wownero];
+const [selfHosted, decentralized, privacy, fees, allCoins, amm] = feats;
+---
+
+<div class="pf">
+  <div>
+    <SectionHead kicker={KICKER} title={TITLE}><p>{INTRO}</p></SectionHead>
+    <ul class="v2" role="list">
+      <li class="v2-wide">
+        <div class="v2-copy">
+          <span class="glyph"><svg viewBox="0 0 24 24" set:html={selfHosted.icon} /></span>
+          <h3>{selfHosted.title}</h3>
+          <p>{selfHosted.body}</p>
+        </div>
+        <div class="v2-art v2-nodes" aria-hidden="true" data-parity="new">
+          {['BTC', 'XMR', 'LTC'].map((t) => (
+            <span class="node"><i />{t} core<b>synced</b></span>
+          ))}
+        </div>
+      </li>
+      <li>
+        <span class="glyph"><svg viewBox="0 0 24 24" set:html={fees.icon} /></span>
+        <p class="big data" aria-hidden="true" data-parity="new">0%</p>
+        <h3>{fees.title}</h3>
+        <p>{fees.body}</p>
+      </li>
+      <li>
+        <span class="glyph"><svg viewBox="0 0 24 24" set:html={decentralized.icon} /></span>
+        <h3>{decentralized.title}</h3>
+        <p>{decentralized.body}</p>
+      </li>
+      <li class="v2-wide v2-flip">
+        <div class="v2-copy">
+          <span class="glyph"><svg viewBox="0 0 24 24" set:html={privacy.icon} /></span>
+          <h3>{privacy.title}</h3>
+          <p>{privacy.body}</p>
+        </div>
+        <div class="v2-art v2-tor" aria-hidden="true" data-parity="new">
+          <span>you</span><i /><span class="hop">Tor</span><i /><span class="hop">Tor</span><i /><span>network</span>
+        </div>
+      </li>
+      <li class="v2-wide">
+        <div class="v2-copy">
+          <span class="glyph"><svg viewBox="0 0 24 24" set:html={allCoins.icon} /></span>
+          <h3>{allCoins.title}</h3>
+          <p set:html={allCoins.body} />
+        </div>
+        <div class="v2-art v2-coins" aria-hidden="true">
+          {coins.map((c) => <Image src={c} alt="" width={40} height={40} loading="eager" />)}
+        </div>
+      </li>
+      <li>
+        <span class="glyph"><svg viewBox="0 0 24 24" set:html={amm.icon} /></span>
+        <h3>{amm.title}</h3>
+        <p>{amm.body}</p>
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+<style>
+  ul,
+  ol {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  /* ---- shared ---- */
+  .pf :is(h3) {
+    font-size: var(--step-1);
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .pf :is(li p) {
+    color: var(--text-muted);
+  }
+
+  .glyph {
+    --g: 2.75rem;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--g);
+    height: var(--g);
+    border: 1px solid transparent;
+    border-radius: 0.8rem;
+    background:
+      linear-gradient(160deg, color-mix(in oklab, var(--brand) 24%, var(--bg)), var(--bg)) padding-box,
+      linear-gradient(150deg, color-mix(in oklab, var(--brand) 80%, white), color-mix(in oklab, var(--accent) 45%, transparent) 60%, var(--border)) border-box;
+    box-shadow: 0 10px 24px -12px color-mix(in oklab, var(--brand) 70%, transparent);
+    color: color-mix(in oklab, var(--brand) 55%, var(--text));
+  }
+
+  .glyph svg {
+    width: 55%;
+    height: 55%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+
+  /* ---- the bento ---- */
+  .v2 {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .v2 > li {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    overflow: hidden;
+    padding: var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    background:
+      radial-gradient(70% 90% at 100% 0%, color-mix(in oklab, var(--brand) 10%, transparent), transparent 70%),
+      linear-gradient(to bottom, color-mix(in oklab, var(--surface) 55%, var(--bg)), var(--bg));
+  }
+
+  .v2 p {
+    font-size: var(--step--1);
+  }
+
+  .v2-copy {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+  }
+
+  .big {
+    color: var(--text) !important;
+    font-size: var(--step-5) !important;
+    font-weight: 600;
+    line-height: 1;
+    background: var(--gradient-extended);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .v2-nodes {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .node {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--bg) 70%, transparent);
+    color: var(--text);
+    font: 500 var(--step--1) var(--font-mono);
+  }
+
+  .node i {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+  }
+
+  .node b {
+    margin-left: auto;
+    color: var(--success);
+    font-weight: 500;
+    font-size: var(--step--2);
+  }
+
+  .v2-tor {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-muted);
+    font: 500 var(--step--2) var(--font-mono);
+  }
+
+  .v2-tor span {
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg);
+    white-space: nowrap;
+  }
+
+  .v2-tor .hop {
+    border-color: color-mix(in oklab, var(--accent) 50%, var(--border));
+    color: color-mix(in oklab, var(--accent) 60%, var(--text));
+  }
+
+  .v2-tor i {
+    flex: 1;
+    min-width: 0.75rem;
+    height: 1px;
+    background: repeating-linear-gradient(90deg, var(--border-strong) 0 4px, transparent 4px 8px);
+  }
+
+  .v2-coins {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .v2-coins :global(img) {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    box-shadow: 0 6px 14px -6px rgb(0 0 0 / 0.6);
+  }
+
+  @media (min-width: 48rem) {
+    .v2 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .v2-wide {
+      grid-column: span 2;
+      grid-template-columns: 1.1fr 1fr;
+      align-items: center;
+      gap: var(--space-6);
+    }
+
+    .v2-flip .v2-copy {
+      order: 2;
+    }
+  }
+
+</style>

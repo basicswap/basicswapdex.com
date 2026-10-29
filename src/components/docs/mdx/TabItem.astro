@@ -1,0 +1,40 @@
+---
+// One tab of <Tabs>. Its label shows above it only when the tabs could not
+// be set up (no JS).
+interface Props {
+  value: string;
+  label?: string;
+  default?: boolean;
+}
+const { value, label = value, default: isDefault } = Astro.props;
+---
+
+<div class="tab-panel flow" data-tab={value} data-label={label} data-default={isDefault ? '' : undefined}>
+  <p class="tab-label">{label}</p>
+  <slot />
+</div>
+
+<style>
+  .tab-panel {
+    --flow: 1.1em;
+  }
+
+  .tab-label {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+
+  :global(.tabs.ready) .tab-label {
+    display: none;
+  }
+
+  :global(.tabs.ready) .tab-label + :global(*) {
+    margin-top: 0;
+  }
+
+  .tab-panel > :global(:first-child:not(.tab-label)),
+  :global(.tabs.ready) .tab-label + :global(*) {
+    margin-top: 0;
+  }
+</style>

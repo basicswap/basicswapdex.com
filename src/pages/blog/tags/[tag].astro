@@ -1,0 +1,64 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PageHero from '../../../components/sections/PageHero.astro';
+import PostCard from '../../../components/blog/PostCard.astro';
+import TagNav from '../../../components/blog/TagNav.astro';
+import { BLOG_TITLE, TAG_DESCRIPTIONS, type Post, getPosts, tagIndex, tagPath } from '../../../lib/blog';
+import { SITE_URL } from '../../../config/site';
+
+export const getStaticPaths = (async () => {
+  const posts = await getPosts();
+  const tags = tagIndex(posts);
+  return tags.map(({ tag, slug, posts: tagged }) => ({ params: { tag: slug }, props: { tag, tagged, tags, total: posts.length } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  tag: string;
+  tagged: Post[];
+  tags: ReturnType<typeof tagIndex>;
+  total: number;
+}
+const { tag, tagged, tags, total } = Astro.props;
+// A tag without its own description gets one built from its posts.
+const description =
+  TAG_DESCRIPTIONS[tag] ??
+  `${tagged.length} ${tagged.length === 1 ? 'post' : 'posts'} on the ${BLOG_TITLE} tagged "${tag}", newest first, from release announcements to development reports on the atomic swap DEX.`;
+const crumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+    { '@type': 'ListItem', position: 3, name: tag, item: `${SITE_URL}${tagPath(tag)}` },
+  ],
+};
+---
+
+<BaseLayout title={`Posts tagged "${tag}" | ${BLOG_TITLE}`} description={description} path={tagPath(tag)} jsonLd={[crumbs]}>
+  <link slot="head" rel="alternate" type="application/rss+xml" title={BLOG_TITLE} href="/blog/rss.xml" />
+
+  <PageHero band="full" title={`Posts Tagged: "${tag}"`}>
+    <p>{tagged.length} {tagged.length === 1 ? 'post' : 'posts'} on the {BLOG_TITLE}.</p>
+  </PageHero>
+
+  <section class="container list">
+    <TagNav tags={tags} total={total} current={tag} />
+    <div class="grid">
+      {tagged.map((post) => <PostCard post={post} />)}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .list {
+    padding-block: var(--space-7) var(--section);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+  }
+</style>

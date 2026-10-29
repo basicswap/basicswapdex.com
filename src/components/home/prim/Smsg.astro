@@ -1,0 +1,142 @@
+---
+// Secure messaging, as gossip: one peer posts a message; every peer that receives it
+// passes it on to its neighbours, hop by hop, until the whole network has it.
+// The propagation tree is a real breadth-first walk of the graph below,
+// computed at build time. 7 s loop.
+// At rest (reduced motion): the network with every peer reached.
+const nodes: [number, number][] = [
+  [88, 76], [52, 54], [40, 100], [80, 30], [122, 48], [126, 102], [162, 74], [164, 28],
+  [202, 46], [204, 100], [226, 72], [90, 120], [20, 64], [166, 122], [124, 14],
+];
+const ORIGIN = 0;
+const dist = (a: number, b: number) => Math.hypot(nodes[a][0] - nodes[b][0], nodes[a][1] - nodes[b][1]);
+const key = (a: number, b: number) => (a < b ? `${a}-${b}` : `${b}-${a}`);
+const edgeSet = new Set<string>();
+nodes.forEach((_, a) => {
+  nodes
+    .map((_, b) => b)
+    .filter((b) => b !== a)
+    .sort((x, y) => dist(a, x) - dist(a, y))
+    .slice(0, 2)
+    .forEach((b) => edgeSet.add(key(a, b)));
+});
+const edges = [...edgeSet].map((k) => k.split('-').map(Number) as [number, number]);
+
+// breadth-first from the origin: each peer's hop count and who told it
+const level = new Map<number, number>([[ORIGIN, 0]]);
+const tree: { from: number; to: number; hop: number }[] = [];
+let frontier = [ORIGIN];
+while (frontier.length) {
+  const next: number[] = [];
+  for (const a of frontier) {
+    for (const [x, y] of edges) {
+      const b = x === a ? y : y === a ? x : -1;
+      if (b < 0 || level.has(b)) continue;
+      level.set(b, level.get(a)! + 1);
+      tree.push({ from: a, to: b, hop: level.get(b)! });
+      next.push(b);
+    }
+  }
+  frontier = next;
+}
+
+const D = 7;
+const T0 = 0.5;
+const HOP = 0.55;
+const arrive = (n: number) => T0 + (level.get(n) ?? 0) * HOP;
+const delay = (t: number) => `${(t - D).toFixed(2)}s`;
+const seg = (a: number, b: number) => `M${nodes[a][0]} ${nodes[a][1]} L${nodes[b][0]} ${nodes[b][1]}`;
+---
+
+<svg viewBox="0 0 240 140" fill="none" class="s1">
+  {edges.map(([a, b]) => <path class="edge" d={seg(a, b)} />)}
+  {tree.map(({ from, to, hop }) => <path class="hop" d={seg(from, to)} pathLength="1" style={`animation-delay:${delay(T0 + (hop - 1) * HOP)}`} />)}
+  {
+    nodes.map(([x, y], n) => (
+      <>
+        <circle class:list={['ripple', { origin: n === ORIGIN }]} cx={x} cy={y} r="5" style={`animation-delay:${delay(arrive(n))}`} />
+        <circle class:list={['node', { origin: n === ORIGIN }]} cx={x} cy={y} r={n === ORIGIN ? 5.5 : 4} style={`animation-delay:${delay(arrive(n))}`} />
+      </>
+    ))
+  }
+</svg>
+
+<style>
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .edge {
+    stroke: var(--border-strong);
+    stroke-width: 1;
+  }
+
+  .hop {
+    stroke: var(--link);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-dasharray: 0.3 1.4;
+    stroke-dashoffset: 0.3;
+    opacity: 0;
+    animation: s1-hop 7s linear infinite;
+  }
+
+  /* One hop takes 0.55 s of the 7 s loop (7.9%). */
+  @keyframes s1-hop {
+    0% { stroke-dashoffset: 0.3; opacity: 1; }
+    7.9% { stroke-dashoffset: -1; opacity: 1; }
+    8%, 100% { stroke-dashoffset: -1; opacity: 0; }
+  }
+
+  .node {
+    fill: color-mix(in oklab, var(--brand) 55%, var(--surface));
+    stroke: var(--link);
+    stroke-width: 1.2;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: s1-node 7s var(--ease) infinite;
+  }
+
+  .origin {
+    fill: var(--accent);
+    stroke: color-mix(in oklab, var(--accent) 60%, #fff);
+  }
+
+  @keyframes s1-node {
+    0% { fill: var(--link); scale: 1.5; }
+    6% { fill: color-mix(in oklab, var(--brand) 55%, var(--surface)); scale: 1; }
+    60% { fill: color-mix(in oklab, var(--brand) 55%, var(--surface)); stroke: var(--link); }
+    70%, 99.9% { fill: var(--surface); stroke: var(--border-strong); scale: 1; }
+  }
+
+  .origin {
+    animation-name: s1-origin;
+  }
+
+  @keyframes s1-origin {
+    0% { scale: 1.4; }
+    8%, 100% { scale: 1; }
+  }
+
+  .ripple {
+    stroke: var(--link);
+    stroke-width: 1;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: s1-ripple 7s var(--ease) infinite;
+  }
+
+  .ripple.origin {
+    fill: none;
+    stroke: var(--accent);
+    animation-name: s1-ripple;
+  }
+
+  @keyframes s1-ripple {
+    0% { opacity: 0.9; scale: 1; }
+    12%, 100% { opacity: 0; scale: 3.2; }
+  }
+</style>

@@ -1,0 +1,23 @@
+---
+// <img> in a post, optimized. `src` is "./images/<file>".
+import { Image } from 'astro:assets';
+import { postImage } from '../../../lib/blog-images';
+
+interface Props {
+  src: string;
+  alt: string;
+  width?: number | string;
+  height?: number | string;
+  class?: string;
+}
+const { src, alt, class: className } = Astro.props;
+const image = postImage(src);
+---
+
+<Image
+  src={image}
+  alt={alt}
+  class:list={['post-img', className]}
+  widths={[640, 960, 1280, 1600, image.width].filter((w) => w <= image.width)}
+  sizes="(min-width: 50rem) 46rem, 100vw"
+/>

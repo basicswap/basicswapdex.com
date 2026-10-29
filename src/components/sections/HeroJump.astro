@@ -1,0 +1,77 @@
+---
+// "On this page": a row of quick links along the bottom edge of a hero,
+// separated by a hairline. Muted until hovered; each ends in an arrow.
+import Icon from '../Icon.astro';
+
+interface Props {
+  links: { href: string; label: string }[];
+}
+const { links } = Astro.props;
+---
+
+<nav class="jump" aria-label="On this page" data-parity="new">
+  {
+    links.map(({ href, label }) => (
+      <a href={href}>
+        {label}
+        <Icon name="arrowRight" size={14} />
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .jump {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    justify-content: center;
+    gap: var(--space-1) var(--space-7);
+    width: min(100% - 2 * var(--gutter), var(--content-max));
+    margin: clamp(2rem, 1rem + 4vw, 3.5rem) auto 0;
+    padding-block: var(--space-3);
+    border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  }
+
+  .jump a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2.75rem;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    text-decoration: none;
+    transition: color var(--dur) var(--ease);
+  }
+
+  .jump a:hover {
+    color: var(--link);
+  }
+
+  .jump a:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+    border-radius: var(--radius-md);
+  }
+
+  /* Phones: the links would wrap into a wall; the hero keeps its flow. */
+  @media (max-width: 40rem) {
+    .jump {
+      display: none;
+    }
+  }
+
+  /* Fitted heroes: tighter as the screen gets shorter. */
+  @media (min-width: 64rem) and (min-height: 34rem) {
+    .jump {
+      margin-top: clamp(0.75rem, 2.5vh, 2rem);
+      padding-block: clamp(0.25rem, 1vh, 0.75rem);
+    }
+
+    .jump a {
+      min-height: clamp(2rem, 4.4vh, 2.75rem);
+    }
+  }
+</style>

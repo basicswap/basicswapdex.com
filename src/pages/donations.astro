@@ -1,0 +1,256 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import DonationsBackdrop from '../components/backdrops/DonationsBackdrop.astro';
+import SectionHead from '../components/sections/SectionHead.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { SOCIAL } from '../config/site';
+import { breadcrumb } from '../lib/seo';
+import pages from '../data/pages.json';
+// Addresses are copied verbatim from the legacy page. Change them only after
+// confirming against the official basicswap repo.
+import donations from '../data/donations.json';
+import monero from '../assets/coins/monero-circle.png';
+import litecoin from '../assets/coins/litecoin-circle.png';
+import bitcoin from '../assets/coins/bitcoin-circle.png';
+import bitcoinCash from '../assets/coins/bitcoin-cash-circle.png';
+import particl from '../assets/coins/particl-circle.png';
+
+const icons = { monero, litecoin, bitcoin, 'bitcoin-cash': bitcoinCash, particl } as const;
+
+const uses = [
+  {
+    label: '01 · development',
+    body: 'New features for BasicSwap Desktop, the Mobile integrations in wallet apps, and the work toward BasicSwap Web.',
+  },
+  { label: '02 · maintenance', body: 'Daily upkeep of the protocol, the message mesh, and the lightweight-node integrations.' },
+  {
+    label: '03 · research',
+    body: 'Cryptographic work on adaptor-signature variants, SMSG performance, hash-binding edge cases, and new coin integrations.',
+  },
+  {
+    label: '04 · docs',
+    body: 'Whitepaper revisions, architecture notes, integration guides, and the public order-book dashboard.',
+  },
+];
+---
+
+<BaseLayout {...pages.donations} jsonLd={[breadcrumb('Donations', '/donations')]}>
+  <PageHero ribbon="none" title={'Funded by donations,\nwith no fees or investors.'}>
+    <DonationsBackdrop slot="backdrop" />
+    <p>
+      BasicSwap is open-source software written and maintained by an independent community. There is no token, no
+      premine, no equity round, and no protocol cut at swap time. The work is paid for by direct community support, in
+      the cryptocurrencies the protocol itself helps trade.
+    </p>
+  </PageHero>
+
+  <section class="section container">
+    <SectionHead kicker="channels" title="Donate in the coin you'd swap with.">
+      <p>
+        Click an address to copy it to your clipboard. These are the active donation addresses. If a coin you'd like to
+        give in isn't listed, ask in the community Matrix room and one can be added.
+      </p>
+    </SectionHead>
+
+    <div class="table-wrap">
+      <table class="data-table addresses">
+        <thead>
+          <tr>
+            <th scope="col">Cryptocurrency</th>
+            <th scope="col">Donation Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            donations.map(({ name, icon, alt, address }) => (
+              <tr>
+                <th scope="row">
+                  <span class="coin">
+                    <Image src={icons[icon as keyof typeof icons]} alt={alt} width={32} height={32} />
+                    {name}
+                  </span>
+                </th>
+                <td>
+                  <div class="addr">
+                    <code class="value">{address}</code>
+                    <button class="copy" type="button" data-copy={address} aria-label="Copy address">
+                      <span class="copy-label">Copy</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="caution data">Addresses change rarely. Always confirm against the official BasicSwap repo before sending large amounts.</p>
+  </section>
+
+  <section class="section band-surface">
+    <div class="container">
+      <SectionHead kicker="where it goes" title="What your support funds." />
+      <ol class="uses" role="list">
+        {
+          uses.map(({ label, body }) => (
+            <li>
+              <p class="kicker">{label}</p>
+              <p>{body}</p>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="receipt measure">
+        Every contributor and every release is public on GitHub. The work is the receipt: you can see exactly what
+        support funds, commit by commit.
+      </p>
+    </div>
+  </section>
+
+  <CtaBand kicker="other ways" title="Code, time, or a quote.">
+    <p>
+      Money is not the only contribution. Reviewing pull requests, filing high-quality bugs, writing docs, or vouching
+      for BasicSwap on a podcast moves the project forward in ways money cannot.
+    </p>
+    <Fragment slot="actions">
+      <a class="btn btn-primary" href={SOCIAL.githubOrg} target="_blank" rel="noopener noreferrer"
+        >Contribute on GitHub<Icon name="external" size={14} /></a
+      >
+      <a class="btn btn-outline" href={SOCIAL.matrix} target="_blank" rel="noopener noreferrer"
+        >Join the community<Icon name="external" size={14} /></a
+      >
+    </Fragment>
+  </CtaBand>
+</BaseLayout>
+
+<style>
+  /* The coin column hugs its longest name, so it gets room on the right to
+     keep the addresses clear of it. */
+  .addresses th[scope='row'] {
+    width: 1%;
+    padding-right: var(--space-7);
+    white-space: nowrap;
+  }
+
+  .coin {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .coin :global(img) {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .addr {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .value {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    overflow-wrap: anywhere;
+    user-select: all;
+    cursor: text;
+  }
+
+  .copy {
+    display: none;
+    flex: none;
+    min-width: 4.5rem;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: var(--step--2);
+    font-weight: 600;
+    transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+
+  :global(html[data-js]) .copy {
+    display: inline-block;
+  }
+
+  .copy:hover {
+    border-color: var(--primary);
+    color: var(--text);
+  }
+
+  /* Confirmation without adding text to the DOM. */
+  .copy[data-copied] {
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  .copy[data-copied] .copy-label {
+    display: none;
+  }
+
+  .copy[data-copied]::after {
+    content: '✓';
+  }
+
+  .caution {
+    margin-top: var(--space-4);
+    color: var(--warning);
+    font-size: var(--step--2);
+  }
+
+  .uses {
+    display: grid;
+    gap: var(--space-5);
+    padding: 0;
+    list-style: none;
+  }
+
+  .uses li {
+    display: grid;
+    gap: var(--space-3);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+  }
+
+  .uses li p:last-child {
+    color: var(--text-muted);
+  }
+
+  .receipt {
+    margin-top: var(--space-7);
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 40rem) {
+    .addresses th[scope='row'] {
+      padding-right: var(--space-4);
+      white-space: normal;
+    }
+
+    .addr {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  @media (min-width: 40rem) {
+    .uses {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .uses {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,0 +1,357 @@
+---
+// The homepage hero: the headline over the live ribbon, the lead, the install
+// buttons, the tagline, the ticker and the quick links, then the swap tour
+// below the fold (one swap on Desktop, Mobile and Web; btm/SwapTour).
+//
+// Centred: headline over the ribbon, lead, buttons and tagline, then a belt
+// of coin pairs with their live median offer rates sliding past
+// (src/scripts/pair-ticker.ts), then the quick links.
+import { Image, getImage } from 'astro:assets';
+import { MARKETS_URL } from '../../config/site';
+import Ribbon from '../Ribbon.astro';
+import Icon from '../Icon.astro';
+import SwapTour from '../btm/SwapTour.astro';
+import HeroJump from '../sections/HeroJump.astro';
+import bitcoin from '../../assets/coins/bitcoin-circle.png';
+import monero from '../../assets/coins/monero-circle.png';
+import litecoin from '../../assets/coins/litecoin-circle.png';
+import firo from '../../assets/coins/firo-circle.png';
+import particl from '../../assets/coins/particl-circle.png';
+import dash from '../../assets/coins/dash-circle.png';
+import dogecoin from '../../assets/coins/dogecoin-circle.png';
+import wownero from '../../assets/coins/wownero-circle.png';
+import bitcoinCash from '../../assets/coins/bitcoin-cash-circle.png';
+import pivx from '../../assets/coins/pivx-circle.png';
+import decred from '../../assets/coins/decred-circle.png';
+
+const C = { BTC: bitcoin, XMR: monero, LTC: litecoin, FIRO: firo, PART: particl, DASH: dash, DOGE: dogecoin, WOW: wownero, BCH: bitcoinCash, PIVX: pivx, DCR: decred };
+type T = keyof typeof C;
+// Coin icons for the live ticker, which builds its pills in the browser.
+const icons = Object.fromEntries(
+  await Promise.all(Object.entries(C).map(async ([k, src]) => [k, (await getImage({ src, width: 44, height: 44, format: 'webp' })).src])),
+);
+const PAIRS: [T, T][] = [
+  ['BTC', 'XMR'], ['LTC', 'BTC'], ['XMR', 'LTC'], ['FIRO', 'BTC'], ['PART', 'XMR'],
+  ['DASH', 'BTC'], ['DOGE', 'LTC'], ['BCH', 'XMR'], ['WOW', 'XMR'], ['PIVX', 'BTC'],
+];
+---
+
+<section class="hero">
+  <div class="hero-fit">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <div class="headline">
+          <Ribbon variant="hero" zone={1} class="headline-ribbon" />
+          <h1>A cross-chain DEX<br />for atomic swaps,<br />without a middleman.</h1>
+        </div>
+        <p class="lead hero-lead">
+          Swap Bitcoin, Monero, and 10 more coins peer-to-peer and on-chain. BasicSwap is the DEX where you meet other
+          traders to settle atomic swaps directly. Trustless by cryptographic guarantee, not by promise.
+        </p>
+        <div class="actions-row hero-actions">
+          <a class="btn btn-primary btn-lg" href="/desktop"><Icon name="download" />Install Desktop</a>
+          <a class="btn btn-outline btn-lg" href="/mobile">Install Mobile</a>
+        </div>
+        <p class="tagline" data-parity="new">Private<b>.</b> Cross-chain<b>.</b> Decentralized<b>.</b> Non-custodial<b>.</b></p>
+      </div>
+    </div>
+    <div class="pairs" data-parity="new" data-src={`${MARKETS_URL}/orderbook.json`} data-icons={JSON.stringify(icons)}>
+      <ul class="pairs-track" role="list" aria-hidden="true">
+        {
+          [0, 1].map(() =>
+            PAIRS.map(([a, b]) => (
+              <li>
+                <span class="pair-coins">
+                  <span class="pair-coin"><Image src={C[a]} alt="" width={22} height={22} /></span>
+                  <span class="pair-coin"><Image src={C[b]} alt="" width={22} height={22} /></span>
+                </span>
+                <span class="data">{a}</span>
+                <svg class="swap-arrow" viewBox="0 0 24 24" width="14" height="14"><path d="M4 8h14l-4-4M20 16H6l4 4" /></svg>
+                <span class="data">{b}</span>
+              </li>
+            )),
+          )
+        }
+      </ul>
+    </div>
+    <HeroJump
+      links={[
+        { href: '#how', label: 'How a swap works' },
+        { href: '#benefits', label: 'What you get back' },
+        { href: '#primitives', label: 'Under the hood' },
+        { href: '#live', label: 'Live order book' },
+        { href: '#funding', label: 'How it is funded' },
+      ]}
+    />
+  </div>
+
+  <div class="container shot">
+    <SwapTour />
+  </div>
+</section>
+
+<style>
+  /* ---- centred, the headline over the ribbon ---- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-top: clamp(4rem, 3rem + 6vw, 8rem);
+  }
+
+  .hero-fit {
+    position: relative;
+    z-index: 0;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  .hero-copy {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-5);
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.6rem, 1.4rem + 5.2vw, 5.25rem);
+    font-weight: 750;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+  }
+
+  /* The ribbon is centred on the headline and spans the full window width,
+     at least 16:9 like the release animation and taller when the headline
+     needs it. The shader picks its framing from that box. */
+  .headline {
+    position: relative;
+  }
+
+  .headline > :global(.headline-ribbon) {
+    inset: auto;
+    top: 50%;
+    left: 50%;
+    z-index: -1;
+    width: 100vw;
+    height: max(56.25vw, 100% + 14rem);
+    transform: translate(-50%, -50%);
+  }
+
+  .headline h1 {
+    position: relative;
+  }
+
+  /* A soft backdrop in the page colour keeps the lead readable over the
+     brightest strands without boxing it in. */
+  .hero-lead {
+    position: relative;
+    max-width: 40rem;
+    text-shadow:
+      0 0 14px var(--bg),
+      0 0 4px var(--bg);
+  }
+
+  .hero-lead::before {
+    content: '';
+    position: absolute;
+    inset: -2.5rem -5rem;
+    z-index: -1;
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--bg) 94%, transparent) 60%, transparent);
+    pointer-events: none;
+  }
+
+  .hero-actions {
+    justify-content: center;
+    margin-top: var(--space-3);
+  }
+
+  /* Under the buttons, above the rates belt: the four words, each full stop
+     in BasicSwap blue. */
+  .tagline {
+    margin-top: var(--space-2);
+    color: var(--text-muted);
+    font-size: clamp(1.1rem, 1rem + 0.5vw, 1.4rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    word-spacing: 0.3em;
+    text-wrap: balance;
+    text-shadow: 0 0 12px var(--bg);
+  }
+
+  .tagline b {
+    color: var(--brand);
+    font-weight: inherit;
+  }
+
+  .shot {
+    position: relative;
+    z-index: 1;
+    margin-top: clamp(3rem, 2rem + 5vw, 6rem);
+  }
+
+
+  /* Desktop: the hero fills the screen below the header at any browser zoom
+     (type and spacing scale with the viewport height), with the quick links
+     along its foot. The app window follows below. */
+  @media (min-width: 64rem) and (min-height: 34rem) {
+    .hero {
+      padding-top: 0;
+    }
+
+    .hero-fit {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100svh - var(--header-h));
+      padding-top: clamp(1rem, 4vh, 3rem);
+    }
+
+    .hero-inner {
+      flex: 1;
+      align-content: center;
+    }
+
+    .hero-copy {
+      gap: clamp(0.75rem, 2.6vh, 1.5rem);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.3rem, min(5.6vw, 8.4vh), 6.25rem);
+    }
+
+    .hero-lead {
+      max-width: 44rem;
+      font-size: clamp(1rem, 2.3vh, 1.375rem);
+    }
+
+    .hero-actions {
+      margin-top: clamp(0.25rem, 1.2vh, 0.75rem);
+    }
+
+    .tagline {
+      margin-top: clamp(0.25rem, 1vh, 0.75rem);
+      font-size: clamp(1rem, 2.4vh, 1.4rem);
+    }
+
+    .hero-fit + .shot {
+      margin-top: clamp(2rem, 6vh, 5rem);
+    }
+  }
+
+  /* Short screens (or zoomed in): compact buttons. */
+  @media (min-width: 64rem) and (max-height: 50rem) {
+    .hero-actions :global(.btn-lg) {
+      min-height: 2.6rem;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.95rem;
+    }
+  }
+
+  /* ---- the ticker: a belt of coin pairs ---- */
+  .pairs {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    margin-top: clamp(1.5rem, 5vh, 3.5rem);
+    mask: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+  }
+
+  .pairs-track {
+    display: flex;
+    gap: var(--space-3);
+    width: max-content;
+    padding: 0 var(--space-3) 0 0; /* so half the track is exactly one set */
+    margin: 0;
+    list-style: none;
+    animation: pairs-slide var(--pairs-dur, 60s) linear infinite;
+  }
+
+  .pairs {
+    --pill-bg: color-mix(in oklab, var(--surface) 70%, var(--bg));
+  }
+
+  .pairs :global(li) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0.45rem 0.95rem 0.45rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--pill-bg);
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    white-space: nowrap;
+  }
+
+  .pairs :global(.pair-coins) {
+    display: flex;
+  }
+
+  /* As in the coin stack: each coin sits on its own solid disc in the pill's
+     colour, which covers the coin to its left, so the image's anti-aliased
+     edge blends into the pill instead of the neighbouring coin showing
+     through. */
+  .pairs :global(.pair-coin) {
+    display: grid;
+    padding: 2px;
+    border-radius: 50%;
+    background: var(--pill-bg);
+  }
+
+  .pairs :global(.pair-coin + .pair-coin) {
+    margin-left: -0.5rem;
+  }
+
+  .pairs :global(.pair-coin img) {
+    display: block;
+  }
+
+  .pairs :global(.swap-arrow) {
+    margin-inline: -0.35rem;
+    fill: none;
+    stroke: var(--brand);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .pairs :global(.pair-rate) {
+    color: var(--text-subtle);
+  }
+
+  .pairs :global(.pair-rate b) {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .pairs :global(.pair-diff) {
+    margin-left: 0.15rem;
+    font-size: 0.92em;
+  }
+
+  /* below market is a better price than elsewhere, so it reads green */
+  .pairs :global(.pair-diff.below) {
+    color: var(--success);
+  }
+
+  .pairs :global(.pair-diff.above) {
+    color: var(--destructive);
+  }
+
+  @keyframes pairs-slide {
+    to { translate: -50% 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pairs-track {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import '../../scripts/pair-ticker';
+</script>

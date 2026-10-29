@@ -1,0 +1,54 @@
+{
+  "https://particl.io": {
+    "title": "Particl.io - Apps that respect your rights",
+    "description": "Cut off the middleman and live free with apps that respect your rights, freedoms, and privacy. A world of opportunities awaits you!",
+    "site": "Particl.io - Apps that respect your rights"
+  },
+  "https://litecoin.com/projects/basicswap": {
+    "title": "Litecoin Fund",
+    "description": "Open Source Projects, Bounties, and Initiatives for the Litecoin Ecosystem"
+  },
+  "https://ccs.getmonero.org/proposals/ofrnxmr_basicswap.html": {
+    "title": "CCS - ofrnxmr feat BasicSwapDEX - take over the world pt 2"
+  },
+  "https://github.com/basicswap/basicswap/pull/311": {
+    "title": "Multinet by tecnovert · Pull Request #311 · basicswap/basicswap",
+    "description": "Basic Atomic Swap Proof of Concept. Contribute to basicswap/basicswap development by creating an account on GitHub.",
+    "site": "GitHub",
+    "image": "bd484b7eaf23da33.png"
+  },
+  "https://github.com/basicswap/basicswap/compare/v0.14.4...v0.14.6": {
+    "title": "Comparing v0.14.4...v0.14.6 · basicswap/basicswap",
+    "description": "Basic Atomic Swap Proof of Concept. Contribute to basicswap/basicswap development by creating an account on GitHub.",
+    "site": "GitHub",
+    "image": "9e381765f95638c8.png"
+  },
+  "https://particl.news/mandatory-firo-core-update-may2025/": {
+    "title": "Mandatory Firo Core Update and BasicSwap Bug Fixes",
+    "description": "There is a new mandatory Firo core update on BasicSwap DEX.",
+    "site": "Particl News",
+    "image": "9e6c29538d831496.png"
+  },
+  "https://basicswapdex.com/": {
+    "title": "BasicSwap DEX - The World's Most Secure and Decentralized Exchange",
+    "description": "The World's Most Secure and Decentralized DEX.Safely swap cryptocurrencies without central points of failure. It’s free, completely trustless, and highly secure.",
+    "site": "BasicSwap DEX",
+    "image": "ab0d73d16f5b7e3f.png"
+  },
+  "https://github.com/basicswap/basicswap/pull/310": {
+    "title": "AMM by gerlofvanek · Pull Request #310 · basicswap/basicswap",
+    "description": "Added full functional AMM web GUI in BSX.\nAdded &quot;adjust_rates_based_on_market&quot; (Adjust rates based on existing market offers).- The control host/port should be queried from the basicswap....",
+    "site": "GitHub",
+    "image": "aed86d6332fd51de.png"
+  },
+  "https://github.com/nahuhh": {
+    "title": "nahuhh - Overview",
+    "description": "nahuhh has 54 repositories available. Follow their code on GitHub.",
+    "site": "GitHub",
+    "image": "da74236de76252cb.jpg"
+  },
+  "https://docs.basicswapdex.com/docs/user-guides/lightweight-modes": {
+    "title": "Lightweight Modes | BasicSwap Docs Hub",
+    "description": "How to use Electrum light wallets and Monero remote nodes on BasicSwap DEX instead of running full nodes"
+  }
+}

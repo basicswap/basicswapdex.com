@@ -1,0 +1,130 @@
+---
+// Tabs in a docs page, with Docusaurus's behaviour: the TabItem marked
+// `default` opens first, and tabs sharing a groupId switch together across
+// the page and stay chosen on the next visit (a reader on Docker sees the
+// Docker steps everywhere). Without JS every tab shows, each under its label.
+interface Props {
+  groupId?: string;
+}
+const { groupId } = Astro.props;
+---
+
+<div class="tabs" data-tabs data-group={groupId}>
+  <div class="tablist" role="tablist"></div>
+  <slot />
+</div>
+
+<style>
+  .tabs {
+    margin-block: var(--space-6);
+  }
+
+  .tablist {
+    display: none;
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+    padding: 0.25rem;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    scrollbar-width: none;
+  }
+
+  .tabs:global(.ready) > .tablist {
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .tablist :global(button) {
+    flex: none;
+    padding: 0.4rem 0.9rem;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  }
+
+  .tablist :global(button:hover) {
+    color: var(--text);
+  }
+
+  .tablist :global(button[aria-selected='true']) {
+    background: var(--primary);
+    color: #fff;
+  }
+</style>
+
+<script>
+  const KEY = (group: string) => `docs-tab.${group}`;
+  const all = [...document.querySelectorAll<HTMLElement>('[data-tabs]')];
+
+  function select(tabs: HTMLElement, value: string) {
+    const panels = [...tabs.querySelectorAll<HTMLElement>(':scope > [data-tab]')];
+    if (!panels.some((p) => p.dataset.tab === value)) return false;
+    panels.forEach((p) => (p.hidden = p.dataset.tab !== value));
+    tabs.querySelectorAll<HTMLButtonElement>(':scope > .tablist > button').forEach((b) => {
+      const on = b.dataset.value === value;
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
+    return true;
+  }
+
+  all.forEach((tabs, t) => {
+    const list = tabs.querySelector<HTMLElement>(':scope > .tablist')!;
+    const panels = [...tabs.querySelectorAll<HTMLElement>(':scope > [data-tab]')];
+    panels.forEach((panel, i) => {
+      const id = `tab-${t}-${i}`;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.role = 'tab';
+      button.id = id;
+      button.dataset.value = panel.dataset.tab;
+      button.textContent = panel.dataset.label ?? panel.dataset.tab ?? '';
+      button.setAttribute('aria-controls', `${id}-panel`);
+      panel.id = `${id}-panel`;
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', id);
+      list.append(button);
+    });
+
+    const group = tabs.dataset.group;
+    const pick = (value: string, persist: boolean) => {
+      if (group) {
+        all.filter((other) => other.dataset.group === group).forEach((other) => select(other, value));
+        if (persist) {
+          try {
+            localStorage.setItem(KEY(group), value);
+          } catch {}
+        }
+      } else select(tabs, value);
+    };
+
+    list.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest('button');
+      if (b?.dataset.value) pick(b.dataset.value, true);
+    });
+    list.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const buttons = [...list.querySelectorAll('button')];
+      const i = buttons.indexOf(document.activeElement as HTMLButtonElement);
+      const next = buttons[(i + (e.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length];
+      next.focus();
+      pick(next.dataset.value!, true);
+    });
+
+    let saved: string | null = null;
+    try {
+      saved = group ? localStorage.getItem(KEY(group)) : null;
+    } catch {}
+    const first = panels.find((p) => p.hasAttribute('data-default')) ?? panels[0];
+    if (!(saved && select(tabs, saved))) select(tabs, first.dataset.tab!);
+    tabs.classList.add('ready');
+  });
+</script>

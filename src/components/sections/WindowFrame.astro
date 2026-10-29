@@ -1,0 +1,61 @@
+---
+// App window chrome around a screenshot or placeholder.
+interface Props {
+  title: string;
+  class?: string;
+}
+const { title, class: className } = Astro.props;
+---
+
+<figure class:list={['window', className]}>
+  <figcaption class="titlebar">
+    <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="title data">{title}</span>
+  </figcaption>
+  <div class="viewport"><slot /></div>
+</figure>
+
+<style>
+  .window {
+    overflow: hidden;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    box-shadow:
+      0 1px 0 0 color-mix(in oklab, white 6%, transparent) inset,
+      0 40px 80px -40px hsl(var(--shadow-color) / 0.7);
+  }
+
+  .titlebar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lights {
+    position: absolute;
+    left: var(--space-4);
+    display: flex;
+    gap: 6px;
+  }
+
+  .lights i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border-strong);
+  }
+
+  .title {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  .viewport :global(.placeholder) {
+    border: 0;
+    border-radius: 0;
+  }
+</style>

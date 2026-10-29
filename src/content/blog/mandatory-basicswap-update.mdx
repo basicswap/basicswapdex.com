@@ -1,0 +1,238 @@
+---
+title: "Mandatory BasicSwap Update (v0.14.4)"
+date: 2025-04-16
+author: "BasicSwap Team"
+tags: ["Release", "News", "Hardfork", "Coin Update"]
+description: "BasicSwap's new 3.2.1 user interface and 0.14.4 codebase are now available, featuring a wide range of improvements across the board."
+thumbnail: ./images/mandatory_basicswap_update_thumbnail.jpg
+banner: ./images/mandatory_basicswap_update_banner.jpg
+---
+BasicSwap's new 3.2.1 user interface and 0.14.4 codebase are now available, featuring a wide range of improvements across the board.
+
+<Callout type="warning" title="IMPORTANT: This update is mandatory.">
+  Due to changes in the data structure of BasicSwap-related SMSG messages, previous instances of the DEX are not forward-compatible with this new version. This means that offers posted from updated instances will not appear on older instances. All users must update to maintain full network connectivity.
+</Callout>
+
+After 171 commits over 164 files changed coming from 6 different contributors, we are excited to announce the release of a significant BasicSwap update (v0.14.4) along with an update to its user interface, now at version 3.2.1.
+
+<Gallery
+  images={[
+    { src: "./images/mandatory_basicswap_update_screenshot1.png", alt: "BasicSwap Update Screenshot 1", width: 2368, height: 3088 },
+    { src: "./images/mandatory_basicswap_update_screenshot2.jpg", alt: "BasicSwap Update Screenshot 2", width: 2412, height: 3080 },
+  ]}
+/>
+
+This substantial update represents weeks of dedicated effort, incorporating numerous improvements, bug fixes, new features, and significant refactors of different core components of the system. The changes stem from extensive testing by both contributors and community members, resulting in a significant step forward for user experience and platform stability.
+
+## Noteworthy Updates 💡
+
+<Callout type="info" title="Noteworthy Updates">
+  While this update is massive in scope, many changes are backend changes to improve efficiency, stability, and cross-compatibility. However, several significant user experience enhancements are worth highlighting.
+</Callout>
+
+### Various Coin Core Updates ✅
+
+We've made several updates to the various coins available on BasicSwap DEX. Whether these updates involve new core versions or integration improvements, we highly recommend updating your node versions as soon as possible.
+
+### Significant UI Refactor 🖥️
+
+A major refactoring of the user interface code has occurred over the last couple of weeks. While these changes primarily involve code organization and better practices that aren't immediately apparent to end users, we've also implemented numerous UI upgrades, including:
+
+*   Local reputation tracking
+*   Enhanced order book formatting with additional information
+*   New Bids page
+*   Improved Swaps in Progress page
+*   Better Offer pages
+*   More responsive and dynamic page behavior
+*   Better rate fetching
+*   Much more...
+
+The interface changes since our last version (v0.14.4) are substantial, and you'll miss out on many new features and improvements if you don't update.
+
+### Client Authentication 🔐
+
+We've added the ability to configure your BasicSwap instance with client authentication. This feature protects both the webUI and API port access with a password of your choosing.
+
+This is vital if you're running BasicSwap on a cloud server or using the market-making companion script in a network environment you don't completely trust. To set up client authentication, please refer to the installation documentation.
+
+### Multi-Net Support 🌐
+
+We've pushed to `master` the preliminary code for upcoming multi network support for BasicSwap. We've deployed the first phase of a significant infrastructure update to our networking architecture. This new feature, currently called "multi-net," enables BasicSwap to distribute swap, offer, and bid messages across multiple messaging networks beyond SMSG when the primary network experiences high load.
+
+Since all messages adhere to a unified encryption and formatting standard, even non-decentralized networks (such as Telegram or email) could be utilized without compromising user privacy or security.
+
+This new functionality delivers several key benefits:
+
+*   Improved platform scalability and resilience
+*   Greater flexibility for third-party integrations, allowing partners to use their preferred compatible networks for message relay
+*   Cross-network message compatibility, eliminating the need for users to operate on the same network during swaps
+
+While the foundation is now in place, further development is still needed before the implementation becomes fully usable. The current proof of concept using Simplex broadcasts messages to the entire group rather than targeting specific recipients — an inefficiency we're addressing given Simplex's limitations.
+
+The core architecture is designed to extend SMSG functionality across various networks. All messages maintain SMSG encryption and message IDs for consistency, although additional work is required to ensure full compatibility of Python SMSG messages across all networks and to add convenience functions for submitting pre-formed SMSG messages. Currently, this new system pushes to the core through P2P connections (for SMSG testing) but doesn't yet join the SMSG and Simplex networks.
+
+Not to be overlooked is the important advantage of this approach in its flexibility regarding network requirements. Since messages are (or will be) fully valid SMSG entities, they can be transmitted over plaintext networks like Telegram, Delta, or even Pastebin. Email systems supporting POP3/IMAP protocols are particularly well-suited for more decentralization-focused users. It's worth noting that centralized options, including Simplex, may still expose some information pseudonymously about which accounts are communicating with each other.
+
+#### Acceptance Strategy Knowledge 🧠
+
+When publishing a new offer, the SMSG messages relaying its details to the rest of the network now carry information about whether the offer is set to automatically accept bids. This information is also displayed on an offer's page before submitting a bid, helping you make better-informed decisions about which offers to bid on.
+
+Please note that this change means previous instances of BasicSwap will not be able to properly resolve offer messages from up-to-date instances. Updating your BasicSwap instance is mandatory to receive all offers from the network. However, offer messages from older instances remain compatible with the new version, so upgrading now carries no downside.
+
+## Docs 📚️
+
+We've migrated BasicSwap's documentation from the Particl Academy (which uses ReadTheDocs) to a more maintainable and flexible platform (Docusaurus) at [docs.basicswapdex.com](https://docs.basicswapdex.com). While we'll maintain the BasicSwap documentation on the Particl Academy, all new updates will be provided at the new location.
+
+## Install the Latest BasicSwap Update 🖥️
+
+Due to a significant change in what data is carried in BasicSwap-related messages, it is mandatory to update the DEX. Failure to do so will result in your instance not picking up messages from up-to-date instances.
+
+To install the new update, which includes both the codebase and user interface updates, simply [update BasicSwap through the usual process](/docs/user-guides/update) and launch the DEX again.
+
+<YouTube videoId="obxcmEby64s" />
+
+### Docker
+
+If you've installed BasicSwap following the Docker method...
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method...
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+4.  Execute the following command: `pip3 install .`,
+5.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's Github installation script](https://github.com/nahuhh/basicswap-bash/)
+
+*   Execute the update command: `bsx-update && bsx-update`.
+
+### Changelog 📝
+
+#### Coin(s)
+
+*   Bitcoin — Added support for Bitcoin descriptor wallets
+*   Bitcoin — Update Bitcoins' fast sync blockchain file
+*   Bitcoin — Add a workaround to prevent Bitcoin wallets' seeds changing after enabling encryption
+*   Bitcoin Cash — Upgraded Bitcoin Cash node to version 28.0.1
+*   Bitcoin Cash — Refresh BCH keypool
+*   Monero — Upgrade Monero node to version 0.18.4.0
+*   Monero — Corrupt Monero wallets are now detected
+*   Monero — Remove inaccurate fee rates for Monero and hide sweep all checkbox
+*   Monero — Make Monero's fork height a transient error
+*   Monero — Sets Monero's trusted_daemon setting to true by default
+*   Litecoin — Fixed a bug with MWEB wallet generation
+*   PIVX — Fixed issues with PIVX
+*   Namecoin — Large array of fixes and improvements to the Namecoin integration
+*   Wownero — Fixed Wownero's Windows download URL
+*   Fixed a reseed wallet regression error
+
+#### API
+
+*   Better handling of errors with the API
+*   Fixed bug with Firo's API
+*   Simplified API requests
+*   Identities API updated
+*   Use CryptoCompare pricemulti endpoint for multiple coins
+*   Reduced lookupFiatRates debug message
+
+#### UI Code
+
+*   Fixed various memory leaks and improved memory efficiency
+*   Major UI refactor; splitting components in individual classes and significant improvements to code organization
+*   Fixed Javascript's HTTP error 429
+*   Improved websockets by reducing their delays -> tables now load faster
+*   Set default fallback wsport
+*   Updated wallets with backend coin price caching
+
+#### UI
+
+*   Fixed manual refresh button
+*   General code cleanup
+*   Added tooltips for rates and markets
+*   Better status feedback (offers, swaps, bids)
+*   Improved SMSG identity fetching
+*   Fixed overflow bar on offer pages
+*   Offer pages now more responsive
+*   Better logic for sorting order book table
+*   New, revamped Bids page (unified and dynamic with websockets)
+*   New, revamped Swaps in Progress page (dynamic with websockets)
+*   Added ability to export Bids data/history in a .csv file
+*   Moved Amount and Rate Variable to debug_ui mode
+*   Fixes to how the order book fetches rates
+*   Offer pages now display whether the offer is set to automatically accept bids or not
+
+#### Core Functionality
+
+*   Added `--upgradecores` to basicswap-prepare script
+*   Added an estimated transaction fee amount check when posting a bid
+*   Add `wallet_name` option to basicswap.json
+*   Avoid reentrant error in `signal_handler`
+*   Periodically prune old state data
+*   Import signing pubkeys from local filesystem
+*   Change `ADD_PUBKEY_URL` to a per coin process
+*   `basicswap-prepare` can now use original UTXO snapshot signature
+*   `basicswap-prepare` now compare full PGP fingerprint
+*   `basicswap-prepape` now properly work with encrypted wallets
+*   `basicswap-prepare` now makes the setup config permament
+*   Silence Python deprecation warning
+*   Fixed `checkWallets` regression (must rename watchonly wallet also)
+*   Add `safe_logs` option to anonymize logs and protect sensitive data
+*   Deduplicate `getCoinIdFromTicker`
+*   Cache coin rates in the backend
+*   Added log rotation to avoid bloat and oversizing
+*   Fixed `can_accept` upgraded databases
+*   Fixed `addcoin` script
+*   Hide `BrokenPipeErrors`
+*   Added warning if local PGP key cannot be found
+*   Set `expect_seed` after wallet creation
+*   Added the ability to enable client authentication to protect the webUI and API port access with a password
+*   Whether an offer is set to automatically accept bids or not is now included in SMSG messages
+*   Added preliminary multi-net support for BasicSwap, allowing for load balancing and the use of alternative data layers other than SMSG
+*   Simplex network added as a proof of concept for the above-mentioned multi-net support
+*   Improved `checkSplitMessages`
+
+#### Dependencies
+
+*   Bumped `python-gnupg` from 0.5.3 to 0.5.4
+*   Bumped `pyzmq` from 26.2.0 to 26.2.1
+*   Bumped `black` from 24.10.0 to 25.1.0
+*   Bumped `jinja2` from 3.1.5 to 3.1.6
+*   Updated `guix` packed version
+
+#### Tests
+
+*   Fixed `test_xmr_persistent` with Bitcoin v28.0
+*   Fixed CI caching
+*   Interecept signals in `test_scripts.py`
+*   Run Selenium test in CI
+*   Add log prefix to `BaseTestWithPrepare`
+*   Run Black in CI
+*   Updated `test_prepare` and added it to CI
+*   Completed `test_swap_direction` test
+*   Changes applied to `flake8` 7.2
+*   Fixed `test_btc_xmr` on Windows
+
+You can inspect all changes by verifying the [0.14.2 comparison page here](https://github.com/basicswap/basicswap/compare/v0.14.3...v0.14.4).
+
+---
+
+## Stay Connected
+
+Stay connected with us on our social media channels for real-time updates, news, and more.
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

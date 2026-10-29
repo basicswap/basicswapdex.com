@@ -1,0 +1,197 @@
+---
+title: "BasicSwap v0.18.0 through v0.18.5: Refund-Path Hardening, a Reworked Mercy Path, and Coin-Core Updates"
+seoTitle: "BasicSwap v0.18.0 to v0.18.5 Release Notes"
+date: 2026-08-24
+author: "BasicSwap Team"
+tags: ["News", "Release", "Security"]
+description: "Six BasicSwap releases in one post. v0.18.0 brings stricter fee verification, tighter Electrum connections, and an AMM rate-poisoning guard. v0.18.1 through v0.18.3 harden the adaptor-sig refund path against fee-replacement. v0.18.4 and v0.18.5 rework the altruistic mercy keyshare path, prune stale offers, and raise the swap protocol version again. Update recommended, and the Decred and Firo core updates are mandatory."
+seoDescription: "BasicSwap v0.18.0 to v0.18.5 tighten fee checks and Electrum connections, harden the adaptor-signature refund path, rework the mercy path and update coin cores."
+thumbnail: ./images/Medium_BSX_18_5.jpg
+banner: ./images/Blog_BSX_18_5.jpg
+---
+BasicSwap moved quickly through six releases, v0.18.0 to v0.18.5, and this post covers all of them. v0.18.0 is a broad security and hardening release, with stricter fee verification, tighter Electrum connections, a guard against order-book rate poisoning in the AMM, and a set of swap and offer fixes. v0.18.1 through v0.18.3 then work through the adaptor-signature refund path, adding a timing safety margin, closing a fee-replacement route on the shared lock output, and making the timelock accounting match consensus. v0.18.4 and v0.18.5 rework the altruistic mercy keyshare path and add a round of database housekeeping.
+
+Several coin cores changed this cycle, so run the core update step when you upgrade, and the Decred and Firo updates are mandatory. The GUI stays at 4.0.0 and the AMM at 0.5.2, but v0.18.5 raises the database schema to v38, so there is a one-time migration when you first start it.
+
+<Callout type="warning" title="Update to v0.18.5">
+v0.18.0 through v0.18.5 roll up every change below. We recommend everyone update, and the Decred and Firo core updates are mandatory, so run the core update step. If you run adaptor-signature swaps, update to v0.18.5 promptly, because it raises the swap protocol version to 6 and will not accept adaptor-sig offers or bids from v0.18.4 and earlier. Two other changes are worth a look before you update. Electrum server entries now default to TLS, and fee verification is stricter, so read those sections if you use an Electrum backend or swap with peers still on an older version. Installation steps are at the bottom of this post.
+</Callout>
+
+## Most Notable Updates 💡
+
+### Hardening the Refund Path 🔒
+
+Most of the work in v0.18.1, v0.18.2, and v0.18.3 goes into the refund path of adaptor-signature swaps, closing the gaps that let a counterparty line up two competing transactions on the same output and come away with both sides of the swap.
+
+v0.18.1 starts with a timing safety margin. BasicSwap no longer releases the chain-A lock secret when the refund timelock is close to expiring, because releasing it that late could let the follower's lock-spend transaction and the leader's refund transaction reach the mempool at the same time. The margin defaults to one hour and is set by `sc_lock_release_min_margin`. To leave room for it, the default minimum sequence lock is raised to two hours, so even an offer at the minimum lock value has time to release the secret ahead of the margin (commit [`b3d9839`](https://github.com/basicswap/basicswap/commit/b3d9839), [PR #681](https://github.com/basicswap/basicswap/pull/681)).
+
+v0.18.2 carries the same idea into publishing. BasicSwap now holds back the chain-A lock-spend transaction when the refund timelock is close, rather than broadcasting it into the window where it could be replaced (commit [`ec18519`](https://github.com/basicswap/basicswap/commit/ec18519), [PR #682](https://github.com/basicswap/basicswap/pull/682)).
+
+v0.18.3 closes the replacement route itself. The lock-spend transaction now pays a higher absolute fee than the pre-refund transaction, so it cannot be quietly displaced by a fee bump on the shared lock output, and the lock-refund script carries a one-block sequence lock on its cooperative branch so the same swap cannot be reached another way (commits [`bb9037f`](https://github.com/basicswap/basicswap/commit/bb9037f), [`12d59c0`](https://github.com/basicswap/basicswap/commit/12d59c0), [PR #684](https://github.com/basicswap/basicswap/pull/684)). This route opened up after Bitcoin Core v29.1 lowered its incremental relay fee, which brought a replacement within reach, so updating matters if you run adaptor-signature swaps.
+
+The same release also makes the timelock accounting exact. Relative timelocks are now measured from the median time past, the way consensus measures them, rather than from a block's header time, which runs ahead of it. And the chain median time no longer falls back to the last value it fetched when a daemon or Electrum server is unreachable, since a stale value overstates the time left on a refund timelock (commit [`3398ec1`](https://github.com/basicswap/basicswap/commit/3398ec1), [PR #684](https://github.com/basicswap/basicswap/pull/684)). The margins that gate releasing the secret and publishing the lock-spend transaction depend on that reading, so an accurate one keeps them honest.
+
+<Callout type="warning" title="The swap protocol version moved twice">
+This work came with two protocol bumps. v0.18.3 raised the adaptor-signature protocol version to 5, and v0.18.5 raised it again to 6, each time lifting the minimum version it will accept alongside it. So v0.18.5 will not accept adaptor-sig offers or bids from v0.18.4 and earlier. Secret-hash swaps are unchanged. A swap already in progress when you upgrade keeps verifying under the previous rule, so upgrading mid-swap does not strand it. Update to v0.18.5 to keep trading adaptor-signature offers.
+</Callout>
+
+### Reworking the Mercy Path 🤝
+
+When an adaptor-signature swap fails and the follower reclaims the chain-A lock-refund output, they can send a mercy output that reveals their chain-B keyshare, so the leader can still recover their coin instead of losing it to the failure. It is a courtesy, off the critical path of the swap, but the way it was sent needed work.
+
+v0.18.4 made sending a mercy temporarily opt-in while that rework landed, so it was no longer automatic, and it added a settings-page indicator showing whether mercy outputs are enabled for each coin (commits [`c9adc8a`](https://github.com/basicswap/basicswap/commit/c9adc8a), [`e8f545f`](https://github.com/basicswap/basicswap/commit/e8f545f), [PR #690](https://github.com/basicswap/basicswap/pull/690)).
+
+v0.18.5 finishes it. The mercy keyshare now goes in a transaction of its own, for every coin, rather than riding along as an extra output on the swipe transaction, and it is only sent once the swipe transaction has confirmed (commits [`6359c43`](https://github.com/basicswap/basicswap/commit/6359c43), [`942ebf4`](https://github.com/basicswap/basicswap/commit/942ebf4), [PR #692](https://github.com/basicswap/basicswap/pull/692)). The receiving node also stops watching for a mercy transaction after a bounded number of blocks and records why, rather than leaving a bid waiting on one that may never arrive (commit [`dc95265`](https://github.com/basicswap/basicswap/commit/dc95265), [PR #692](https://github.com/basicswap/basicswap/pull/692)). With that in place, sending a mercy is on by default again, and a single setting now controls the default for every coin (commit [`bbd35cc`](https://github.com/basicswap/basicswap/commit/bbd35cc), [PR #697](https://github.com/basicswap/basicswap/pull/697)).
+
+### Stricter Fee Verification ⚖️
+
+Fee checking is tighter in both directions. BasicSwap now rounds a fee up when it builds a transaction, so the transaction always meets the rate it was built for, and it no longer accepts a rate below the one agreed in the offer. The earlier check allowed a small leeway either way (commit [`6303c0c`](https://github.com/basicswap/basicswap/commit/6303c0c), [PR #676](https://github.com/basicswap/basicswap/pull/676)). It also applies a relay-fee floor on Electrum connections, where there is no local daemon to ask for one, and to a configured `low_feerate` (commit [`2bbe448`](https://github.com/basicswap/basicswap/commit/2bbe448), [PR #676](https://github.com/basicswap/basicswap/pull/676)).
+
+The follow-up releases keep pulling this in. v0.18.2 sets the default `min_relay_fee` for Bitcoin to 1000 sat/kvB, the more conservative choice after Bitcoin Core lowered its own default to 100 in v29.1, so an offer below 1000 is refused even where the node would relay it (commit [`35e2a8b`](https://github.com/basicswap/basicswap/commit/35e2a8b)). v0.18.3 narrows the accepted margin above the agreed rate to 10 sat/kvB, down from 20 (commit [`bb9037f`](https://github.com/basicswap/basicswap/commit/bb9037f), [PR #684](https://github.com/basicswap/basicswap/pull/684)).
+
+There is one thing to know while the network updates. Peers on versions before v0.18.0 round the fee to the nearest value when building, which lands a satoshi low about half the time, so a swap against an older peer can fail the stricter check. It clears up as more of the network moves to v0.18.0.
+
+### Electrum Hardening 🔗
+
+Several changes tighten Electrum connections. BasicSwap now pins each server's TLS certificate, and server entries use TLS by default. An entry counts as plaintext only when it carries a `:t` marker, and only for `.onion`, LAN, and loopback hosts, which are authenticated another way. The port no longer decides the transport (commit [`220797f`](https://github.com/basicswap/basicswap/commit/220797f), [PR #646](https://github.com/basicswap/basicswap/pull/646)). Funding a swap now requires confirmed UTXOs (commits [`6c7e39a`](https://github.com/basicswap/basicswap/commit/6c7e39a), [PR #647](https://github.com/basicswap/basicswap/pull/647); [`7731b40`](https://github.com/basicswap/basicswap/commit/7731b40), [PR #658](https://github.com/basicswap/basicswap/pull/658)), and coin selection, socket handling, and reconnection were reworked to cut connection churn (commit [`4846022`](https://github.com/basicswap/basicswap/commit/4846022), [PR #645](https://github.com/basicswap/basicswap/pull/645)).
+
+If you run custom Electrum servers, a plaintext entry that is not `.onion`, LAN, or loopback now needs an explicit `:t` marker, or it will not connect.
+
+### AMM: Rate-Poisoning Guard 🤖
+
+For AMM modes that take an offer's rate from the order book, a manipulated order book could pull that rate down with no floor beneath it. v0.18.0 requires `minrate` to be above zero for those modes, so there is always a floor, and it skips a template that uses an order-book rate until you set one (commit [`1810cae`](https://github.com/basicswap/basicswap/commit/1810cae), [PR #662](https://github.com/basicswap/basicswap/pull/662)). Template keys are also standardised on `max_rate`, and a legacy `maxrate` entry is migrated for you (commit [`f18a6d2`](https://github.com/basicswap/basicswap/commit/f18a6d2), [PR #651](https://github.com/basicswap/basicswap/pull/651)).
+
+### Smaller Fixes 🧹
+
+Secret-hash swap contracts whose script carries trailing opcodes are now rejected (commit [`22769a9`](https://github.com/basicswap/basicswap/commit/22769a9), [PR #670](https://github.com/basicswap/basicswap/pull/670)). A partial bid that left out its amount on a fixed-rate offer used to take the offer's full amount for the other side, and now clamps to the offer rate (commit [`71c1eca`](https://github.com/basicswap/basicswap/commit/71c1eca), [PR #639](https://github.com/basicswap/basicswap/pull/639)).
+
+Sub-fee bids on Particl blind are fixed (commit [`4887ac3`](https://github.com/basicswap/basicswap/commit/4887ac3), [PR #650](https://github.com/basicswap/basicswap/pull/650)), an in-flight offer no longer revokes early (commit [`f951619`](https://github.com/basicswap/basicswap/commit/f951619), [PR #638](https://github.com/basicswap/basicswap/pull/638)), and a failed spend check no longer blocks the queued-action loop (commit [`e2414fc`](https://github.com/basicswap/basicswap/commit/e2414fc), [PR #668](https://github.com/basicswap/basicswap/pull/668)). Password verification no longer rejects a valid hash whose salt contains 60 (commit [`73d1d9d`](https://github.com/basicswap/basicswap/commit/73d1d9d), [PR #671](https://github.com/basicswap/basicswap/pull/671)), and Decred now draws passwords from a cryptographic random source (commit [`22331dd`](https://github.com/basicswap/basicswap/commit/22331dd), [PR #653](https://github.com/basicswap/basicswap/pull/653)).
+
+The later releases add a few more. The bids CSV export had its from and to amount and coin columns in the opposite order to their headers, and that is corrected (commit [`cbc3f82`](https://github.com/basicswap/basicswap/commit/cbc3f82), [PR #688](https://github.com/basicswap/basicswap/pull/688)). Price lookups no longer hammer a rate-limited source, with a shorter backoff that every caller now respects (commit [`ec25e3e`](https://github.com/basicswap/basicswap/commit/ec25e3e), [PR #698](https://github.com/basicswap/basicswap/pull/698)). And the bid debug header only shows in debug UI mode (commit [`65bbb0f`](https://github.com/basicswap/basicswap/commit/65bbb0f), [PR #700](https://github.com/basicswap/basicswap/pull/700)).
+
+### Database Housekeeping 🗂️
+
+v0.18.5 takes the schema to v38 and cleans up the database. A new setting, `expire_unused_offers`, is on by default and removes expired offers that never received a bid. Offers that carry bid history are left alone, still governed by `expire_db_records`, which stays off by default. The prune runs as batched, set-based deletes with a cap on the work per pass, so a large backlog drains over several main-loop cycles rather than holding the database lock for the whole run (commit [`b7925f7`](https://github.com/basicswap/basicswap/commit/b7925f7), [PR #703](https://github.com/basicswap/basicswap/pull/703)). Old coinhistory and coinvolume rows are trimmed as well (commits [`f9480b6`](https://github.com/basicswap/basicswap/commit/f9480b6), [`09fecb1`](https://github.com/basicswap/basicswap/commit/09fecb1), [PR #698](https://github.com/basicswap/basicswap/pull/698)), and indices were added on the offer and message-link lookups that the prune and the UI lean on (commit [`04b6c4b`](https://github.com/basicswap/basicswap/commit/04b6c4b), [PR #703](https://github.com/basicswap/basicswap/pull/703)).
+
+<Callout type="info" title="Expired offers with no bids are pruned on upgrade">
+`expire_unused_offers` is on by default, so v0.18.5 removes expired offers that never received a bid on the first expiry pass after you upgrade. If you want to keep them, set it to false before you start. Offers with bid history are not touched.
+</Callout>
+
+### Coin Core Updates 🔄
+
+v0.18.0 updates four coin cores: Decred to v2.1.6 and Firo to v0.14.17.2, both mandatory, along with Dash to v23.1.8 and Bitcoin Cash to v29.1.0. A prepare fix keeps the Bitcoin Cash 29.1.0 setup working on macOS, where its release asset names changed (commits [`d2077ce`](https://github.com/basicswap/basicswap/commit/d2077ce), [PR #648](https://github.com/basicswap/basicswap/pull/648); [`3387a93`](https://github.com/basicswap/basicswap/commit/3387a93), [PR #641](https://github.com/basicswap/basicswap/pull/641); [`881bb77`](https://github.com/basicswap/basicswap/commit/881bb77), [PR #642](https://github.com/basicswap/basicswap/pull/642); [`dcc8f9c`](https://github.com/basicswap/basicswap/commit/dcc8f9c), [PR #643](https://github.com/basicswap/basicswap/pull/643)). v0.18.5 then bumps Firo again, to v0.14.18.0 (commit [`034cc04`](https://github.com/basicswap/basicswap/commit/034cc04), [PR #695](https://github.com/basicswap/basicswap/pull/695)). Run the core update step when you upgrade so these are fetched.
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch.
+
+<Callout type="info" title="Coin cores to refresh, and a few things to check">
+v0.18.0 updates four coin cores and v0.18.5 bumps Firo again, so run the `--upgradecores` step when you update to fetch them. The Decred and Firo updates are mandatory. v0.18.5 takes the database schema to v38, so there is a one-time migration on the first start after you upgrade. A few behaviour changes are worth noting. v0.18.5 raises the adaptor-signature protocol version to 6, so it will not trade adaptor-sig offers or bids with peers on v0.18.4 or earlier. `expire_unused_offers` is on by default, so expired offers with no bids are pruned on the first expiry pass. Electrum server entries without a transport marker are now treated as TLS, so a plaintext entry that is not `.onion`, LAN, or loopback needs an explicit `:t` marker. Fee verification is stricter, so a swap against a peer still on an earlier version can fail the fee check until they update. The minimum lock time is now two hours. Back up your coindata directory first as always.
+</Callout>
+
+### Docker
+
+If you've installed BasicSwap following the Docker method:
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method:
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3. Execute the following command: `source ~/coinswaps/venv/bin/activate`
+4.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+5.  Execute the following command: `pip3 install .`,
+6.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/):
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+A single, merged changelog spanning v0.18.0 through v0.18.5, grouped by area.
+
+### Security and Hardening
+
+*   Raise the adaptor-sig protocol version to 6 and the minimum accepted version, so v0.18.5 will not trade adaptor-sig offers or bids with v0.18.4 and earlier [[586c6ec]](https://github.com/basicswap/basicswap/commit/586c6ec) / [PR #699](https://github.com/basicswap/basicswap/pull/699) *(v0.18.5)*
+*   Mercy path: send the mercy keyshare in a transaction of its own for every coin, only after the swipe transaction has confirmed [[6359c43]](https://github.com/basicswap/basicswap/commit/6359c43) [[942ebf4]](https://github.com/basicswap/basicswap/commit/942ebf4) / [PR #692](https://github.com/basicswap/basicswap/pull/692) *(v0.18.5)*
+*   Mercy path: give up watching for a mercy transaction after a bounded number of blocks and record why [[dc95265]](https://github.com/basicswap/basicswap/commit/dc95265) / [PR #692](https://github.com/basicswap/basicswap/pull/692) *(v0.18.5)*
+*   Mercy path: enable sending a mercy by default again, with one setting controlling the default for every coin [[bbd35cc]](https://github.com/basicswap/basicswap/commit/bbd35cc) / [PR #697](https://github.com/basicswap/basicswap/pull/697) *(v0.18.5)*
+*   Mercy path: make sending a mercy temporarily opt-in, and show its status per coin on the settings page [[c9adc8a]](https://github.com/basicswap/basicswap/commit/c9adc8a) [[e8f545f]](https://github.com/basicswap/basicswap/commit/e8f545f) / [PR #690](https://github.com/basicswap/basicswap/pull/690) *(v0.18.4)*
+*   Adaptor-sig swaps: pay a higher absolute fee on the lock-spend transaction than the pre-refund transaction, so it cannot be displaced by a fee bump on the shared lock output [[bb9037f]](https://github.com/basicswap/basicswap/commit/bb9037f) / [PR #684](https://github.com/basicswap/basicswap/pull/684) *(v0.18.3)*
+*   Adaptor-sig swaps: add a one-block sequence lock to the cooperative branch of the lock-refund script [[12d59c0]](https://github.com/basicswap/basicswap/commit/12d59c0) / [PR #684](https://github.com/basicswap/basicswap/pull/684) *(v0.18.3)*
+*   Adaptor-sig swaps: measure relative timelocks from the median time past, as consensus does, and stop the chain median time from falling back to a stale value when a daemon or Electrum server is unreachable [[3398ec1]](https://github.com/basicswap/basicswap/commit/3398ec1) / [PR #684](https://github.com/basicswap/basicswap/pull/684) *(v0.18.3)*
+*   Raise the adaptor-sig protocol version to 5 and the minimum accepted version, with temporary backwards compatibility for in-progress swaps and added protocol-version checks [[3262262]](https://github.com/basicswap/basicswap/commit/3262262) [[55ca41e]](https://github.com/basicswap/basicswap/commit/55ca41e) / [PR #684](https://github.com/basicswap/basicswap/pull/684) *(v0.18.3)*
+*   Narrow the accepted fee margin above the agreed rate to 10 sat/kvB, from 20 [[bb9037f]](https://github.com/basicswap/basicswap/commit/bb9037f) / [PR #684](https://github.com/basicswap/basicswap/pull/684) *(v0.18.3)*
+*   Adaptor-sig swaps: hold back the chain-A lock-spend transaction when the refund timelock is close to expiring [[ec18519]](https://github.com/basicswap/basicswap/commit/ec18519) / [PR #682](https://github.com/basicswap/basicswap/pull/682) *(v0.18.2)*
+*   Default `min_relay_fee` for Bitcoin to 1000 sat/kvB, the more conservative choice after Bitcoin Core lowered its own default in v29.1 [[35e2a8b]](https://github.com/basicswap/basicswap/commit/35e2a8b) *(v0.18.2)*
+*   Adaptor-sig swaps: hold a margin before the refund timelock before releasing the chain-A lock secret, set by `sc_lock_release_min_margin` (default one hour) [[b3d9839]](https://github.com/basicswap/basicswap/commit/b3d9839) / [PR #681](https://github.com/basicswap/basicswap/pull/681) *(v0.18.1)*
+*   Raise the default minimum sequence lock to two hours [[b3d9839]](https://github.com/basicswap/basicswap/commit/b3d9839) / [PR #681](https://github.com/basicswap/basicswap/pull/681) *(v0.18.1)*
+*   Adaptor-sig swaps: reject a fee rate below the one agreed in the offer, and round fees up when building [[6303c0c]](https://github.com/basicswap/basicswap/commit/6303c0c) / [PR #676](https://github.com/basicswap/basicswap/pull/676) *(v0.18.0)*
+*   Apply a relay-fee floor on Electrum connections and to a configured `low_feerate` [[2bbe448]](https://github.com/basicswap/basicswap/commit/2bbe448) / [PR #676](https://github.com/basicswap/basicswap/pull/676) *(v0.18.0)*
+*   Secret-hash contracts: reject scripts with trailing opcodes [[22769a9]](https://github.com/basicswap/basicswap/commit/22769a9) / [PR #670](https://github.com/basicswap/basicswap/pull/670) *(v0.18.0)*
+*   Decred: generate passwords with a cryptographic random source [[22331dd]](https://github.com/basicswap/basicswap/commit/22331dd) / [PR #653](https://github.com/basicswap/basicswap/pull/653) *(v0.18.0)*
+
+### Electrum
+
+*   Pin server TLS certificates, and default server entries to TLS unless marked `:t` [[220797f]](https://github.com/basicswap/basicswap/commit/220797f) / [PR #646](https://github.com/basicswap/basicswap/pull/646) *(v0.18.0)*
+*   Require confirmed UTXOs when funding swap transactions [[6c7e39a]](https://github.com/basicswap/basicswap/commit/6c7e39a) / [PR #647](https://github.com/basicswap/basicswap/pull/647) [[7731b40]](https://github.com/basicswap/basicswap/commit/7731b40) / [PR #658](https://github.com/basicswap/basicswap/pull/658) *(v0.18.0)*
+*   Select coins from every signable address, serialise socket reads and writes, and cut connection churn [[4846022]](https://github.com/basicswap/basicswap/commit/4846022) / [PR #645](https://github.com/basicswap/basicswap/pull/645) *(v0.18.0)*
+
+### AMM
+
+*   Guard against rate poisoning: order-book rate modes require `minrate` above zero [[1810cae]](https://github.com/basicswap/basicswap/commit/1810cae) / [PR #662](https://github.com/basicswap/basicswap/pull/662) *(v0.18.0)*
+*   Standardise template keys on `max_rate` and migrate legacy `maxrate` [[f18a6d2]](https://github.com/basicswap/basicswap/commit/f18a6d2) / [PR #651](https://github.com/basicswap/basicswap/pull/651) *(v0.18.0)*
+
+### Fixes
+
+*   Bids: clamp a partial bid with no amount to the offer rate [[71c1eca]](https://github.com/basicswap/basicswap/commit/71c1eca) / [PR #639](https://github.com/basicswap/basicswap/pull/639) *(v0.18.0)*
+*   Bids: fix sub-fee bids on Particl blind [[4887ac3]](https://github.com/basicswap/basicswap/commit/4887ac3) / [PR #650](https://github.com/basicswap/basicswap/pull/650) *(v0.18.0)*
+*   Offers: fix early revoke of an in-flight offer [[f951619]](https://github.com/basicswap/basicswap/commit/f951619) / [PR #638](https://github.com/basicswap/basicswap/pull/638) *(v0.18.0)*
+*   Queued actions: a failed spend check no longer blocks the queue [[e2414fc]](https://github.com/basicswap/basicswap/commit/e2414fc) / [PR #668](https://github.com/basicswap/basicswap/pull/668) *(v0.18.0)*
+*   Guard against a missing bid in processFoundScript [[f59df9f]](https://github.com/basicswap/basicswap/commit/f59df9f) / [PR #672](https://github.com/basicswap/basicswap/pull/672) *(v0.18.0)*
+*   Password verification: accept a valid hash whose salt contains 60 [[73d1d9d]](https://github.com/basicswap/basicswap/commit/73d1d9d) / [PR #671](https://github.com/basicswap/basicswap/pull/671) *(v0.18.0)*
+*   Prices: stop hammering a rate-limited source, with a shorter backoff every caller respects [[ec25e3e]](https://github.com/basicswap/basicswap/commit/ec25e3e) / [PR #698](https://github.com/basicswap/basicswap/pull/698) *(v0.18.5)*
+*   Bids CSV export: write the from and to amount and coin columns in the order of their headers [[cbc3f82]](https://github.com/basicswap/basicswap/commit/cbc3f82) / [PR #688](https://github.com/basicswap/basicswap/pull/688) *(v0.18.4)*
+*   UI: only show the bid debug header in debug UI mode [[65bbb0f]](https://github.com/basicswap/basicswap/commit/65bbb0f) / [PR #700](https://github.com/basicswap/basicswap/pull/700) *(v0.18.5)*
+
+### Database
+
+*   New `expire_unused_offers` setting, on by default, removes expired offers that never received a bid, as batched set-based deletes capped per pass [[b7925f7]](https://github.com/basicswap/basicswap/commit/b7925f7) / [PR #703](https://github.com/basicswap/basicswap/pull/703) *(v0.18.5)*
+*   Trim old coinhistory and coinvolume rows [[f9480b6]](https://github.com/basicswap/basicswap/commit/f9480b6) [[09fecb1]](https://github.com/basicswap/basicswap/commit/09fecb1) / [PR #698](https://github.com/basicswap/basicswap/pull/698) *(v0.18.5)*
+*   Add indices on `bids.offer_id`, `xmr_offers.offer_id` and `message_network_links` [[04b6c4b]](https://github.com/basicswap/basicswap/commit/04b6c4b) / [PR #703](https://github.com/basicswap/basicswap/pull/703) *(v0.18.5)*
+*   Deduplicate upgradeDatabaseFromSchema [[221c754]](https://github.com/basicswap/basicswap/commit/221c754) / [PR #702](https://github.com/basicswap/basicswap/pull/702) *(v0.18.5)*
+
+### Coin Cores
+
+*   Decred to v2.1.6 (mandatory) [[d2077ce]](https://github.com/basicswap/basicswap/commit/d2077ce) / [PR #648](https://github.com/basicswap/basicswap/pull/648) *(v0.18.0)*
+*   Firo to v0.14.17.2 (mandatory) [[3387a93]](https://github.com/basicswap/basicswap/commit/3387a93) / [PR #641](https://github.com/basicswap/basicswap/pull/641) *(v0.18.0)*
+*   Dash to v23.1.8 and Bitcoin Cash to v29.1.0 [[881bb77]](https://github.com/basicswap/basicswap/commit/881bb77) / [PR #642](https://github.com/basicswap/basicswap/pull/642) *(v0.18.0)*
+*   Fix the Bitcoin Cash 29.1.0 prepare on macOS [[dcc8f9c]](https://github.com/basicswap/basicswap/commit/dcc8f9c) / [PR #643](https://github.com/basicswap/basicswap/pull/643) *(v0.18.0)*
+*   Firo to v0.14.18.0 [[034cc04]](https://github.com/basicswap/basicswap/commit/034cc04) / [PR #695](https://github.com/basicswap/basicswap/pull/695) *(v0.18.5)*
+
+### Other
+
+*   Raise coincurve to v04 [[96d610b]](https://github.com/basicswap/basicswap/commit/96d610b) / [PR #667](https://github.com/basicswap/basicswap/pull/667) *(v0.18.0)*
+*   Remove the temporary repair for mislabelled lock-refund sighash types [[8e02923]](https://github.com/basicswap/basicswap/commit/8e02923) / [PR #679](https://github.com/basicswap/basicswap/pull/679) *(v0.18.1)*
+
+You can inspect all changes by verifying the [v0.17.9 to v0.18.5 comparison page here](https://github.com/basicswap/basicswap/compare/v0.17.9...v0.18.5).
+
+## Stay Connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

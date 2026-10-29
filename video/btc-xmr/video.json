@@ -1,0 +1,24 @@
+{
+  "title": "Follow the orange half",
+  "theme": "look.json",
+  "size": "16:9",
+  "voice": "af_heart",
+  "music": {
+    "style": "tech",
+    "key": "Eb",
+    "bpm": 112,
+    "volume": 0.42
+  },
+  "captions": "auto",
+  "watermark": false,
+  "fonts": [
+    {
+      "family": "Instrument Sans",
+      "src": "assets/fonts/InstrumentSans-wght.woff2",
+      "weight": "400 700"
+    }
+  ],
+  "transition": "cut",
+  "lead": 0.9,
+  "hold": 1.4
+}

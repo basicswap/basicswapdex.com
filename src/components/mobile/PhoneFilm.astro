@@ -1,0 +1,106 @@
+---
+// The Mobile hero: the phone render (tools/phone-render) with its display cut
+// out, and the BasicSwap screens of the Nexus wallet playing underneath as
+// vector SVG (nexusScreens.ts), mapped onto the display by phone-screen.json.
+// Hovering turns the phone a touch. At rest (reduced motion): the swap
+// receipt.
+import { getImage } from 'astro:assets';
+import phone from '../../assets/mobile/phone-nexus.png';
+import screen from './phone-screen.json';
+import { build, W, H } from './nexusScreens';
+
+const shell = await getImage({ src: phone, format: 'webp', quality: 90 });
+const [a, b, c, d, e, f] = screen.matrix;
+const { svg, css } = build();
+---
+
+<div class="phone-stage" data-parity="new">
+  <svg
+    viewBox={`0 0 ${phone.width} ${phone.height}`}
+    class="nx"
+    role="img"
+    aria-label="BasicSwap in the Nexus wallet. It starts up, requests a swap of Litecoin for 0.015 BTC, accepts the best offer and completes the swap. Example figures."
+  >
+    <defs>
+      <clipPath id="nx-clip"><rect width={W} height={H} rx={screen.radius} /></clipPath>
+      <linearGradient id="nx-sheen" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#fff" stop-opacity="0.12" />
+        <stop offset="0.35" stop-color="#fff" stop-opacity="0" />
+        <stop offset="0.7" stop-color="#fff" stop-opacity="0" />
+        <stop offset="1" stop-color="#fff" stop-opacity="0.05" />
+      </linearGradient>
+    </defs>
+    <g transform={`matrix(${a} ${b} ${c} ${d} ${e} ${f})`}>
+      <g clip-path="url(#nx-clip)">
+        <rect x="-4" y="-4" width={W + 8} height={H + 8} fill="#F2F8FD" />
+        <Fragment set:html={svg} />
+        <rect width={W} height={H} fill="url(#nx-sheen)" pointer-events="none" />
+      </g>
+    </g>
+    <image href={shell.src} width={phone.width} height={phone.height} />
+  </svg>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<style>
+  .phone-stage {
+    position: relative;
+    transition: transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Micro-interaction: hovered, the phone lifts and turns very slightly. On
+     a 1x screen it only lifts, by whole pixels: a turn there would resample
+     the screen's small text. */
+  .phone-stage:hover {
+    transform: translateY(-3px);
+  }
+
+  @media (min-resolution: 1.5dppx) {
+    .phone-stage:hover {
+      transform: rotate(-0.6deg) translateY(-3px);
+    }
+  }
+
+  .nx {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    filter: drop-shadow(0 30px 40px hsl(var(--shadow-color) / 0.55));
+  }
+
+  .nx :global(.tap) {
+    fill: rgb(0 0 0 / 0.1);
+    stroke: rgb(0 0 0 / 0.18);
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .nx :global(.ns-menu),
+  .nx :global(.ns-confirm) {
+    transform-box: view-box;
+  }
+
+  /* At rest: the receipt, everything else in its finished state. */
+  .nx :global(:is(.sc-home, .boot, .sc-new, .sc-req, .ns-focus, .ns-caret, .ns-type, .ns-menu, .ns-confirm, .ns-requesting, .ns-requesting2, .ns-pick, .ns-addr, .rq-ready, .rq-accepting, .rq-offer, .rq-confirm, .rq-accepting-label, .sw-sub, .sw-seg)) {
+    opacity: 0;
+  }
+
+  .nx :global(:is(.ns-t4, .ns-send, .ns-quote)) {
+    opacity: 1;
+  }
+
+  .nx :global(:is(.ns-send-ph, .ns-get-ph)) {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .phone-stage,
+    .phone-stage:hover {
+      transition: none;
+      transform: none;
+    }
+  }
+</style>

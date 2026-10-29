@@ -1,0 +1,124 @@
+---
+title: "BasicSwap v0.17.8 and v0.17.9: Bitcoin Cash Swap Hardening, Shorter Swap Timeouts, and a Litecoin Core Update"
+seoTitle: "BasicSwap v0.17.8 and v0.17.9 Release Notes"
+date: 2026-08-02
+author: "BasicSwap Team"
+tags: ["News", "Release", "Security"]
+description: "Two BasicSwap releases in one post. v0.17.8 hardens Bitcoin Cash swaps and fixes a bug that could leave a BCH swap stuck on a non-default fee rate. v0.17.9 shortens swap timeouts by default, hardens how long a swap waits on a counterparty, and bumps the Litecoin core to v0.21.5.6, which carries important Litecoin security fixes. Update recommended, and promptly if you run Bitcoin Cash or Litecoin."
+seoDescription: "BasicSwap v0.17.8 hardens Bitcoin Cash swaps and fixes a stuck-swap bug, while v0.17.9 shortens the default swap timeouts and updates Litecoin Core."
+thumbnail: ./images/Medium_BSX_17_9.jpg
+banner: ./images/Blog_BSX_17_9.jpg
+---
+BasicSwap v0.17.8 and v0.17.9 shipped a day apart, and this post covers both. v0.17.8 hardens Bitcoin Cash swaps and fixes a bug that could leave a BCH swap stuck when it ran on a non-default fee rate. v0.17.9 hardens how long a swap waits on a counterparty, shortens the default timeout, and bumps the Litecoin core to a release that carries important Litecoin security fixes.
+
+The Litecoin core changed, so this is a coin-core update cycle for Litecoin. The GUI stays at 4.0.0, the AMM at 0.5.2, and the database schema at v37, so there is no migration.
+
+<Callout type="warning" title="Update to v0.17.9">
+v0.17.8 and v0.17.9 roll up every change below. We recommend everyone update, and Bitcoin Cash and Litecoin users should update promptly. v0.17.8 fixes a bug that could leave a Bitcoin Cash swap stuck, and v0.17.9 pulls in Litecoin core security fixes. v0.17.9 also shortens swap timeouts by default, so if you run swaps, read that section before you update. Installation steps are at the bottom of this post.
+</Callout>
+
+## Most Notable Updates 💡
+
+### Bitcoin Cash Swap Hardening 🩹
+
+On Bitcoin Cash, a swap's redeem and refund paths are governed by an on-chain covenant that requires an exact fee. Those transactions were built from a fee rate rather than a fixed fee, so on any non-default fee rate the covenant's exact-fee requirement was not met and both paths became unbroadcastable once the lock transaction was on chain. A BCH swap in that state could neither complete nor refund without manual work. v0.17.8 fixes the fee to a stable 1000 sat/kB so the covenant's absolute fee is the same across nodes, and it binds the covenant's fee and its signature-check key to the values agreed when the swap was set up, so a counterparty cannot substitute them (commit [`8444596`](https://github.com/basicswap/basicswap/commit/8444596), [PR #630](https://github.com/basicswap/basicswap/pull/630)).
+
+The same release adds a range check on the transaction output values read back during lock, refund, and spend verification, across the Bitcoin-derived coins, Bitcoin Cash, and Decred (commit [`20b5201`](https://github.com/basicswap/basicswap/commit/20b5201), [PR #630](https://github.com/basicswap/basicswap/pull/630)). If you run Bitcoin Cash swaps, update to v0.17.8 or later.
+
+### Shorter, Fairer Swap Timeouts ⏱️
+
+v0.17.9 changes how long BasicSwap waits on a counterparty's lock transaction in two ways. It now measures that wait from the bid's last state change rather than from the bid's expiry, so a bidder can no longer set a long bid validity period to stretch out how long the other side has to wait (commit [`1313f8f`](https://github.com/basicswap/basicswap/commit/1313f8f), [PR #632](https://github.com/basicswap/basicswap/pull/632)). And the default and minimum lock-transaction timeout drops to 20 minutes, from several hours, so a stalled counterparty is abandoned sooner. A transposed default and maximum in those timeout settings, which had pinned them to the maximum, was corrected at the same time (commits [`6604568`](https://github.com/basicswap/basicswap/commit/6604568), [`2fa7f41`](https://github.com/basicswap/basicswap/commit/2fa7f41), [PR #632](https://github.com/basicswap/basicswap/pull/632)).
+
+<Callout type="info" title="Swap timeouts are much shorter now">
+The lock-transaction timeout now defaults to 20 minutes rather than several hours. A bid waiting on a counterparty's lock transaction will time out considerably sooner. If you need the previous behaviour, raise `sc_lock_tx_timeout` in your settings.
+</Callout>
+
+Separately, block-count based lock types are now rejected outside of regtest, since they are only meant for testing (commit [`435a8d0`](https://github.com/basicswap/basicswap/commit/435a8d0)).
+
+### Litecoin Core Update 🔄
+
+v0.17.9 bumps the Litecoin core to v0.21.5.6, an urgent security release from the Litecoin project (commit [`df9a9cc`](https://github.com/basicswap/basicswap/commit/df9a9cc), [PR #633](https://github.com/basicswap/basicswap/pull/633)). It hardens Litecoin's MimbleWimble Extension Blocks, the MWEB privacy layer. The release limits how much work a node will do for MWEB light-client requests, so those cannot be used to exhaust it, and it rejects malformed MWEB transactions and pegout kernels before spending effort to verify them. It also adds a consensus rule, activating at Litecoin mainnet block 3,154,440, that rejects a malformed class of MWEB block, so a Litecoin node needs the update to stay in consensus once that height passes. Litecoin recommends every user upgrade, with extra urgency for miners and MWEB service operators.
+
+BasicSwap's swaps use standard Litecoin transactions rather than MWEB, so this does not change how a Litecoin swap works. Running a current, secure Litecoin node still matters, though, especially ahead of that consensus height. If BasicSwap manages your Litecoin core, update it with the core-update step when you upgrade, and do it promptly. If you point BasicSwap at your own Litecoin node, update that node yourself. Litecoin's own notes have the full detail in the [v0.21.5.6 release notes](https://github.com/litecoin-project/litecoin/releases/tag/v0.21.5.6).
+
+### Smaller Fixes 🧹
+
+The automation's cumulative bid-value cap on reversed offers now works. It had compared a total in one chain's units against the offer amount in the other's, so the cap never triggered; it now compares like for like (commit [`87477ff`](https://github.com/basicswap/basicswap/commit/87477ff), [PR #634](https://github.com/basicswap/basicswap/pull/634)).
+
+Queued actions are more resilient. A bid acceptance that hits a transient error is now retried rather than errored, and socket errors and timeouts other than read timeouts are treated as transient (commits [`23dcd1b`](https://github.com/basicswap/basicswap/commit/23dcd1b), [`41a8e79`](https://github.com/basicswap/basicswap/commit/41a8e79), [PR #631](https://github.com/basicswap/basicswap/pull/631)).
+
+On adaptor-signature swaps, a swap-accept message now has its bid state checked sooner, so a failed check no longer records the message against the bid (commit [`6c0fd73`](https://github.com/basicswap/basicswap/commit/6c0fd73), [PR #636](https://github.com/basicswap/basicswap/pull/636)).
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch.
+
+<Callout type="info" title="A Litecoin core refresh, and shorter timeouts">
+v0.17.9 updates the Litecoin core, so run the `--upgradecores` step when you update to fetch it. No other coin daemons changed, and the database schema stays at v37, so there is no on-start migration. Note that the swap lock-transaction timeout now defaults to 20 minutes, as described above. Back up your coindata directory first as always.
+</Callout>
+
+### Docker
+
+If you've installed BasicSwap following the Docker method:
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method:
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3. Execute the following command: `source ~/coinswaps/venv/bin/activate`
+4.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+5.  Execute the following command: `pip3 install .`,
+6.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/):
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+A single, merged changelog spanning v0.17.8 and v0.17.9, grouped by area. It covers 6 pull requests (#630 to #634 and #636).
+
+### Bitcoin Cash
+
+*   Harden the BCH covenant checks: bind the fee and the signature-check key to the values agreed for the swap, verify the exact covenant fee, and fix the fee rate at 1000 sat/kB so both exit paths stay broadcastable [[8444596]](https://github.com/basicswap/basicswap/commit/8444596) / [PR #630](https://github.com/basicswap/basicswap/pull/630) *(v0.17.8)*
+*   Range-check decoded transaction output values in the lock, refund and spend verifiers for Bitcoin-derived coins, Bitcoin Cash and Decred [[20b5201]](https://github.com/basicswap/basicswap/commit/20b5201) / [PR #630](https://github.com/basicswap/basicswap/pull/630) *(v0.17.8)*
+
+### Swap Timeouts
+
+*   Measure the lock-transaction timeout from the bid's last state change rather than its expiry, so a bid validity period cannot extend the counterparty's wait [[1313f8f]](https://github.com/basicswap/basicswap/commit/1313f8f) / [PR #632](https://github.com/basicswap/basicswap/pull/632) *(v0.17.9)*
+*   Reduce the default and minimum lock-transaction timeout to 20 minutes [[6604568]](https://github.com/basicswap/basicswap/commit/6604568) / [PR #632](https://github.com/basicswap/basicswap/pull/632) *(v0.17.9)*
+*   Fix a transposed default and maximum in the lock-timeout settings [[2fa7f41]](https://github.com/basicswap/basicswap/commit/2fa7f41) / [PR #632](https://github.com/basicswap/basicswap/pull/632) *(v0.17.9)*
+*   Reject block-count lock types outside regtest [[435a8d0]](https://github.com/basicswap/basicswap/commit/435a8d0) *(v0.17.9)*
+
+### Coin Cores
+
+*   Bump the Litecoin core to v0.21.5.6, a Litecoin MWEB security release that also carries a consensus soft-fork [[df9a9cc]](https://github.com/basicswap/basicswap/commit/df9a9cc) / [PR #633](https://github.com/basicswap/basicswap/pull/633) *(v0.17.9)*
+
+### Fixes
+
+*   Automation: compare the cumulative bid-value cap on reversed offers in the same currency, so the cap triggers [[87477ff]](https://github.com/basicswap/basicswap/commit/87477ff) / [PR #634](https://github.com/basicswap/basicswap/pull/634) *(v0.17.9)*
+*   Retry a bid acceptance after a transient error instead of erroring the bid [[23dcd1b]](https://github.com/basicswap/basicswap/commit/23dcd1b) / [PR #631](https://github.com/basicswap/basicswap/pull/631) *(v0.17.9)*
+*   Treat socket errors and timeouts other than read timeouts as transient [[41a8e79]](https://github.com/basicswap/basicswap/commit/41a8e79) / [PR #631](https://github.com/basicswap/basicswap/pull/631) *(v0.17.9)*
+*   Adaptor-sig swaps: check the bid state sooner, so a failed check no longer records the message [[6c0fd73]](https://github.com/basicswap/basicswap/commit/6c0fd73) / [PR #636](https://github.com/basicswap/basicswap/pull/636) *(v0.17.9)*
+
+You can inspect all changes by verifying the [v0.17.7 to v0.17.9 comparison page here](https://github.com/basicswap/basicswap/compare/v0.17.7...v0.17.9).
+
+## Stay Connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

@@ -1,0 +1,253 @@
+[
+  {
+    "title": "Getting Started",
+    "items": [
+      {
+        "q": "What is an atomic swap?",
+        "a": [
+          "An atomic swap trades coins across two different blockchains in a single operation, with nobody holding the funds in between. Either both sides complete and each trader receives what was agreed, or the swap expires and every coin returns to its original owner. <a href=\"/docs/about/under-the-hood#atomic-swaps\">Cryptography and on-chain timelocks</a> enforce that outcome, rather than a counterparty's good behaviour."
+        ]
+      },
+      {
+        "q": "Do I need an account to use BasicSwap?",
+        "a": [
+          "No. There is no signup, no email, and no identity check, because there is no operator to register with. You launch the client, <a href=\"/docs/user-guides/install\">set up a wallet</a>, and trade. Nothing personal is stored, so there is no database anyone could breach."
+        ]
+      },
+      {
+        "q": "How do I set up BasicSwap?",
+        "a": [
+          "1- Open the <a href=\"/docs/user-guides/install\">install guide</a>.",
+          "2- Follow them to build and launch BasicSwap.",
+          "3- Give the client and wallets time to sync. You can track progress on the <a href=\"/docs/user-guides/manage-enabled-coins#check-sync-progress\">Wallets page</a>.",
+          "4- Once the blockchains have synced, you're ready to swap."
+        ]
+      },
+      {
+        "q": "How does BasicSwap work under the hood?",
+        "a": [
+          "For a detailed walkthrough of how BasicSwap works, see <a href=\"/docs/about/under-the-hood\">Under the hood</a> in the docs."
+        ]
+      },
+      {
+        "q": "How can I deposit coins?",
+        "a": [
+          "1- Open BasicSwap and go to the <a href=\"/docs/user-guides/manage-enabled-coins#manage-wallets\">Wallets page</a>.",
+          "2- Find the coin you want to deposit and click its Manage button.",
+          "3- Copy the deposit address BasicSwap shows you.",
+          "4- Send your funds to that address."
+        ]
+      },
+      {
+        "q": "How can I withdraw coins?",
+        "a": [
+          "1- Open BasicSwap and go to the <a href=\"/docs/user-guides/manage-enabled-coins#manage-wallets\">Wallets page</a>.",
+          "2- Click the Manage button next to the coin you want to withdraw.",
+          "3- Enter the destination address and the amount, and check both carefully.",
+          "4- Click Withdraw to send the transaction."
+        ]
+      },
+      {
+        "q": "How can I place or take an offer on the order book?",
+        "a": [
+          "The full steps for placing and taking offers are in the <a href=\"/docs\">documentation</a>. See the guides for <a href=\"/docs/user-guides/make-offer\">placing an offer</a> and <a href=\"/docs/user-guides/take-offer\">taking an offer</a>."
+        ]
+      },
+      {
+        "q": "How can I follow the progress of an ongoing swap?",
+        "a": [
+          "1- Open the Swaps in Progress tab in BasicSwap.",
+          "2- Click the BID ID of the swap you want to track.",
+          "3- Check the <a href=\"/docs/user-guides/take-offer#follow-the-swap\">Swap Progress</a> section to see which stage of the atomic swap it's at."
+        ]
+      }
+    ]
+  },
+  {
+    "title": "User Experience",
+    "items": [
+      {
+        "q": "Does BasicSwap require a native coin or token to use?",
+        "a": [
+          "No. BasicSwap has no native coin, no token, and no monetization layer, so nothing sits between you and a swap. That also makes it a simple base for other apps and services to build on."
+        ]
+      },
+      {
+        "q": "What coins are available to trade?",
+        "a": [
+          "BasicSwap is open-source, so anyone can work on adding a coin. You can see the current list of supported coins <a href=\"/docs/user-guides/integrate-coin#supported-coins\">here</a>.",
+          "If you want to add one, follow these <a href=\"/docs/user-guides/integrate-coin\">integration examples</a>."
+        ]
+      },
+      {
+        "q": "Can I swap Bitcoin for Monero?",
+        "a": [
+          "Yes, in both directions, and it settles on-chain as an atomic swap. See the <a href=\"/bitcoin-to-monero\">Bitcoin to Monero page</a> for how it works step by step. BasicSwap implements h4sh3d's Bitcoin to Monero protocol using <a href=\"/docs/about/under-the-hood#adaptor-signatures\">adaptor signatures</a>, so there are no wrapped tokens, no bridge, and no intermediary chain. Monero also swaps against Litecoin and several other supported coins."
+        ]
+      },
+      {
+        "q": "What are the fees?",
+        "a": [
+          "0%. BasicSwap charges no trading or service fees. Because swaps settle on-chain, you still pay the normal network fee for each coin you move, usually a few cents, sometimes less."
+        ]
+      },
+      {
+        "q": "How long does it take to set up BasicSwap?",
+        "a": [
+          "Setup has two parts, building the application and getting the coins you enable ready to use. The build usually takes 10 to 30 minutes, depending on your machine and how closely you follow the steps. There is also a community Linux script <a href=\"/docs/user-guides/install#install-with-basicswap-bash\">here</a>.",
+          "How long the coins take depends on whether you run them as full nodes or in lightweight mode. Lightweight mode has almost nothing to wait for. The script coins like Bitcoin and Litecoin read chain state from public Electrum servers, and Monero and Wownero use remote nodes, so you can swap without syncing a chain yourself. See the <a href=\"/docs/user-guides/lightweight-modes\">lightweight modes</a> guide for the details.",
+          "Running full nodes means syncing each chain locally, which takes longer and depends on your connection. Bitcoin has a <a href=\"/docs/user-guides/prepare-options#choose-your-coins\">fast-sync option</a> that loads a pruned chain snapshot and skips most of the history. Monero lets you start swapping before the chain finishes, because it connects to a public node while it catches up."
+        ]
+      },
+      {
+        "q": "How long does it take to complete a swap?",
+        "a": [
+          "It depends on the coins involved. BasicSwap uses atomic swaps, so a swap settles on-chain and waits for <a href=\"/docs/user-guides/take-offer#follow-the-swap\">confirmations on both chains</a>, which ties the time to each chain's block time.",
+          "The defaults are low. Bitcoin waits one confirmation and Monero waits three, with every other supported coin between one and three. A swap makes several of those waits in sequence as each side locks its coins and then claims them, so a finished swap usually takes tens of minutes rather than seconds."
+        ]
+      },
+      {
+        "q": "What are the types of order?",
+        "a": [
+          "BasicSwap currently supports <a href=\"/docs/user-guides/make-offer\">limit orders</a> only. More order types may arrive as contributors keep building on the protocol."
+        ]
+      },
+      {
+        "q": "What happens if a swap fails?",
+        "a": [
+          "If something goes wrong mid-swap, both sides get their coins back, because the swap is atomic. An atomic swap only moves to the next step when its conditions are met. If they are not, it times out and the coins, held in the swap's <a href=\"/docs/about/under-the-hood#atomic-swaps\">time-locked addresses</a>, return to their original owners."
+        ]
+      },
+      {
+        "q": "Is there any way for a swap to get “stuck”?",
+        "a": [
+          "No. The atomic design means a swap cannot get stuck. If a condition is never met, or one side stops taking the required steps, the coins return to their owners automatically after <a href=\"/docs/user-guides/make-offer#step-2-the-terms\">a set time</a>. They cannot stay locked in a swap."
+        ]
+      },
+      {
+        "q": "Do you need to run a local node to perform a swap?",
+        "a": [
+          "For now, your BasicSwap node needs to <a href=\"/docs/user-guides/take-offer#follow-the-swap\">stay online for the whole swap</a>.",
+          "BasicSwap uses the peer-to-peer <a href=\"/docs/user-guides/message-networks\">SecureMessaging network (SMSG)</a> to pass the data each atomic swap step needs between the two sides. Because the steps run in sequence, your node has to be online to send that data when it is needed."
+        ]
+      },
+      {
+        "q": "Can I run my node on a cloud server or VPS?",
+        "a": [
+          "Yes. Running BasicSwap on a VPS is a practical way to keep it online around the clock, and a cloud instance is worth considering if you plan to run the <a href=\"/docs/user-guides/market-making\">automated market making script</a>. One caveat. BasicSwap runs the official core wallet of every coin you enable, so a third-party server carries real risk. <a href=\"/docs/user-guides/manage-enabled-coins#wallet-password\">Encrypt your instance</a> if you go this route."
+        ]
+      },
+      {
+        "q": "Do you collect any data about me?",
+        "a": [
+          "No. BasicSwap is peer-to-peer and open-source. There is no central party, operator, or service provider to collect or share your data. This website stores nothing about you either."
+        ]
+      },
+      {
+        "q": "Are atomic swaps traceable?",
+        "a": [
+          "On-chain, a BasicSwap trade looks like an ordinary transaction. <a href=\"/docs/about/under-the-hood#adaptor-signatures\">Adaptor signatures</a> leave no marker identifying it as a swap and nothing linking the two payments across chains, so the trade does not announce itself to a chain analyst. Orders travel over <a href=\"/docs/user-guides/message-networks\">encrypted peer-to-peer messaging</a> and can be <a href=\"/docs/user-guides/tor\">routed through Tor</a>, and with no operator in the middle there are no logs to keep."
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Technology",
+    "items": [
+      {
+        "q": "Is BasicSwap ready to use today?",
+        "a": [
+          "Yes. BasicSwap is live on mainnet and handles everyday swaps. Development continues, and some features are still being refined or added. Opening it to more people is how the rest gets built, through real feedback and real trades."
+        ]
+      },
+      {
+        "q": "What are the core components of the BasicSwap DEX?",
+        "a": [
+          "Think of BasicSwap as a decentralized version of the SWIFT messaging network. It carries messages between two traders over the SMSG network so they can run a coin swap together, with no central party involved.",
+          "BasicSwap does not perform the swap. That happens on the blockchains of the coins being traded. Its job is to let the two sides exchange the data an atomic swap needs, and to publish offers without an intermediary.",
+          "Three components sit underneath, wrapped in a GUI.",
+          "The <a href=\"/docs/about/under-the-hood#atomic-swaps\">atomic swap protocol</a> lets two traders exchange coins directly. Funds wait in time-locked addresses until every condition is met, and if a step fails the swap is voided and the coins go back once the timelock expires. Read more about atomic swaps <a href=\"https://github.com/decred/atomicswap\">here</a>, and about Monero atomic swaps <a href=\"https://github.com/h4sh3d/xmr-btc-atomic-swap\">here</a>.",
+          "<a href=\"/docs/user-guides/message-networks\">SecureMessaging</a> is a peer-to-peer mixnet that lets two traders reach each other and pass the data an atomic swap needs, such as transaction hashes and proofs. It works across chains with no central control, and it also carries the order book. Read more about SMSG <a href=\"https://particl.news/the-smsg-network-enabling-dapps-with-true-privacy/\">here</a>.",
+          "Coin cores hold the funds, because BasicSwap has no wallet of its own. Setup installs the official core for <a href=\"/docs/user-guides/enable-disable-coins\">each coin you enable</a>, Bitcoin Core, Litecoin Core and the rest, and those run the swaps. You can point BasicSwap at <a href=\"/docs/user-guides/lightweight-modes#monero-remote-nodes\">nodes you already run</a> instead, local or remote."
+        ]
+      },
+      {
+        "q": "Is the order book really entirely decentralized?",
+        "a": [
+          "Yes. The order book runs on the <a href=\"/docs/user-guides/message-networks\">SecureMessaging network</a>, so it is distributed across the nodes rather than served from one place. There is no central point to take down. For how SMSG makes that work, read more <a href=\"https://particl.news/the-smsg-network-enabling-dapps-with-true-privacy/\">here</a>."
+        ]
+      },
+      {
+        "q": "Who runs the SMSG network that powers the DEX?",
+        "a": [
+          "SMSG is a global <a href=\"/docs/user-guides/message-networks\">peer-to-peer network</a> of nodes. When you run BasicSwap, you become one of those nodes. The network's strength comes directly from the people running BasicSwap."
+        ]
+      },
+      {
+        "q": "Does BasicSwap connect to a third-party service?",
+        "a": [
+          "Settling a swap does not. That runs between the two traders and their own coin nodes, with no outside service taking part. Parts of the interface do reach out. <a href=\"/docs/user-guides/price-data\">Price displays call CoinGecko</a>, the client checks GitHub for <a href=\"/docs/user-guides/update\">new releases</a>, and Particl and Litecoin can query public block explorers. <a href=\"/docs/user-guides/lightweight-modes\">Lightweight mode</a> is the other case, since it reads chain state from public Electrum servers and Monero nodes rather than from a node you run."
+        ]
+      },
+      {
+        "q": "Are there premade builds of BasicSwap?",
+        "a": [
+          "Not yet. BasicSwap is compiled from source, and the steps are in the <a href=\"/docs/user-guides/install\">install guide</a>. There is also a community Linux install <a href=\"/docs/user-guides/install#install-with-basicswap-bash\">script</a>."
+        ]
+      },
+      {
+        "q": "Is BasicSwap dependent on a team or organization to operate and function?",
+        "a": [
+          "No. BasicSwap is open-source and decentralized, so it does not depend on a team or a central organization. If community development stopped today, the software would keep working as it does now."
+        ]
+      },
+      {
+        "q": "What makes the BasicSwap network stable?",
+        "a": [
+          "Every user runs a peer-to-peer node, so the DEX keeps running as long as people use it. That is the whole basis of its stability."
+        ]
+      },
+      {
+        "q": "Are Monero swaps truly decentralized? What’s the catch?",
+        "a": [
+          "It is a fair question, and there is no catch. BasicSwap uses h4sh3d's <a href=\"https://github.com/h4sh3d/xmr-btc-atomic-swap\">Monero atomic swap protocol</a>, and the rest runs on the SecureMessaging network and scriptless scripts. There are no wrapped Monero tokens, no intermediary chains, and no workarounds."
+        ]
+      },
+      {
+        "q": "How can I verify and audit BasicSwap’s code?",
+        "a": [
+          "The code is open-source. To audit it, or just read it, visit the <a href=\"https://github.com/basicswap/basicswap\">GitHub</a>. You can check any line yourself rather than take our word for it."
+        ]
+      }
+    ]
+  },
+  {
+    "title": "Get Involved",
+    "items": [
+      {
+        "q": "How can I learn more about BasicSwap?",
+        "a": [
+          "This FAQ covers the common questions. For more depth, head to the <a href=\"/docs\">documentation</a>."
+        ]
+      },
+      {
+        "q": "How can I get in touch with the community?",
+        "a": [
+          "Join the <a href=\"https://matrix.to/#/#basicswap:matrix.org\">Matrix channel</a> and say hello."
+        ]
+      },
+      {
+        "q": "How can I get involved or help the BasicSwap project?",
+        "a": [
+          "There are many ways to help, including contributing <a href=\"https://github.com/basicswap/basicswap\">code</a>. You do not have to be a developer, though. The two most useful things you can do are spread the word about BasicSwap and <a href=\"/docs/user-guides/market-making\">provide liquidity</a>. More users and deeper liquidity are what make the DEX usable as an alternative to centralized exchanges."
+        ]
+      },
+      {
+        "q": "How can I provide liquidity on the order book?",
+        "a": [
+          "Adding liquidity, and earning from arbitrage along the way, is handled by the automated market making script. For step-by-step instructions, see the <a href=\"/docs/user-guides/market-making\">market making guide</a>, or watch the <a href=\"https://particl.news/the-ultimate-cloud-basicswap-setup-and-automated-market-making/\">video tutorials</a>."
+        ]
+      }
+    ]
+  }
+]

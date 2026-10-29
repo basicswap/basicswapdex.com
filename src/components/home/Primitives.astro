@@ -1,0 +1,108 @@
+---
+// "Three primitives" as modules, each with a small animated diagram of what
+// it does. Decorative and text-free; titles and copy come from the page.
+// The diagrams live in ./prim, one per module, keyed by its label.
+import Otves from './prim/Otves.astro';
+import Smsg from './prim/Smsg.astro';
+import Lite from './prim/Lite.astro';
+
+export interface Primitive {
+  n: string;
+  title: string;
+  body: string;
+}
+interface Props {
+  items: Primitive[];
+}
+const { items } = Astro.props;
+
+const DIAGRAMS: Record<string, typeof Otves> = { otves: Otves, smsg: Smsg, lite: Lite };
+---
+
+<ul class="modules" role="list">
+  {
+    items.map(({ n, title, body }) => {
+      const Diagram = DIAGRAMS[n];
+      return (
+        <li class="module">
+          <div class="bar">
+            <span class="dots" aria-hidden="true"><i /><i /><i /></span>
+            <span class="label data">{n}</span>
+          </div>
+          <div class="diagram" aria-hidden="true">{Diagram && <Diagram />}</div>
+          <h3>{title}</h3>
+          <p set:html={body} />
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .modules {
+    display: grid;
+    gap: var(--space-5);
+    padding: 0;
+    list-style: none;
+  }
+
+  .module {
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-4) var(--space-6);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .dots i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-strong);
+  }
+
+  .label {
+    color: var(--link);
+    font-size: var(--step--1);
+  }
+
+  .diagram {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(var(--dot) 1px, transparent 1.5px) 0 0 / 14px 14px,
+      var(--surface);
+  }
+
+  h3,
+  .module > p {
+    padding-inline: var(--space-2);
+  }
+
+  h3 {
+    font-size: var(--step-1);
+  }
+
+  .module > p {
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .modules {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

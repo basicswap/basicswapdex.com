@@ -1,0 +1,43 @@
+---
+import Icon from './Icon.astro';
+---
+
+<button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch between dark and light theme" title="Switch theme">
+  <Icon name="sun" size={18} class="to-light" />
+  <Icon name="moon" size={18} class="to-dark" />
+</button>
+
+<style>
+  .theme-toggle {
+    display: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-lg);
+    background: none;
+    color: var(--text-muted);
+    transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  }
+
+  /* Shown only once the theme script has run. */
+  :global(html[data-js]) .theme-toggle {
+    display: inline-grid;
+  }
+
+  .theme-toggle:hover {
+    color: var(--text);
+    background: color-mix(in oklab, var(--text) 7%, transparent);
+  }
+
+  /* Dark theme offers the sun, light theme offers the moon. */
+  .theme-toggle :global(.to-dark),
+  :global(html[data-theme='light']) .theme-toggle :global(.to-light) {
+    display: none;
+  }
+
+  :global(html[data-theme='light']) .theme-toggle :global(.to-dark) {
+    display: block;
+  }
+</style>

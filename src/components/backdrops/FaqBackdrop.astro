@@ -1,0 +1,211 @@
+---
+// The FAQ hero's backdrop, "Resolved": a field of question marks across the
+// whole hero. A slow wave sweeps left to right; as it passes, each question
+// mark folds away and a tick draws in its place with a soft bloom, then the
+// question returns. A dimmer, smaller layer drifts behind for depth. The field
+// fades in from the left (where the copy sits) to full strength on the right.
+// Still for reduced motion.
+//
+// Kept light to draw: no filters, the back layer is a still SVG that the GPU
+// slides as a whole, and the light band is a plain HTML layer; only the
+// front marks animate.
+let seed = 11;
+const rand = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
+const W = 2000;
+const H = 480;
+const LOOP = 7; // seconds per sweep
+const WAVE = 6; // seconds for the wave to cross
+// a glyph resolves 40% into its cycle; the light band rides with the wave
+const BEAM_DELAY = -(LOOP - 0.4 * LOOP);
+
+const grid = (step: number, ox: number, oy: number, jitter: number) =>
+  Array.from({ length: Math.ceil(H / step) + 1 }, (_, row) =>
+    Array.from({ length: Math.ceil(W / step) + 1 }, (_, col) => {
+      const x = ox + col * step + (row % 2) * (step / 2) + (rand() - 0.5) * jitter;
+      const y = oy + row * step + (rand() - 0.5) * jitter;
+      // the wave reaches each glyph by its x, with a little spread
+      const at = (x / W) * WAVE + row * 0.12 + rand() * 0.7;
+      return { x: r2(x), y: r2(y), d: r2(at - LOOP) };
+    }),
+  ).flat();
+
+const front = grid(78, 20, 30, 10);
+const back = grid(52, 0, 6, 6).map((g) => ({ ...g, d: r2(g.d - 0.9) }));
+---
+
+<div class="faq-bd" aria-hidden="true">
+  <svg class="back" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <symbol id="fqr-qb" overflow="visible">
+        <path d="M-8 -9 a8 8 0 1 1 11 7.5 q-3 1.5 -3 5 v2" fill="none" stroke-linecap="round" />
+        <circle cx="0" cy="11" r="1.5" stroke="none" />
+      </symbol>
+    </defs>
+    {back.map(({ x, y }) => <use href="#fqr-qb" transform={`translate(${x} ${y}) scale(0.62)`} class="qb" />)}
+  </svg>
+  <div class="beam" style={`animation-delay:${BEAM_DELAY}s`}></div>
+  <svg class="front" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="fqr-tick" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#60a5fa" />
+        <stop offset="1" stop-color="#a855f7" />
+      </linearGradient>
+      <symbol id="fqr-q" overflow="visible">
+        <path d="M-8 -9 a8 8 0 1 1 11 7.5 q-3 1.5 -3 5 v2" fill="none" stroke-linecap="round" />
+        <circle cx="0" cy="11" r="1.5" stroke="none" />
+      </symbol>
+    </defs>
+    {
+      front.map(({ x, y, d }) => (
+        <g transform={`translate(${x} ${y})`}>
+          <circle class="bloom" r="16" style={`animation-delay:${d}s`} />
+          <g class="q" style={`animation-delay:${d}s`}>
+            <use href="#fqr-q" />
+          </g>
+          <path class="tick" d="M-9 0 L-3 7 L10 -8" pathLength="1" style={`animation-delay:${d}s`} />
+        </g>
+      ))
+    }
+  </svg>
+</div>
+
+<style>
+  .faq-bd {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    /* from almost nothing behind the copy to full strength on the right */
+    -webkit-mask-image:
+      linear-gradient(to right, rgb(0 0 0 / 0.06) 0%, rgb(0 0 0 / 0.22) 30%, rgb(0 0 0 / 0.6) 55%, black 85%),
+      linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, rgb(0 0 0 / 0.06) 0%, rgb(0 0 0 / 0.22) 30%, rgb(0 0 0 / 0.6) 55%, black 85%),
+      linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+    mask-composite: intersect;
+  }
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* the ambient glow, as plain CSS */
+  .faq-bd {
+    background: radial-gradient(60% 75% at 82% 50%, rgb(0 115 255 / 0.2), rgb(168 85 247 / 0.06) 50%, transparent 75%);
+  }
+
+  /* the back layer never changes inside: the GPU slides it whole */
+  .back {
+    opacity: 0.45;
+    will-change: transform;
+    animation: fqr-drift 34s ease-in-out infinite alternate;
+  }
+
+  .qb {
+    fill: color-mix(in oklab, #60a5fa 42%, transparent);
+    stroke: color-mix(in oklab, #60a5fa 42%, transparent);
+    stroke-width: 1.6;
+  }
+
+  /* the light band riding with the wave, an HTML layer moved by transform */
+  .beam {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 13%;
+    background: linear-gradient(90deg, transparent, rgb(59 130 246 / 0.14) 70%, transparent);
+    will-change: transform;
+    animation: fqr-beam 7s linear infinite;
+  }
+
+  .q {
+    fill: color-mix(in oklab, #60a5fa 42%, transparent);
+    stroke: color-mix(in oklab, #60a5fa 42%, transparent);
+    stroke-width: 1.6;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: fqr-q 7s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  .tick {
+    fill: none;
+    stroke: url(#fqr-tick);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    opacity: 0;
+    animation: fqr-tick 7s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  .bloom {
+    fill: none;
+    stroke: #60a5fa;
+    stroke-width: 1;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: fqr-bloom 7s ease-out infinite;
+  }
+
+  :global(html[data-theme='light']) .q {
+    fill: color-mix(in oklab, #0073ff 32%, transparent);
+    stroke: color-mix(in oklab, #0073ff 32%, transparent);
+  }
+
+  /* the question folds away as the wave arrives, and comes back later */
+  @keyframes fqr-q {
+    0%, 36% { opacity: 1; scale: 1; }
+    40% { opacity: 0; scale: 0.55; }
+    66% { opacity: 0; scale: 0.55; }
+    73%, 100% { opacity: 1; scale: 1; }
+  }
+
+  /* the tick draws in, holds, then fades */
+  @keyframes fqr-tick {
+    0%, 38% { opacity: 0; stroke-dashoffset: 1; }
+    40% { opacity: 1; stroke-dashoffset: 1; }
+    48% { opacity: 1; stroke-dashoffset: 0; }
+    63% { opacity: 1; stroke-dashoffset: 0; }
+    70%, 100% { opacity: 0; stroke-dashoffset: 0; }
+  }
+
+  @keyframes fqr-bloom {
+    0%, 39% { opacity: 0; scale: 0.4; }
+    42% { opacity: 0.75; scale: 0.6; }
+    58%, 100% { opacity: 0; scale: 2.4; }
+  }
+
+  /* the band crosses in WAVE (6 s) of each 7 s, alongside the ticks */
+  @keyframes fqr-beam {
+    0% { transform: translateX(-100%); opacity: 0; }
+    4% { opacity: 1; }
+    82% { opacity: 1; }
+    86% { transform: translateX(770%); opacity: 0; }
+    100% { transform: translateX(770%); opacity: 0; }
+  }
+
+  @keyframes fqr-drift {
+    from { transform: translateX(-24px); }
+    to { transform: translateX(24px); }
+  }
+
+  @media (max-width: 40rem) {
+    .faq-bd {
+      opacity: 0.5;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-bd * {
+      animation: none !important;
+    }
+  }
+</style>

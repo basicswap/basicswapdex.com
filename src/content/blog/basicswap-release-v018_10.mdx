@@ -1,0 +1,136 @@
+---
+title: "BasicSwap v0.18.10: More Price Oracles, Safer Rate Handling, and Swap-Scan Fixes"
+seoTitle: "BasicSwap v0.18.10: More Price Oracles"
+date: 2026-09-30
+author: "BasicSwap Team"
+tags: ["News", "Release", "Security"]
+description: "BasicSwap v0.18.10 adds six price sources, per-source rate-limit handling and stale-rate checks, fixes watched-output and Decred lock-output scans, and updates Particl Core."
+seoDescription: "BasicSwap v0.18.10 adds six price sources with rate-limit and stale-rate handling, fixes watched-output and Decred lock scans, and updates Particl Core."
+thumbnail: ./images/Medium_BSX_18_10.jpg
+banner: ./images/Blog_BSX_18_10.jpg
+---
+BasicSwap v0.18.10 adds six price sources alongside CoinGecko, giving market rates somewhere else to come from when a service is unavailable or limits requests. Each source has its own retry delay, and BasicSwap checks timestamps on newly fetched rates where supported, while configured CoinGecko keys are now sent in request headers rather than URLs and the shared default key has been removed.
+
+The release also corrects transaction scanning so processing one watched script no longer skips the next, and Decred lock outputs beyond the first two positions can be found when the transaction is in the wallet. Along with those fixes, it includes several database corrections and updates the bundled Particl Core from v27.2.5 to v27.2.6.
+
+## Most notable updates
+
+### Price rates no longer depend on one service
+
+CoinGecko remains the first source BasicSwap checks, but it is now followed by Kraken, KuCoin, MEXC, CoinLore, CoinPaprika, and neroswap. The client works through that order separately for each coin and uses the first enabled source with an available cached rate, which means one source can price Bitcoin while another supplies Particl, PIVX, or Wownero ([PR #750](https://github.com/basicswap/basicswap/pull/750)).
+
+All seven sources are enabled by default unless you have disabled them in your settings, so review **Settings > Charts Configuration > Oracles** before starting the automated market maker. AMM modes that use oracle prices follow these source choices, which can include an exchange's latest trade, while static and order-book-only modes keep their own pricing rules ([commit `c7239b0`](https://github.com/basicswap/basicswap/commit/c7239b0)). KuCoin and MEXC supply USDT prices that BasicSwap uses as USD rates without a separate conversion ([PR #750](https://github.com/basicswap/basicswap/pull/750)).
+
+<Callout type="info" title="Historical charts still use CoinGecko">
+The new sources provide current prices, while historical charts continue to fetch their data from CoinGecko. Configure your own key under **Settings > Charts Configuration** for authenticated chart requests, since the other sources do not provide a historical fallback.
+</Callout>
+
+### Bring your own CoinGecko key
+
+BasicSwap no longer includes a shared CoinGecko key, so add your own Demo or Pro key under **Settings > Charts Configuration** and select the matching plan for authenticated requests. Leaving the field blank still sends requests to CoinGecko without a key, while the other enabled sources can supply current prices if CoinGecko does not return them ([commit `fd155b1`](https://github.com/basicswap/basicswap/commit/fd155b1), [PR #744](https://github.com/basicswap/basicswap/pull/744)).
+
+When you configure a key, BasicSwap sends it in a request header so it does not appear in URLs that access logs and intermediaries could record ([commit `3b534b9`](https://github.com/basicswap/basicswap/commit/3b534b9)).
+
+### Fresh-rate checks and independent backoff
+
+BasicSwap rejects newly fetched rates whose reported timestamp is more than 15 minutes old, using the checks added for CoinGecko, CoinPaprika, and neroswap. It does not apply that timestamp check to Kraken, KuCoin, MEXC, or CoinLore, and previously cached prices remain available until their own cache lifetime expires ([commit `815d367`](https://github.com/basicswap/basicswap/commit/815d367)).
+
+When a source rate-limits requests, BasicSwap increases its retry delay in 20-second steps up to two minutes, allowing the other sources to continue supplying prices until a successful request clears the delay ([commit `2eaa7f7`](https://github.com/basicswap/basicswap/commit/2eaa7f7)).
+
+### Transaction scanning no longer skips adjacent matches
+
+BasicSwap removes watched scripts and outputs from its tracking lists as it processes them, but because the old loop walked those same lists, removing one match could skip the next when a transaction paid multiple watched scripts or spent multiple watched outputs. v0.18.10 scans a copy of the lists so removing a processed item no longer skips the next one ([commit `d775a52`](https://github.com/basicswap/basicswap/commit/d775a52), [PR #738](https://github.com/basicswap/basicswap/pull/738)).
+
+When a Decred lock transaction's output index is unknown and the transaction is already in the wallet, BasicSwap now searches all its outputs for the expected address instead of checking only the first two. The two-output fallback remains for transactions the wallet does not have ([commit `877825e`](https://github.com/basicswap/basicswap/commit/877825e), [PR #737](https://github.com/basicswap/basicswap/pull/737)).
+
+### Database and coin-interface cleanup
+
+New databases now declare text columns as `TEXT` instead of `STRING`, which SQLite treats as having numeric affinity and can use to convert numeric-looking text into numbers. Existing databases keep their current column types, so this change does not run a migration. Queries that sort on more than one field also use one valid `ORDER BY` clause instead of trying to add the clause more than once ([commits `3b0cb1c`](https://github.com/basicswap/basicswap/commit/3b0cb1c), [`c4e1fca`](https://github.com/basicswap/basicswap/commit/c4e1fca), [PR #745](https://github.com/basicswap/basicswap/pull/745)).
+
+Firo's proof-of-funds check now reads output values through the shared `getTxOut` coin-interface method, which wraps the existing `gettxout` RPC and returns a transaction-output object ([commit `19b3a04`](https://github.com/basicswap/basicswap/commit/19b3a04), [PR #745](https://github.com/basicswap/basicswap/pull/745)).
+
+### Particl Core v27.2.6
+
+The bundled Particl daemon moves from v27.2.5 to v27.2.6, so run the core update step during your BasicSwap upgrade to fetch the new version ([commit `633ea6f`](https://github.com/basicswap/basicswap/commit/633ea6f), [PR #735](https://github.com/basicswap/basicswap/pull/735)).
+
+<Callout type="info" title="Rate API fields have changed">
+For `/json/rates`, the response keys change from `coingecko` and `coingecko_error` to `oracle` and `oracle_error`, which the bundled `createoffers.py` script already reads. `/json/rateslist` still returns rows, but their source label changes from `coingecko.com` to `oracle`. The default `source` label in `/json/coinprices` and `/json/coinvolume` also becomes `oracle`, so check any scripts that rely on those labels.
+</Callout>
+
+## Install the latest BasicSwap update
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch.
+
+<Callout type="info" title="What to expect on upgrade">
+Back up your coindata directory before updating, then include the `--upgradecores` step to fetch Particl Core v27.2.6. After restarting, review **Settings > Charts Configuration > Oracles**, where sources are enabled unless you have disabled them, and configure your own CoinGecko key for authenticated price and chart requests. Updating from v0.18.9 keeps database schema v38 and does not trigger a migration.
+</Callout>
+
+### Docker
+
+If you installed BasicSwap with Docker:
+
+1. From your BasicSwap repository's `docker` folder, stop the running container with `docker-compose stop`.
+2. From that same folder, run `git pull`.
+3. Run `docker-compose build --no-cache`.
+4. Run `docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --upgradecores`.
+5. When the core update finishes, launch BasicSwap again with `docker-compose up`.
+
+Depending on your Docker version, the command may be `docker compose` without the dash.
+
+### Non-Docker
+
+If you installed BasicSwap without Docker, use the steps below and replace `$HOME/coinswaps` with your installation directory if it differs:
+
+1. Shut down BasicSwap properly.
+2. Run `export SWAP_DATADIR="$HOME/coinswaps"`.
+3. Run `source "$SWAP_DATADIR/venv/bin/activate"`.
+4. From `$SWAP_DATADIR/basicswap`, run `git pull`.
+5. Run `pip3 install --require-hashes -r requirements.txt`.
+6. Run `pip3 install .`.
+7. Run `basicswap-prepare --datadir="$SWAP_DATADIR" --upgradecores`.
+8. Launch BasicSwap as usual.
+
+### Install script
+
+If you installed BasicSwap with [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/), run `bsx-update`.
+
+## Changelog
+
+The v0.18.10 changelog, grouped by area.
+
+### Price oracles and settings
+
+* Move price-source code into a dedicated oracle module and make CoinGecko handling generic enough to share the same fallback path [[`56153e3`](https://github.com/basicswap/basicswap/commit/56153e3)] [[`e2d1335`](https://github.com/basicswap/basicswap/commit/e2d1335)]
+* Add Kraken, KuCoin, MEXC, CoinLore, CoinPaprika, and neroswap as ordered price sources [[`3ed4c9b`](https://github.com/basicswap/basicswap/commit/3ed4c9b)] [[`0830763`](https://github.com/basicswap/basicswap/commit/0830763)] [[`a313624`](https://github.com/basicswap/basicswap/commit/a313624)] [[`72a813d`](https://github.com/basicswap/basicswap/commit/72a813d)] [[`39e6ada`](https://github.com/basicswap/basicswap/commit/39e6ada)] [[`4280ad1`](https://github.com/basicswap/basicswap/commit/4280ad1)] / [PR #750](https://github.com/basicswap/basicswap/pull/750)
+* Let users enable or disable each oracle, with all sources enabled by default [[`c7239b0`](https://github.com/basicswap/basicswap/commit/c7239b0)]
+* Reject newly fetched rates older than 15 minutes using timestamps from CoinGecko, CoinPaprika, and neroswap [[`815d367`](https://github.com/basicswap/basicswap/commit/815d367)]
+* Back off rate-limited sources independently so one service cannot pause every oracle [[`2eaa7f7`](https://github.com/basicswap/basicswap/commit/2eaa7f7)]
+* Remove the shared CoinGecko key, add Demo and Pro settings, and send configured keys in request headers [[`fd155b1`](https://github.com/basicswap/basicswap/commit/fd155b1)] [[`3b534b9`](https://github.com/basicswap/basicswap/commit/3b534b9)] / [PR #744](https://github.com/basicswap/basicswap/pull/744)
+* Rename `/json/rates` fields to `oracle` and `oracle_error`, and change the source labels in `/json/rateslist` and the default responses from `/json/coinprices` and `/json/coinvolume` to `oracle` [[`e2d1335`](https://github.com/basicswap/basicswap/commit/e2d1335)]
+
+### Transaction scanning and coin interfaces
+
+* Avoid skipping adjacent watchers when a transaction pays multiple watched scripts or spends multiple watched outputs [[`d775a52`](https://github.com/basicswap/basicswap/commit/d775a52)] / [PR #738](https://github.com/basicswap/basicswap/pull/738)
+* Search all outputs for an unknown Decred lock-output index when the transaction is available in the wallet [[`877825e`](https://github.com/basicswap/basicswap/commit/877825e)] / [PR #737](https://github.com/basicswap/basicswap/pull/737)
+* Read Firo proof-of-funds outputs through the coin interface [[`19b3a04`](https://github.com/basicswap/basicswap/commit/19b3a04)] / [PR #745](https://github.com/basicswap/basicswap/pull/745)
+
+### Database and tests
+
+* Give new database text columns SQLite `TEXT` affinity and declare message-network IDs as `INTEGER` [[`3b0cb1c`](https://github.com/basicswap/basicswap/commit/3b0cb1c)] / [PR #745](https://github.com/basicswap/basicswap/pull/745)
+* Correct multi-column query sorting [[`c4e1fca`](https://github.com/basicswap/basicswap/commit/c4e1fca)] / [PR #745](https://github.com/basicswap/basicswap/pull/745)
+* Compare rounded bid rates with the stored offer rate in tests [[`64ceec9`](https://github.com/basicswap/basicswap/commit/64ceec9)] / [PR #739](https://github.com/basicswap/basicswap/pull/739)
+
+### Coin cores
+
+* Update Particl Core from v27.2.5 to v27.2.6 [[`633ea6f`](https://github.com/basicswap/basicswap/commit/633ea6f)] / [PR #735](https://github.com/basicswap/basicswap/pull/735)
+
+You can inspect every change on the [v0.18.9 to v0.18.10 comparison page](https://github.com/basicswap/basicswap/compare/v0.18.9...v0.18.10).
+
+## Stay connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Monero (XMR)",
+    "icon": "monero",
+    "alt": "Monero",
+    "address": "8BuQsYBNdfhfoWsvVR1unE7YuZEoTkC4hANaPm2fD6VR5VM2DzQoJhq2CHHXUN1UCWQfH3dctJgorSRxksVa5U4RNTJkcAc"
+  },
+  {
+    "name": "Litecoin (LTC)",
+    "icon": "litecoin",
+    "alt": "Litecoin",
+    "address": "ltc1qevlumv48nz2afl0re9ml4tdewc56svxq3egkyt"
+  },
+  {
+    "name": "Litecoin (LTC) MWEB",
+    "icon": "litecoin",
+    "alt": "Litecoin MWEB",
+    "address": "ltcmweb1qqt9rwznnxzkghv4s5wgtwxs0m0ry6n3atp95f47slppapxljde3xyqmdlnrc8ag7y2k354jzdc4pc4ks0kr43jehr77lngdecgh6689nn5mgv5yn"
+  },
+  {
+    "name": "Bitcoin (BTC)",
+    "icon": "bitcoin",
+    "alt": "Bitcoin",
+    "address": "bc1q72j07vkn059xnmsrkk8x9up9lgvd9h9xjf8cq8"
+  },
+  {
+    "name": "Bitcoin Cash (BCH)",
+    "icon": "bitcoin-cash",
+    "alt": "Bitcoin Cash",
+    "address": "qr3f90t4sxwf6x9hrtwgpcd2prr8tf6x0qc9rpnlzp"
+  },
+  {
+    "name": "Particl (PART)",
+    "icon": "particl",
+    "alt": "Particl",
+    "address": "pw1qf59ef0zjdckldjs8smfhv4j04gsjv302w7pdpz"
+  }
+]

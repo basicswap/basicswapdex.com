@@ -1,0 +1,65 @@
+---
+title: "Under the hood"
+sidebar: "Under the Hood"
+seoTitle: "How BasicSwap Works: Swaps and Messaging"
+description: "BasicSwap pairs secret-hash and adaptor-signature atomic swaps with peer-to-peer messaging over SMSG, SimpleX or Nostr, so two traders swap with no middleman."
+published: 2025-03-14
+---
+BasicSwap brings two things together, atomic swap protocols that move the coins on their own blockchains and message networks that carry the offers and the data two traders exchange to set a swap up. BasicSwap itself never holds or moves anyone's coins. It runs on each trader's own computer, where it follows the protocol, talks to the other trader and signs that trader's transactions.
+
+<Panel title="Messaging plus atomic swaps">
+
+The message networks take the place of an exchange's servers, carrying the order book and the conversation between two traders. The atomic swap takes the place of the exchange's custody, and with it neither trader can take the other's coins without giving up their own in the same move.
+
+</Panel>
+
+## Atomic swaps
+
+An atomic swap is a trade between two blockchains in which either both payments happen or neither does. Each side locks its coins so that only the other side can claim them under the agreed terms, while the owner can take them back after a timeout if the swap stalls. BasicSwap has two protocols for this, and picks one for each coin pair.
+
+<Cards cols={2}>
+  <Card icon="key" title="Secret hash (HTLC)">With hashed timelock contracts, both sides lock coins in a script that pays out against a secret, and claiming one side reveals the secret that unlocks the other. It needs scripts on both chains, which Bitcoin, Litecoin and Dash all have.</Card>
+  <Card icon="blocks" title="Adaptor signatures">The two sides exchange signatures that only become valid together, so completing one payment reveals what's needed for the other. This is what lets Monero and Wownero, whose blockchains have no scripts, take part in swaps.</Card>
+</Cards>
+
+Both protocols are open designs from the wider cryptocurrency community, and both are narrow on purpose. They say how two people exchange coins safely, but not how those people find each other, agree on a price or pass the keys and signatures back and forth. Blockchains can't talk to each other, so a swap needs a separate channel between the traders for every step, and that's the job of BasicSwap's message networks.
+
+<Callout type="resource" title="Further reading">
+
+Particl News has a good overview of [how atomic swaps work](https://particl.news/atomic-swap-style-showdown/). For the protocols themselves, Decred's [atomicswap repository](https://github.com/decred/atomicswap) is the reference implementation of secret-hash swaps, and the Monero Research Lab's [paper on Monero swaps](https://www.getmonero.org/resources/research-lab/pubs/MRL-0010.pdf) describes the adaptor-signature approach.
+
+</Callout>
+
+## Message networks
+
+Offers, bids and every message of a swap travel over peer-to-peer networks instead of a server. BasicSwap can use three, on their own or together:
+
+- **SecureMessaging (SMSG)**, Particl's encrypted messaging network, similar to BitMessage. It's the default, and every BasicSwap runs a Particl node that takes part in the network and relays messages between nodes.
+- **SimpleX**, through SimpleX Chat, which posts offers to a shared group and sends swap messages as direct chats.
+- **Nostr**, through public relays, with a new key for each swap so your swaps can't be linked through it.
+
+Whichever network carries them, BasicSwap encrypts bids and swap messages on your computer so that only the other trader can read them. BasicSwap encrypts offers to a key that every node shares, so that any node can list them. With more than one network on, BasicSwap reaches traders on any of them, and a node can even relay between networks for others. [Message networks](/docs/user-guides/message-networks) explains how to set them up.
+
+BasicSwap builds the order book from these messages too. Each BasicSwap collects the offers it receives and shows them, which means there's no central list that someone could edit or take down.
+
+## Adaptor signatures
+
+Secret-hash swaps need scripts on both blockchains, so they can't include Monero. Adaptor signatures solve that, and they're more private as well. A secret-hash swap puts the same hash on both chains at about the same time, which links the two transactions for anyone watching, while an adaptor-signature swap leaves no such trace.
+
+<Tabs>
+<TabItem value="what" label="What they are" default>
+
+An adaptor signature is an incomplete signature that becomes valid only when combined with a secret value, the adaptor, and publishing the completed signature reveals that adaptor to anyone who looks. A swap uses this so that when one trader claims their coins, the signature they publish gives the other trader exactly what they need to claim theirs.
+
+</TabItem>
+<TabItem value="benefits" label="Benefits">
+
+Adaptor signatures let coins without scripts, such as Monero, take part in swaps at all. They also leave no shared hash on-chain for an observer to link the two sides of a swap with, and the transactions they produce are smaller than those of script-based swaps.
+
+</TabItem>
+<TabItem value="paper" label="The paper">
+
+BasicSwap's adaptor-signature swaps build on one-time verifiably encrypted signatures, which the [OtVES paper](https://eprint.iacr.org/2018/472.pdf) introduced.
+
+</TabItem>
+</Tabs>

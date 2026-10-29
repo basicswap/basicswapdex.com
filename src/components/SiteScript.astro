@@ -1,0 +1,60 @@
+---
+// The site's inline script, in <head>. (The other script is the ribbon
+// shader, src/scripts/ribbon.ts, loaded as a deferred module.) Three jobs:
+//
+// 1. Theme. Runs before first paint so a visitor who chose the light theme
+//    never sees a dark flash. Dark is the default and needs no script:
+//    <html data-theme="dark"> is in the markup.
+// 2. Copy buttons ([data-copy="text"], placed right after the text they
+//    copy). Sets data-copied for 1.5s so CSS can confirm it.
+// 3. Off-screen pause. Each top-level section of <main> gets data-offscreen
+//    while it is out of view, and global.css holds its CSS animations there,
+//    so decorative loops nobody can see don't keep restyling the page.
+//
+// `data-js` on <html> reveals the theme toggle and copy buttons, so visitors
+// without JS never see controls that do nothing.
+---
+
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    var saved;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    if (saved === 'light') root.dataset.theme = 'light';
+    root.dataset.js = '';
+    document.addEventListener('click', function (event) {
+      var t = event.target.closest ? event.target : null;
+      if (!t) return;
+      if (t.closest('[data-theme-toggle]')) {
+        var next = root.dataset.theme === 'light' ? 'dark' : 'light';
+        root.dataset.theme = next;
+        try { localStorage.setItem('theme', next); } catch (e) {}
+        return;
+      }
+      var copy = t.closest('[data-copy]');
+      if (!copy) return;
+      // If the clipboard is blocked, select the text beside the button so it
+      // can be copied by hand.
+      var selectText = function () {
+        var el = copy.previousElementSibling;
+        if (el) window.getSelection().selectAllChildren(el);
+      };
+      if (!navigator.clipboard) return selectText();
+      navigator.clipboard.writeText(copy.dataset.copy).then(function () {
+        copy.dataset.copied = '';
+        setTimeout(function () { delete copy.dataset.copied; }, 1500);
+      }, selectText);
+    });
+    if ('IntersectionObserver' in window) {
+      document.addEventListener('DOMContentLoaded', function () {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) e.target.removeAttribute('data-offscreen');
+            else e.target.setAttribute('data-offscreen', '');
+          });
+        }, { rootMargin: '200px 0px' });
+        document.querySelectorAll('main > section').forEach(function (s) { io.observe(s); });
+      });
+    }
+  })();
+</script>

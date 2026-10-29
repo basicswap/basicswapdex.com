@@ -1,0 +1,33 @@
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "BasicSwap Desktop",
+    "description": "Self-hosted desktop client for the BasicSwap protocol. Run a local node, post offers, and settle cross-chain atomic swaps across 12 chains with no custodian and no account.",
+    "url": "https://basicswapdex.com/desktop",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Linux, macOS, Windows",
+    "downloadUrl": "https://github.com/basicswap/basicswap/releases/latest",
+    "softwareHelp": "https://basicswapdex.com/docs",
+    "license": "https://opensource.org/licenses/MIT",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Cross-chain atomic swaps",
+      "Distributed order book",
+      "Non-custodial (local coin core wallets)",
+      "Zero protocol fees",
+      "Automated market making",
+      "Optional Tor routing"
+    ],
+    "author": {
+      "@type": "Organization",
+      "name": "BasicSwap DEX",
+      "url": "https://basicswapdex.com"
+    }
+  }
+]

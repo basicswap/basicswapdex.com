@@ -1,0 +1,369 @@
+---
+title: "Lightweight modes"
+sidebar: "Lightweight Modes"
+seoTitle: "Electrum Wallets and Monero Remote Nodes"
+description: "Run Bitcoin and Litecoin through Electrum servers and Monero or Wownero through a remote node, so BasicSwap can trade without downloading those blockchains."
+published: 2026-04-14
+---
+Running a full node for every coin is the most private and independent way to use BasicSwap, but it means downloading and checking each blockchain, which for Bitcoin and Monero runs to hundreds of gigabytes and days of syncing. For four coins there's a lighter option. Bitcoin and Litecoin can run as Electrum light wallets that ask public servers about the blockchain, and Monero and Wownero can use a remote node in place of a local one. In both cases your keys and wallet stay on your computer, and what you give up is some privacy and the guarantee that you checked the chain yourself. Every other coin still runs a full node.
+
+## Electrum light wallets for Bitcoin and Litecoin
+
+In its usual mode, which BasicSwap calls RPC, BasicSwap runs a full node for the coin and checks every block and transaction on your own machine. In Electrum mode it runs no node for that coin at all. It connects instead to ElectrumX servers, which index the blockchain and answer questions about balances, transactions and unspent outputs on your behalf. Your keys never leave your computer, although the server does learn which addresses you're asking about.
+
+### What you trade
+
+| | Full node (RPC) | Electrum light wallet |
+|---|---|---|
+| **Blockchain download** | The whole chain | None |
+| **Disk space** | Hundreds of GB for Bitcoin | A few MB |
+| **Ready to use** | After hours or days of syncing | Within seconds |
+| **Trust** | You check everything yourself | You rely on the server's answers |
+| **Privacy** | No one sees your queries | The server sees which addresses you query |
+| **Availability** | Your own node | Public servers, with automatic failover between them |
+
+Electrum mode covers Bitcoin and Litecoin only. Litecoin works this way from BasicSwap 0.17.5 on, the first release that could confirm Litecoin transactions over Electrum. Its MWEB addresses, the ones starting with `ltcmweb1`, don't work in this mode, so a Litecoin light wallet uses standard addresses only.
+
+### Turn on Electrum mode at setup
+
+The simplest way is to choose it when you first run `basicswap-prepare`. The `--light` option puts every supported coin you enable, Bitcoin and Litecoin, on Electrum:
+
+<Tabs groupId="install-method">
+<TabItem value="docker" label="Docker" default>
+
+```bash
+docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --withcoins=monero,bitcoin --htmlhost="0.0.0.0" --wshost="0.0.0.0" --xmrrestoreheight=$CURRENT_XMR_HEIGHT --light
+```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+```bash
+basicswap-prepare --datadir=$SWAP_DATADIR --withcoins=monero,bitcoin --xmrrestoreheight=$CURRENT_XMR_HEIGHT --light
+```
+
+</TabItem>
+</Tabs>
+
+To choose coin by coin, use `--btc-mode=electrum` and `--ltc-mode=electrum` instead, which lets you, for example, keep a full Bitcoin node while running Litecoin as a light wallet:
+
+<Tabs groupId="install-method">
+<TabItem value="docker" label="Docker" default>
+
+```bash
+docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --withcoins=monero,bitcoin,litecoin --htmlhost="0.0.0.0" --wshost="0.0.0.0" --xmrrestoreheight=$CURRENT_XMR_HEIGHT --btc-mode=electrum --ltc-mode=electrum
+```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+```bash
+basicswap-prepare --datadir=$SWAP_DATADIR --withcoins=monero,bitcoin,litecoin --xmrrestoreheight=$CURRENT_XMR_HEIGHT --btc-mode=electrum --ltc-mode=electrum
+```
+
+</TabItem>
+</Tabs>
+
+If you'd rather use a server you trust than the built-in list, name it with `--btc-electrum-server` or `--ltc-electrum-server` in the form `host:port:ssl`, where `ssl` is `true` unless you set it to `false`:
+
+```bash
+basicswap-prepare --datadir=$SWAP_DATADIR --withcoins=bitcoin --btc-mode=electrum --btc-electrum-server=custom.server.com:50002:true
+```
+
+With basicswap-bash, the installer and `bsx-addcoin` both ask whether to use Electrum for Bitcoin and Litecoin, and let you enter your own server.
+
+<Callout type="info" title="Reaching the UI from another machine">
+
+The Docker examples set `--htmlhost="0.0.0.0"` so that BasicSwap listens inside its container, while the default `.env` still publishes the port only to the same machine, which means `http://localhost:12700` works with no change. People often use a light-wallet setup from another computer, though, and browsing to it by a LAN address such as `http://192.168.1.50:12700` returns `403 Host not allowed` until that address is in `allowed_hosts`. [Reaching BasicSwap over a network](/docs/user-guides/web-ui-authentication#reaching-basicswap-over-a-network) explains how to add it.
+
+</Callout>
+
+### Switch an existing coin
+
+An installed Bitcoin or Litecoin wallet can move between a full node and Electrum at any time, as long as none of its swaps is in progress. The usual way is through the web UI:
+
+1. Open **Settings** and find Bitcoin or Litecoin.
+2. Change **Connection Type** from `rpc` to `electrum`, or back again.
+3. Optionally, enter your own Electrum servers in the server lists.
+4. Leave **Address Gap Limit** as it is. BasicSwap 0.19.0 saves the field but nothing reads it, as the [reference table](#electrum-settings) below explains.
+5. Click **Apply**, then confirm the switch in the dialog that opens. If the wallet holds a balance, the dialog also asks what to do with it, as described below.
+
+You can also make the change by hand. Stop BasicSwap, open `basicswap.json` in your data folder, set the coin's connection type and turn off its daemon, then start BasicSwap again:
+
+```json
+{
+  "chainclients": {
+    "bitcoin": {
+      "connection_type": "electrum",
+      "manage_daemon": false
+    }
+  }
+}
+```
+
+Both modes derive the wallet from the same recovery phrase, so funds on standard native segwit (BIP84) addresses show up in either mode and normally don't need to move. A transfer only matters for funds on addresses the other mode can't derive, and the switching dialog handles those differently depending on the direction.
+
+**From a full node to Electrum**, the dialog first shows the coin's extended private key, a `zprv…` or `yprv…` string, with instructions for importing it into an external Electrum wallet, and asks you to tick *"I have written down this key"* before it goes on. It then looks for funds on legacy or imported addresses that the BIP84 path can't reach from your phrase. If those funds are worth more than the fee to move them, BasicSwap consolidates them onto a BIP84 address as part of the switch, and there's no way to opt out in this direction. If they're worth less, the dialog says so and leaves them. Funds already on BIP84 addresses stay where they are.
+
+**From Electrum back to a full node**, the dialog checks the light wallet's balance against the estimated fee. When the balance is less than about twice the fee, it shows *"Balance is too low to transfer - fee would exceed funds"* and moves nothing. Otherwise it offers you a choice between two options. **Auto-transfer funds to RPC wallet**, the default, sends the light wallet's balance to the full-node wallet during the switch, minus a normal network fee. **Keep funds on current addresses** moves nothing, but BasicSwap still brings the full node's address pool in line with the light wallet's and rescans, so the node finds those funds afterwards.
+
+BasicSwap doesn't remember either choice, and asks again at every switch. If you'd rather not use the dialog at all, send the coin's balance to another wallet you control before switching, so there's nothing left to move, and bring it back afterwards if you like.
+
+### Electrum servers
+
+BasicSwap comes with a list of public servers for each coin and moves between them on its own. You can replace the list for more control or privacy.
+
+<Tabs>
+<TabItem value="btc-servers" label="Bitcoin" default>
+
+| Server | Port | SSL |
+|--------|------|-----|
+| bitcoin.stackwallet.com | 50002 | Yes |
+| electrum.blockstream.info | 50002 | Yes |
+| electrum.emzy.de | 50002 | Yes |
+| electrum.bitaroo.net | 50002 | Yes |
+| electrum.acinq.co | 50002 | Yes |
+| btc.lastingcoin.net | 50002 | Yes |
+
+</TabItem>
+<TabItem value="ltc-servers" label="Litecoin">
+
+| Server | Port | SSL |
+|--------|------|-----|
+| litecoin.stackwallet.com | 20063 | Yes |
+| electrum-ltc.bysh.me | 50002 | Yes |
+| electrum.ltc.xurious.com | 50002 | Yes |
+| backup.electrum-ltc.org | 443 | Yes |
+| ltc.rentonisk.com | 50002 | Yes |
+| electrum-ltc.petrkr.net | 60002 | Yes |
+| electrum.jochen-hoenicke.de | 50004 | Yes |
+
+</TabItem>
+</Tabs>
+
+You write each server as `host:port:ssl`, so `bitcoin.stackwallet.com:50002:true` uses SSL and `my-server.local:50001:false` doesn't. To use your own, open **Settings**, choose the coin, and enter one server per line in the clearnet or onion server fields. `basicswap.json` keeps the same lists under `electrum_clearnet_servers` and `electrum_onion_servers`:
+
+```json
+{
+  "chainclients": {
+    "bitcoin": {
+      "connection_type": "electrum",
+      "manage_daemon": false,
+      "electrum_clearnet_servers": [
+        "bitcoin.stackwallet.com:50002:true",
+        "electrum.blockstream.info:50002:true"
+      ],
+      "electrum_onion_servers": [
+        "your-onion-server.onion:50001:false"
+      ]
+    }
+  }
+}
+```
+
+### Electrum over Tor
+
+When BasicSwap [runs over Tor](/docs/user-guides/tor), its Electrum connections go through the Tor proxy too, and the onion server list decides how. BasicSwap has no built-in onion servers, so you add any you want yourself. If the list contains at least one onion server, BasicSwap uses only the onion servers and ignores every clearnet entry while Tor is on, without falling back to them. With no onion servers listed, it uses the clearnet servers, your own or the defaults, through the Tor proxy. Tor doesn't change any server's SSL setting. Clearnet servers usually use SSL, while onion servers are usually set to `false` and leave the encryption to Tor, which already protects the connection end to end.
+
+### Following an Electrum wallet
+
+On the **Wallets** page, a coin in Electrum mode shows the server it's connected to, that server's version and the connection status instead of a sync bar, and it's ready to use as soon as it connects. A status of *Connected* means all is well, while *Disconnected* means BasicSwap lost the server and is reconnecting. *All servers failed* means none of the configured servers answered, which usually points to the server list or your network.
+
+Behind that, BasicSwap pings its servers regularly, moves to another server when one stops answering, backs off for five minutes from a server that rate-limits it, and favours servers that have been fast and reliable.
+
+### Electrum settings
+
+| Setting | Type | Default | What it does |
+|---------|------|---------|--------------|
+| `connection_type` | string | `"rpc"` | `"electrum"` turns on light wallet mode. |
+| `manage_daemon` | bool | `true` | Must be `false` in Electrum mode. |
+| `electrum_clearnet_servers` | list | The built-in servers | Your clearnet servers, as `host:port:ssl`. |
+| `electrum_onion_servers` | list | `[]` | Your onion servers, used when Tor is on. |
+| `electrum_poll_interval` | int | `10` | How often, in seconds, the wallet checks for updates. |
+| `address_gap_limit` | int | `50` | Currently has no effect. BasicSwap 0.19.0 saves it but always scans 50 addresses ahead when looking for funds, and reuses addresses once 20 are unused. |
+
+## Monero remote nodes
+
+Monero and Wownero can use a node running somewhere else in place of the `monerod` daemon BasicSwap would otherwise run, which saves downloading the Monero blockchain. Only the daemon moves elsewhere, while the wallet, `monero-wallet-rpc`, still runs on your computer, creates and holds your keys there, and only asks the remote daemon for blockchain data and to broadcast transactions.
+
+| | Local daemon | Remote node |
+|---|---|---|
+| **Blockchain download** | The whole chain, over 200 GB | None |
+| **Disk space** | Large | Wallet data only |
+| **Ready to use** | After hours or days of syncing | Within seconds |
+| **Trust** | You check everything yourself | You rely on the node's answers |
+| **Privacy** | No one sees your queries | The node sees your wallet's queries |
+| **Availability** | Your own node | Depends on the remote node |
+
+### Use a remote node at setup
+
+To use a remote node from the start, give its address to `basicswap-prepare` in the `XMR_RPC_HOST` and `XMR_RPC_PORT` environment variables, and BasicSwap won't set up a daemon of its own:
+
+<Tabs groupId="install-method">
+<TabItem value="docker" label="Docker" default>
+
+```bash
+docker-compose run --rm -e XMR_RPC_HOST="node2.monerodevs.org" -e XMR_RPC_PORT=18089 swapclient basicswap-prepare --datadir=/coindata --withcoins=monero,bitcoin --htmlhost="0.0.0.0" --wshost="0.0.0.0" --xmrrestoreheight=$CURRENT_XMR_HEIGHT
+```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+```bash
+XMR_RPC_HOST="node2.monerodevs.org" XMR_RPC_PORT=18089 basicswap-prepare --datadir=$SWAP_DATADIR --withcoins=monero,bitcoin --xmrrestoreheight=$CURRENT_XMR_HEIGHT
+```
+
+</TabItem>
+</Tabs>
+
+If the node asks for a login, add `XMR_RPC_USER` and `XMR_RPC_PWD` as well:
+
+<Tabs groupId="install-method">
+<TabItem value="docker" label="Docker" default>
+
+```bash
+docker-compose run --rm -e XMR_RPC_HOST="192.168.1.9" -e XMR_RPC_PORT=18089 -e XMR_RPC_USER="myuser" -e XMR_RPC_PWD="mypassword" swapclient basicswap-prepare --datadir=/coindata --withcoins=monero,bitcoin --htmlhost="0.0.0.0" --wshost="0.0.0.0" --xmrrestoreheight=$CURRENT_XMR_HEIGHT
+```
+
+</TabItem>
+<TabItem value="source" label="From source">
+
+```bash
+XMR_RPC_HOST="192.168.1.9" XMR_RPC_PORT=18089 XMR_RPC_USER="myuser" XMR_RPC_PWD="mypassword" basicswap-prepare --datadir=$SWAP_DATADIR --withcoins=monero,bitcoin --xmrrestoreheight=$CURRENT_XMR_HEIGHT
+```
+
+</TabItem>
+</Tabs>
+
+The basicswap-bash installer asks the same question, and checks that it can reach the node before it carries on.
+
+### Switch an existing install to a remote node
+
+In the web UI, open **Settings** and expand the **Monero** card. Set **Manage Daemon** to `False`, enter the node's address in **Daemon RPC Host** and its port in **Daemon RPC Port**, which is usually `18081` or `18089`, and click **Apply**. The same card also lets you list several nodes under **Trusted Public Nodes** with **Automatically Select Daemon** turned on, and choose a **Transaction Fee Priority** of Auto, Slow, Normal or Fast.
+
+To do it by hand instead, stop BasicSwap and set the node under `chainclients.monero` in `basicswap.json`, adding `rpcuser` and `rpcpassword` if the node needs a login, then start BasicSwap again:
+
+```json
+{
+  "chainclients": {
+    "monero": {
+      "connection_type": "rpc",
+      "manage_daemon": false,
+      "manage_wallet_daemon": true,
+      "rpchost": "192.168.1.9",
+      "rpcport": 18089,
+      "rpcuser": "myuser",
+      "rpcpassword": "mypassword"
+    }
+  }
+}
+```
+
+### Your own node on another machine
+
+If you run a Monero node elsewhere, for example on a home server, you can connect BasicSwap to it over the network with a login, or keep its RPC port closed and reach it through an SSH tunnel.
+
+To connect directly, give the node a restricted RPC port with a login in its `monerod.conf`, open that port in its firewall, and use the `basicswap.json` settings above with the node's address:
+
+```ini
+rpc-login=myuser:mypassword
+rpc-restricted-bind-port=18089
+rpc-restricted-bind-ip=0.0.0.0
+```
+
+You can test the connection from the BasicSwap machine before starting BasicSwap:
+
+```bash
+curl http://192.168.1.9:18089/json_rpc -u myuser:mypassword --digest -d '{"jsonrpc":"2.0","id":"0","method":"get_info"}' -H 'Content-Type: application/json'
+```
+
+An SSH tunnel avoids exposing the port at all, and SSH then takes care of authentication, so the node needs no RPC login. Set `rpc-restricted-bind-port=18089` in the node's `monerod.conf`, then open the tunnel from the BasicSwap machine with the first command below, or from the node with the second:
+
+```bash
+ssh -N -L 18089:localhost:18089 user@REMOTE_NODE_IP
+```
+
+```bash
+ssh -N -R 18089:localhost:18089 user@LOCAL_BSX_IP
+```
+
+BasicSwap then reaches the node at `localhost`:
+
+```json
+{
+  "chainclients": {
+    "monero": {
+      "connection_type": "rpc",
+      "manage_daemon": false,
+      "manage_wallet_daemon": true,
+      "rpchost": "localhost",
+      "rpcport": 18089
+    }
+  }
+}
+```
+
+### Trusted and untrusted nodes
+
+A fresh install treats a remote Monero or Wownero node as trusted, with `"trusted_daemon": true`, which lets the wallet skip some checks and work faster.
+
+Turning [Tor](/docs/user-guides/tor) on or off changes that setting. The `--enabletor` and `--disabletor` options, and the `bsx-enabletor` and `bsx-disabletor` commands that run them, reset it to `"auto"` unless you add `--trustremotenode` to the same command. In auto mode, trust follows the node's address. A node at a private address, meaning `127.x.x.x`, `10.x.x.x`, `172.16-31.x.x`, `192.168.x.x`, `localhost` or a `*.local` name, counts as trusted, and any other node is untrusted, so the wallet runs extra checks against it in case it's dishonest.
+
+To set the mode yourself, stop BasicSwap and set `"trusted_daemon"` to `true`, `false` or `"auto"` in the Monero or Wownero section of `basicswap.json`.
+
+<Callout type="warning" title="Only use nodes you trust">
+
+Even in untrusted mode, a remote node can feed the wallet false data, including wildly inflated fees, and that can cost you funds for good.
+
+</Callout>
+
+### Several nodes with automatic selection
+
+BasicSwap can pick from a list of remote nodes, which gives you a fallback when one goes down. Unlike Electrum, which changes servers while running, Monero picks its node only at startup. It tries the node it used last, and if that fails, it shuffles the list and tries each node in turn, keeping the first one that answers as the new default.
+
+To turn it on, enable **Automatically Select Daemon** and fill in **Trusted Public Nodes** in Settings, or set it in `basicswap.json`:
+
+```json
+{
+  "chainclients": {
+    "monero": {
+      "connection_type": "rpc",
+      "manage_daemon": false,
+      "manage_wallet_daemon": true,
+      "automatically_select_daemon": true,
+      "remote_daemon_urls": [
+        "node2.monerodevs.org:18089",
+        "node.xmr.to:18081"
+      ]
+    }
+  }
+}
+```
+
+### Remote nodes over Tor
+
+When BasicSwap runs over Tor, it routes connections to a remote Monero node through the Tor proxy without any further setup. The exception is a node at a private address, which BasicSwap reaches directly over your own network.
+
+### Monero settings
+
+| Setting | Type | Default | What it does |
+|---------|------|---------|--------------|
+| `manage_daemon` | bool | `true` | `false` for a remote node. |
+| `manage_wallet_daemon` | bool | `true` | The wallet always runs locally, so leave it `true`. |
+| `rpchost` | string | `"127.0.0.1"` | The node's address or hostname. |
+| `rpcport` | int | `29798` | The node's RPC port. `29798` is BasicSwap's own default, picked to stay clear of a `monerod` already running on the computer, so change it for a public node, which usually listens on `18081` for unrestricted access or `18089` for restricted access. |
+| `rpcuser` | string | `""` | The node's RPC username, if it has one. |
+| `rpcpassword` | string | `""` | The node's RPC password, if it has one. |
+| `trusted_daemon` | bool or string | `true` | `true`, `false` or `"auto"`, which decides from the node's address. |
+| `automatically_select_daemon` | bool | `false` | Picks a node from `remote_daemon_urls` at startup. |
+| `remote_daemon_urls` | list | `[]` | Nodes to choose from, as `host:port`. |
+| `fee_priority` | int | `0` | Transaction fee priority: 0 auto, 1 slow, 2 normal, 3 fast. |
+| `rpctimeout` | int | `60` | How long, in seconds, to wait for the node. |
+
+A remote node is a compromise worth understanding before you rely on it. The node sees which transactions you broadcast and which outputs your wallet asks about. Public nodes can also be slow, rate-limited or disappear without notice, which is why your own node, even on another machine, beats a public one, and why several nodes listed for automatic selection beat a single one. The wallet itself still runs on your computer, though it needs far less than a full daemon would.
+
+<Callout type="tip" title="Wownero works the same way">
+
+Everything in this section applies to Wownero as well. Use the `WOW_` prefix for the setup variables, as in `WOW_RPC_HOST` and `WOW_RPC_PORT`, and the `wownero` section of `basicswap.json` in place of `monero`.
+
+</Callout>

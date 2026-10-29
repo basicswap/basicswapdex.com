@@ -1,0 +1,136 @@
+---
+title: "New BasicSwap Release (v0.16.1)"
+seoTitle: "BasicSwap v0.16.1: Litecoin Core Update"
+date: 2026-05-06
+author: "BasicSwap Team"
+tags: ["News", "Release", "Coin Update"]
+description: "A new version of BasicSwap is now available for download."
+seoDescription: "BasicSwap v0.16.1 updates Litecoin Core to 0.21.5.5, recovers MWEB change, adds --extracoinopts for advanced recovery and makes core downloads more resilient."
+thumbnail: ./images/Medium_BSX_16_1.jpg
+banner: ./images/Blog_BSX_16_1.jpg
+---
+BasicSwap v0.16.1 is now available. This is a fast follow-up to v0.16.0 that ships a Litecoin Core bump to v0.21.5.5, a UI helper to recover MWEB change stranded in the plain LTC wallet, a small set of LTC interface clean-ups, and a couple of infrastructure improvements to `basicswap-run` and `basicswap-prepare`.
+
+<Callout type="warning" title="IMPORTANT: This update is MANDATORY for Litecoin users.">
+  **Litecoin Core must be upgraded to v0.21.5.5**, a security/hardening patch that continues the same MWEB track as v0.21.5.4. The upstream release notes describe it as "important MWEB consensus hardening, node reliability improvements, wallet and mining fixes", and Litecoin states all node operators and wallet users are strongly encouraged to upgrade ASAP. The upgrade is handled automatically by BasicSwap's prepare script.
+</Callout>
+
+## Most Notable Updates 💡
+
+### Litecoin Core v0.21.5.5 🪙
+
+Litecoin Core v0.21.5.5 picks up where v0.21.5.4 left off, continuing the MWEB hardening cycle that followed the March 2026 MWEB incidents covered in the [v0.16.0 post](/blog/basicswap-release-v016) and Litecoin's [official postmortem](https://litecoin.com/news/litecoin-mweb-security-incident-postmortem). The full upstream notes are on the [Litecoin Core v0.21.5.5 release page](https://github.com/litecoin-project/litecoin/releases/tag/v0.21.5.5); the highlights:
+
+- **MWEB consensus hardening.** Additional validation for MWEB inputs, pegins, HogEx data, kernel fees, and kernel lock heights. Amount and fee calculations were hardened against overflow and invalid edge cases. Consensus parameters were added for known frozen and approved MWEB transactions and outputs needed to keep MWEB state balanced.
+- **Network policy.** The maximum P2P protocol message length was raised to 32 MB so valid MWEB blocks fit under the limit, and standard-script policy is now enforced on pegout scripts.
+- **Mining.** HogEx construction now reads MWEB data already stored in the block index instead of re-reading the previous block from disk; `getblocktemplate` fee and sigop accounting was fixed for MWEB-carrying transactions; candidate blocks no longer include MWEB transactions whose input/output commitments would sum to zero.
+- **Wallet and RPC.** MWEB balance and pegout accounting was fixed (a continuation of the accounting work already flagged in v0.16.0). MWEB view keys are now included in `dumpwallet`, and `sendrawtransaction` / `testmempoolaccept` accept `maxfeerate=0` for MWEB transactions.
+- **Reliability.** Fixes for PMMR rewind corruption, MMR file write durability, mutated/invalid MWEB block data leaving stale state, MWEB chainstate updates during block replay and crash recovery, transaction-index consistency, and wallet loading on Boost 1.78+.
+
+Credits upstream go to David Burkett and Loshan. On the BasicSwap side this is a one-line constant bump in the prepare script ([commit `262593b`](https://github.com/basicswap/basicswap/commit/262593b)) that flows through `basicswap-prepare --upgradecores`.
+
+### MWEB-Change Recovery for LTC 🔁
+
+Sending LTC into MWEB occasionally leaves residual MWEB-pegged change in the *plain* LTC wallet that BasicSwap can't spend in normal swaps. v0.16.1 surfaces this directly in the wallet UI: when the LTC node has any such balance, a new "MWEB in Plain Balance" row appears on the Litecoin wallet page with a **Convert** button that pegs the residue back to a fresh plain bech32 LTC address.
+
+<Callout type="info" title="RPC mode only">
+  This helper is only relevant, and only displayed, when LTC is running against a local full node. Electrum-mode LTC users won't see the row and don't need to act on it. Upstream describes the helper as a temporary convenience function while a more permanent fix lands in Litecoin Core.
+</Callout>
+
+The same commit also corrects the LTC mainnet MWEB-address prefix used for unspent-output filtering (from `mweb1` to the actual mainnet prefix `ltcmweb1`), so MWEB outputs no longer pollute plain-address listings on the wallet page.
+
+### LTC Interface Clean-ups 🧹
+
+Two LTC-specific overrides (`checkWallets` and a duplicate MWEB wallet-creation block in `LTCInterfaceMWEB.init_wallet`) were redundant with logic that already exists on the parent `BTCInterface`. Removing them takes ~100 lines of duplicated code out of `interface/ltc.py` and means future fixes only need to be made in one place. User-visible behavior is unchanged.
+
+### `--extracoinopts` for Advanced Recovery 🧩
+
+A new CLI flag for `basicswap-run`, intended for one-off recovery operations like reindexing a single coin daemon. It accepts a comma-separated list of options and is only valid alongside `--startonlycoin`:
+
+```sh
+basicswap-run --datadir=/coindata --startonlycoin=litecoin --extracoinopts="-reindex"
+```
+
+Related behaviour change: when `--startonlycoin` is set, BasicSwap now skips starting the network layer (Simplex). This keeps recovery runs isolated and avoids unnecessary network activity while you're operating on a single coin.
+
+### More Resilient Core Downloads 📦
+
+`basicswap-prepare`'s `downloadRelease` now accepts a list of URLs and falls back through them in order. The first consumer is Litecoin: GitHub primary, `download.litecoin.org` fallback, on **all** platforms (the OSX-only workaround introduced just before the v0.16.0 tag is now generalised). A transient outage at one mirror no longer blocks core upgrades.
+
+### Variant Ticker Lookup in JSON API ⚙️
+
+`getCoinIdFromTicker(..., inc_variant=True)` now resolves coin variants like `LTC_MWEB`, `PART_ANON`, and `PART_BLIND` through the `/json/wallets/<ticker>` endpoint. Integrators querying variant tickers no longer get an `Unknown coin` error.
+
+## Install the Latest BasicSwap Update 🖥️
+
+To install, [update BasicSwap through the usual process](/docs/user-guides/update) and relaunch. Because this release ships a mandatory Litecoin Core bump, the `--upgradecores` step is essential.
+
+### Docker
+
+If you've installed BasicSwap following the Docker method:
+
+1.  Shutdown BasicSwap properly and stop the Docker image (`docker-compose stop`),
+2.  From the basicswap folder, type the `git pull` command,
+3.  In the `/docker` folder, run the `docker-compose build --no-cache` command,
+4.  Execute this command to upgrade Litecoin Core: `docker-compose run --rm swapclient basicswap-prepare --datadir=/coindata --upgradecores`,
+5.  Once the process completes, launch BasicSwap again using the `docker-compose up` command.
+
+Note: Depending on your Docker version, adding a dash between docker and compose may not be necessary and may instead throw an error.
+
+### Non-Docker
+
+If you've installed BasicSwap following the non-Docker method:
+
+1.  Shutdown BasicSwap properly,
+2.  From the `~/coinswaps/basicswap` folder, type the `git pull` command,
+3.  Execute the following command: `pip install --require-hashes -r requirements.txt`,
+4.  Execute the following command: `pip3 install .`,
+5.  Execute the following command: `basicswap-prepare --datadir=$HOME/coinswaps --upgradecores`,
+6.  Launch BasicSwap as usual.
+
+### Install Script
+
+If you've installed BasicSwap using [Nahuhh's GitHub installation script](https://github.com/nahuhh/basicswap-bash/):
+
+*   Execute the update command: `bsx-update`.
+
+## Changelog 📝
+
+### Coin(s)
+
+*   Litecoin: Upgraded to v0.21.5.5 **[required]** (MWEB consensus and wallet hardening, follow-up to v0.21.5.4) [[v0.16.1]](https://github.com/basicswap/basicswap/commit/262593b)
+
+### Litecoin Wallet
+
+*   New: helper to convert MWEB change in the plain LTC wallet (UI Convert button, RPC mode only) [[v0.16.1]](https://github.com/basicswap/basicswap/commit/6ebbd98)
+*   Fixed: filter out MWEB addresses in `getUnspentsByAddr` (correct `ltcmweb1` mainnet prefix) [[v0.16.1]](https://github.com/basicswap/basicswap/commit/fd2e442)
+*   Refactor: deduplicate LTC `checkWallets` (removed override redundant with `BTCInterface`) [[v0.16.1]](https://github.com/basicswap/basicswap/commit/dfa11ed)
+*   Refactor: deduplicate MWEB wallet creation in `LTCInterfaceMWEB.init_wallet` [[v0.16.1]](https://github.com/basicswap/basicswap/commit/c4e7de2)
+*   Fixed: macOS LTC release sourced from `download.litecoin.org` (now generalised to all OSes via fallback URLs) [[v0.16.1]](https://github.com/basicswap/basicswap/commit/e06c463)
+
+### Core Functionality
+
+*   New: `--extracoinopts` CLI flag for `basicswap-run` (used with `--startonlycoin`) [[v0.16.1]](https://github.com/basicswap/basicswap/commit/b5226c0)
+*   Behavior: `--startonlycoin` no longer starts the network layer (Simplex) [[v0.16.1]](https://github.com/basicswap/basicswap/commit/b5226c0)
+*   New: `downloadRelease` accepts a list of URLs with automatic fallback [[v0.16.1]](https://github.com/basicswap/basicswap/commit/bdb7f9b)
+*   New: variant tickers (`LTC_MWEB`, `PART_ANON`, `PART_BLIND`) resolvable via the JSON wallets API [[v0.16.1]](https://github.com/basicswap/basicswap/commit/9caae39)
+*   Fixed: clearer log format in `basicswap-prepare` [[v0.16.1]](https://github.com/basicswap/basicswap/commit/f626e40)
+*   Doc: DB upgrade log line annotates `(forced)` when `--forcedbupgrade` is set [[v0.16.1]](https://github.com/basicswap/basicswap/commit/842e44e)
+
+### CI / Build
+
+*   New: dependabot for GitHub Actions [[v0.16.1]](https://github.com/basicswap/basicswap/commit/c298cf3)
+*   Updated: GitHub Actions plugin versions [[v0.16.1]](https://github.com/basicswap/basicswap/commit/e29eb4a)
+*   Removed: Cirrus CI [[v0.16.1]](https://github.com/basicswap/basicswap/commit/c4f00df)
+*   Raise version to 0.16.1 [[v0.16.1]](https://github.com/basicswap/basicswap/commit/680fc7c)
+
+You can inspect all changes by verifying the [v0.16.0 to v0.16.1 comparison page here](https://github.com/basicswap/basicswap/compare/v0.16.0...v0.16.1).
+
+## Stay Connected
+
+Keep up with BasicSwap on social media:
+
+- **Twitter:** [@basicswapdex](https://twitter.com/basicswapdex)
+- **Matrix:** [BasicSwap channel](https://matrix.to/#/#basicswap:matrix.org)
+- **GitHub:** [BasicSwap repositories](https://github.com/basicswap)
+- **Support the project:** [Donation page](https://basicswapdex.com/donations)

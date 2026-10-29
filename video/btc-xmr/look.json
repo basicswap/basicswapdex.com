@@ -1,0 +1,22 @@
+{
+  "extends": "midnight",
+  "name": "basicswap-night",
+  "bg": "#111827",
+  "ink": "#F9FAFB",
+  "muted": "#9CA3AF",
+  "surface": "#1F2937",
+  "accent": "blue",
+  "colors": {
+    "blue": "#0073FF",
+    "purple": "#A855F7",
+    "yellow": "#F7B500",
+    "orange": "#FF6600",
+    "gray": "#6B7280"
+  },
+  "fonts": {
+    "display": { "family": "Instrument Sans", "weight": 700 },
+    "body": { "family": "Instrument Sans", "weight": 400 },
+    "mono": { "family": "JetBrains Mono", "weight": 400 }
+  },
+  "background": "plain"
+}

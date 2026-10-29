@@ -1,0 +1,538 @@
+---
+// Braid. One set of strands, two shapes.
+//
+// With a middleman: blue strands from Bitcoin and violet strands from Monero
+// stream in level and pinch into a glass toll at the centre. A dashed ring
+// turns around it, fee particles skim off the top, and each bundle leaves the
+// toll dimmer than it entered (the cut). The toll sits exactly where the
+// braid will later cross, so removing it reveals the shared secret.
+//
+// Meltdown: the toll heats up and shakes harder and harder (its core glows
+// through the glass, the edge runs from dull red to white-hot, cracks
+// spread) until it bursts into debris with a flash and a shockwave. The
+// same strands open straight out of the pinch into a braid running coin to
+// coin, regaining full brightness. A steady point marks the crossing. The
+// debris swarms up above it and streams into a padlock that stays: the swap
+// is more secure without the middleman.
+// Light keeps flowing along the strands throughout, so it reads as one flow
+// being rerouted.
+//
+// The morph is SMIL (<animate attributeName="d">): both shapes are built from
+// the same number of points, so every point glides from its old position to
+// its new one. CSS can animate `d` too, but not in Safari. ~10 s loop: the
+// scene dims and resets while invisible, so the story never plays backwards.
+// SMIL ignores reduced motion, so that case shows a static braid instead.
+import bitcoin from '../../../assets/coins/bitcoin-circle.png';
+import monero from '../../../assets/coins/monero-circle.png';
+import CoinBadge from './CoinBadge.astro';
+
+const N = 5;
+const SAMPLES = 40;
+const CX = 280;
+const CY = 165;
+const X0 = 112;
+const X1 = 448;
+// The story was laid out on a 14 s timeline (the keyTimes below). HOLD
+// shortens only the stretch where the finished braid and padlock sit still
+// (14 s timeline 50-90%); everything before it keeps its real timing.
+const HOLD = 1.8;
+const LOOP = 7 + HOLD + 1.4;
+const DUR = `${LOOP}s`;
+const remap = (x: number) => {
+  const s = x <= 0.5 ? x * 14 : x <= 0.9 ? 7 + ((x - 0.5) / 0.4) * HOLD : 7 + HOLD + (x - 0.9) * 14;
+  return +(s / LOOP).toFixed(4);
+};
+/** Map a keyTimes list from the 14 s layout onto the real loop. */
+const kt = (times: string) => times.split(';').map((v) => remap(Number(v))).join(';');
+
+const r1 = (n: number) => Math.round(n * 10) / 10;
+const toPath = (pts: [number, number][]) => 'M' + pts.map(([x, y]) => `${r1(x)} ${r1(y)}`).join(' L');
+
+/** Middleman shape: two level bundles that pinch shut at the toll in the centre. */
+function viaToll(t: number, o: number, sign: 1 | -1): [number, number] {
+  const pinch = 1 - Math.exp(-Math.pow((t - 0.5) / 0.15, 2));
+  const body = Math.pow(Math.sin(Math.PI * t), 0.6) * pinch;
+  // Each colour runs as its own bundle, blue just above the axis, violet below.
+  return [X0 + (X1 - X0) * t, CY + body * (o * 4.6 + sign * -7)];
+}
+
+/** Braid shape: mirrored sine, pinned to both coins, crossing at the centre. */
+function braid(t: number, o: number, sign: 1 | -1): [number, number] {
+  const env = Math.pow(Math.sin(Math.PI * t), 0.8);
+  return [X0 + (X1 - X0) * t, CY + env * (sign * 40 * Math.sin(2 * Math.PI * t) + o * 3.4)];
+}
+
+function strand(k: number, sign: 1 | -1, shape: typeof braid) {
+  const o = k - (N - 1) / 2;
+  const pts: [number, number][] = [];
+  for (let i = 0; i <= SAMPLES; i++) pts.push(shape(i / SAMPLES, o, sign));
+  // Violet strands run from Monero to Bitcoin, so their light flows the other way.
+  return toPath(sign === 1 ? pts : pts.reverse());
+}
+
+// Strands open out of the pinch one after another (outer strands first, the
+// two colours interleaved), so the release reads as a wave, not a switch.
+const strands = Array.from({ length: N }, (_, k) => k).flatMap((k) =>
+  ([1, -1] as const).map((sign) => {
+    const order = Math.abs(k - (N - 1) / 2) * -2 + (sign === 1 ? 0 : 1) + N;
+    return {
+      k,
+      sign,
+      lag: Math.max(0, order) * 0.009,
+      from: strand(k, sign, viaToll),
+      to: strand(k, sign, braid),
+    };
+  }),
+);
+
+// Shared SMIL timing. 0-24% middleman, 24-50% release and reshape (each
+// strand lagging slightly), 50-90% braid, 90-96% dim out, reset while dark,
+// 96-100% fade back in.
+const morphTimes = (lag: number) => `0;${(0.24 + lag).toFixed(3)};${(0.44 + lag).toFixed(3)};0.945;0.955;1`;
+const widthTimes = (lag: number) => `0;${(0.26 + lag).toFixed(3)};${(0.36 + lag).toFixed(3)};${(0.48 + lag).toFixed(3)};1`;
+const morphSplines = '0 0 1 1;0.65 0 0.25 1;0 0 1 1;0 0 1 1;0 0 1 1';
+const morph = (from: string, to: string) => `${from};${from};${to};${to};${from};${from}`;
+
+// Strand colours dim past the toll (its cut) and recover when it is gone.
+const cutTimes = '0;0.24;0.42;0.945;0.955;1';
+const cutValues = '0.28;0.28;1;1;0.28;0.28';
+const gradients = [
+  { id: 'v5-blue', color: '#3b82f6', x1: X0, x2: X1 },
+  { id: 'v5-violet', color: '#a855f7', x1: X1, x2: X0 },
+];
+
+// Fee particles skimming off the toll.
+const fees = [
+  [-14, 0], [6, 0.35], [-4, 0.7], [16, 1.05], [-18, 1.4], [2, 1.75],
+] as const;
+
+const DOOR_TOP = 'M-32 0 V-18 A14 14 0 0 1 -18 -32 H18 A14 14 0 0 1 32 -18 V0 Z';
+const DOOR_BOTTOM = 'M-32 0 V18 A14 14 0 0 0 -18 32 H18 A14 14 0 0 0 32 18 V0 Z';
+// Outlines stop short of the seam, so the closed tile reads as one piece.
+const edgeOf = (door: string) => door.replace(/ Z$/, '');
+// Padlock, centred just above the crossing.
+const LOCK_Y = CY - 66;
+const LOCK_SHACKLE = 'M-9 -2 V-10 A9 9 0 0 1 9 -10 V-2';
+const LOCK_BODY = 'M-14 -2 H14 A4 4 0 0 1 18 2 V18 A4 4 0 0 1 14 22 H-14 A4 4 0 0 1 -18 18 V2 A4 4 0 0 1 -14 -2 Z';
+const LOCK_KEYHOLE = 'M0 6 V13';
+// Debris: the toll bursts into particles that swarm above the crossing, then
+// stream onto the padlock outline. Each particle starts inside the tile,
+// hovers at a scattered spot above, and ends on a point spaced evenly along
+// the padlock (shackle, body, keyhole).
+let seed = 0x5eed;
+const rand = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+
+type Seg = (u: number) => [number, number];
+const line = (a: [number, number], b: [number, number]): [Seg, number] => [
+  (u) => [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u],
+  Math.hypot(b[0] - a[0], b[1] - a[1]),
+];
+const outline: [Seg, number][] = [
+  line([-9, -2], [-9, -10]),
+  [(u) => [-9 * Math.cos(Math.PI * u), -10 - 9 * Math.sin(Math.PI * u)], 9 * Math.PI],
+  line([9, -10], [9, -2]),
+  line([-18, -2], [18, -2]),
+  line([18, -2], [18, 22]),
+  line([18, 22], [-18, 22]),
+  line([-18, 22], [-18, -2]),
+  line([0, 6], [0, 13]),
+];
+const outlineLength = outline.reduce((t, [, l]) => t + l, 0);
+function onOutline(d: number): [number, number] {
+  for (const [seg, len] of outline) {
+    if (d <= len) return seg(d / len);
+    d -= len;
+  }
+  return [0, 0];
+}
+
+const PARTICLES = 132;
+const particles = Array.from({ length: PARTICLES }, (_, i) => {
+  const [ex, ey] = onOutline(((i + 0.5) / PARTICLES) * outlineLength);
+  const angle = rand() * Math.PI * 2;
+  const reach = rand();
+  const start: [number, number] = [(rand() - 0.5) * 54, CY + (rand() - 0.5) * 54];
+  const float: [number, number] = [Math.cos(angle) * (18 + reach * 42), LOCK_Y - 4 + Math.sin(angle) * (12 + reach * 26)];
+  const drift: [number, number] = [float[0] + (rand() - 0.5) * 10, float[1] - 3 - rand() * 6];
+  return {
+    start,
+    float,
+    drift,
+    end: [ex, LOCK_Y + ey] as [number, number],
+    r: 0.8 + rand() * 0.7,
+    lag: rand() * 0.018,
+  };
+});
+const at = (p: [number, number]) => `${r1(p[0])} ${r1(p[1])}`;
+
+const BANK = 'M-15 -6 0 -15 15 -6M-11 -3v14M-3.7 -3v14M3.7 -3v14M11 -3v14M-16 13h32';
+
+// Meltdown: from HEAT_START the toll shakes, harder and harder, until it
+// bursts at BURST. Jitter is sampled every ~50 ms of the loop, its amplitude
+// growing on a curve so the last moments are the most violent.
+const HEAT_START = 0.06;
+const BURST = 0.255;
+const shake = (() => {
+  const times = ['0', HEAT_START.toFixed(4)];
+  const moves = ['0 0', '0 0'];
+  const turns = ['0', '0'];
+  const step = 0.0036;
+  for (let t = HEAT_START + step; t < BURST - step / 2; t += step) {
+    const a = Math.pow((t - HEAT_START) / (BURST - HEAT_START), 2.2);
+    times.push(t.toFixed(4));
+    moves.push(`${r1(a * 4.5 * (rand() * 2 - 1))} ${r1(a * 2.8 * (rand() * 2 - 1))}`);
+    turns.push(r1(a * 3.2 * (rand() * 2 - 1)).toString());
+  }
+  times.push(BURST.toFixed(4), '1');
+  moves.push('0 0', '0 0');
+  turns.push('0', '0');
+  return { times: times.join(';'), moves: moves.join(';'), turns: turns.join(';') };
+})();
+// Cracks that spread across the glass in the last stretch before the burst.
+const CRACKS = [
+  'M0 0 L-7 -6 L-11 -5 L-17 -13 L-24 -15',
+  'M0 0 L6 -4 L9 -12 L17 -16 L21 -26',
+  'M0 0 L8 5 L15 4 L19 12 L27 16',
+  'M0 0 L-5 7 L-12 9 L-15 18 L-23 22',
+];
+---
+
+<svg viewBox="0 0 560 320" fill="none" class="v5">
+  <defs>
+    {
+      gradients.map(({ id, color, x1, x2 }) => (
+        <linearGradient id={id} x1={x1} x2={x2} y1="0" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color={color} />
+          <stop offset="0.46" stop-color={color} />
+          <stop offset="0.56" stop-color={color} stop-opacity="0.28">
+            <animate attributeName="stop-opacity" dur={DUR} repeatCount="indefinite" keyTimes={kt(cutTimes)} values={cutValues} />
+          </stop>
+          <stop offset="1" stop-color={color} stop-opacity="0.28">
+            <animate attributeName="stop-opacity" dur={DUR} repeatCount="indefinite" keyTimes={kt(cutTimes)} values={cutValues} />
+          </stop>
+        </linearGradient>
+      ))
+    }
+    <radialGradient id="v5-charge">
+      <stop offset="0" stop-color="#c4b5fd" stop-opacity="0.32" />
+      <stop offset="0.45" stop-color="#3b82f6" stop-opacity="0.12" />
+      <stop offset="1" stop-color="#3b82f6" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="v5-lock" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#60a5fa" />
+      <stop offset="1" stop-color="#c084fc" />
+    </linearGradient>
+    <radialGradient id="v5-heat">
+      <stop offset="0" stop-color="#ef5944" stop-opacity="0.3" />
+      <stop offset="0.55" stop-color="#f59e0b" stop-opacity="0.08" />
+      <stop offset="1" stop-color="#f59e0b" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="v5-hot" cx="0" cy="0" r="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff7d6" />
+      <stop offset="0.3" stop-color="#fbbf24" />
+      <stop offset="0.7" stop-color="#ef5944" stop-opacity="0.75" />
+      <stop offset="1" stop-color="#ef5944" stop-opacity="0.2" />
+    </radialGradient>
+    <radialGradient id="v5-flash">
+      <stop offset="0" stop-color="#ffffff" />
+      <stop offset="0.35" stop-color="#fde68a" stop-opacity="0.7" />
+      <stop offset="1" stop-color="#f59e0b" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="v5-sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.12" />
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+    <!-- Each strand's shape and its morph, defined once and drawn twice
+         (glow and core) by reference. -->
+    {strands.map(({ k, sign, lag, from, to }) => (
+      <path id={`v5-s${k}${sign}`} d={from}>
+        <animate attributeName="d" dur={DUR} repeatCount="indefinite" calcMode="spline"
+          keyTimes={kt(morphTimes(lag))} values={morph(from, to)} keySplines={morphSplines} />
+      </path>
+    ))}
+  </defs>
+
+  <!-- Animated scene -->
+  <g class="scene morph-set">
+    <animate attributeName="opacity" dur={DUR} repeatCount="indefinite" keyTimes={kt('0;0.9;0.94;0.96;1')} values="1;1;0;0;1" />
+
+    <!-- The toll's warmth, under everything -->
+    <circle cx={CX} cy={CY} r="96" fill="url(#v5-heat)">
+      <animate attributeName="opacity" dur={DUR} repeatCount="indefinite"
+        keyTimes={kt('0;0.05;0.12;0.17;0.2;0.22;0.235;0.245;0.255;0.34;1')} values="0;0.45;0.55;0.75;0.7;0.95;0.85;1;1;0;0" />
+      <animate attributeName="r" dur={DUR} repeatCount="indefinite" calcMode="spline"
+        keyTimes={kt('0;0.06;0.255;0.3;1')} values="96;96;140;170;96" keySplines="0 0 1 1;0.6 0 0.9 0.6;0.2 0.6 0.3 1;0 0 1 1" />
+    </circle>
+
+    <!-- Glow and strands, one continuous set that reshapes -->
+    <g class="strands">
+      <animate attributeName="opacity" dur={DUR} repeatCount="indefinite" calcMode="spline"
+        keyTimes={kt('0;0.24;0.46;1')} values="0.75;0.75;1;1" keySplines="0 0 1 1;0.65 0 0.25 1;0 0 1 1" />
+      {strands.map(({ k, sign }) => (
+        <use href={`#v5-s${k}${sign}`} class="glow" stroke={`url(#${sign === 1 ? 'v5-blue' : 'v5-violet'})`}>
+          <animate attributeName="stroke-width" dur={DUR} repeatCount="indefinite" calcMode="spline"
+            keyTimes={kt(widthTimes(strands.find((x) => x.k === k && x.sign === sign)!.lag))} values="4;4;11;6;6"
+            keySplines="0 0 1 1;0.4 0 0.2 1;0.4 0 0.2 1;0 0 1 1" />
+        </use>
+      ))}
+      {strands.map(({ k, sign }) => (
+        <use href={`#v5-s${k}${sign}`} class="strand" stroke={`url(#${sign === 1 ? 'v5-blue' : 'v5-violet'})`} style={`animation-delay:${-k * 0.23}s`} />
+      ))}
+    </g>
+
+    <!-- Shockwave as the toll gives way -->
+    <circle class="shock" cx={CX} cy={CY} r="34">
+      <animate attributeName="r" dur={DUR} repeatCount="indefinite" calcMode="spline"
+        keyTimes={kt('0;0.255;0.4;1')} values="34;34;150;150" keySplines="0 0 1 1;0.2 0.6 0.3 1;0 0 1 1" />
+      <animate attributeName="opacity" dur={DUR} repeatCount="indefinite"
+        keyTimes={kt('0;0.25;0.265;0.4;1')} values="0;0;0.7;0;0" />
+    </circle>
+
+    <!-- The toll -->
+    <g transform={`translate(${CX} ${CY})`}>
+      <!-- fee particles skimming off the top -->
+      <g>
+        <animate attributeName="opacity" dur={DUR} repeatCount="indefinite" keyTimes={kt('0;0.04;0.2;0.25;1')} values="0;1;1;0;0" />
+        {fees.map(([x, begin]) => (
+          <circle class="fee" cx={x} cy="-30" r="1.8">
+            <animate attributeName="cy" dur="2.1s" begin={`${begin}s`} repeatCount="indefinite" values="-30;-84" />
+            <animate attributeName="opacity" dur="2.1s" begin={`${begin}s`} repeatCount="indefinite" keyTimes="0;0.15;1" values="0;1;0" />
+          </circle>
+        ))}
+      </g>
+
+      <!-- it shakes, harder and harder... -->
+      <g>
+        <animateTransform attributeName="transform" type="translate" dur={DUR} repeatCount="indefinite" keyTimes={kt(shake.times)} values={shake.moves} />
+        <g>
+          <animateTransform attributeName="transform" type="rotate" dur={DUR} repeatCount="indefinite" keyTimes={kt(shake.times)} values={shake.turns} />
+          <!-- ...swelling under the pressure... -->
+          <g>
+            <animateTransform attributeName="transform" type="scale" dur={DUR} repeatCount="indefinite" calcMode="spline"
+              keyTimes={kt(`0;${HEAT_START};${BURST};${BURST + 0.012};0.945;0.955;1`)} values="1;1;1.07;1.22;1.22;1;1"
+              keySplines="0 0 1 1;0.7 0 0.9 0.6;0.2 0.7 0.4 1;0 0 1 1;0 0 1 1;0 0 1 1" />
+            <animate attributeName="opacity" dur={DUR} repeatCount="indefinite"
+              keyTimes={kt(`0;${BURST};${BURST + 0.006};0.945;0.955;1`)} values="1;1;0;0;1;1" />
+
+            <!-- the turning ring -->
+            <circle class="ring" r="48">
+              <animateTransform attributeName="transform" type="rotate" dur="9s" repeatCount="indefinite" values="0;360" />
+              <animate attributeName="opacity" dur={DUR} repeatCount="indefinite"
+                keyTimes={kt(`0;${HEAT_START};${BURST};1`)} values="0.7;0.7;1;0.7" />
+            </circle>
+
+            <!-- the glass tile -->
+            <path class="tile" d={`${DOOR_TOP} ${DOOR_BOTTOM}`} />
+            <!-- ...as its core heats up and glows through the glass... -->
+            <path d={`${DOOR_TOP} ${DOOR_BOTTOM}`} fill="url(#v5-hot)" opacity="0">
+              <animate attributeName="opacity" dur={DUR} repeatCount="indefinite"
+                keyTimes={kt(`0;${HEAT_START};0.14;0.19;0.21;0.225;0.235;0.245;${BURST};${BURST + 0.008};1`)}
+                values="0;0;0.12;0.3;0.26;0.5;0.44;0.75;0.95;0;0" />
+            </path>
+            <path class="sheen" d={`${DOOR_TOP} ${DOOR_BOTTOM}`} fill="url(#v5-sheen)" />
+            <path class="tile-edge" d={`${edgeOf(DOOR_TOP)} ${edgeOf(DOOR_BOTTOM)}`} />
+            <!-- ...the edge runs from dull red to white-hot... -->
+            <path class="tile-edge hot" d={`${edgeOf(DOOR_TOP)} ${edgeOf(DOOR_BOTTOM)}`} opacity="0">
+              <animate attributeName="opacity" dur={DUR} repeatCount="indefinite"
+                keyTimes={kt(`0;${HEAT_START};0.2;${BURST};${BURST + 0.008};1`)} values="0;0;0.6;1;0;0" />
+              <animate attributeName="stroke" dur={DUR} repeatCount="indefinite"
+                keyTimes={kt(`0;${HEAT_START};0.18;0.235;${BURST};1`)} values="#ef5944;#ef5944;#f59e0b;#fde68a;#ffffff;#ef5944" />
+            </path>
+            <path class="icon" d={BANK} />
+            <!-- ...and cracks spread across it -->
+            {CRACKS.map((d, i) => (
+              <path class="crack" d={d} pathLength="1">
+                <animate attributeName="stroke-dashoffset" dur={DUR} repeatCount="indefinite" calcMode="spline"
+                  keyTimes={kt(`0;${(0.185 + i * 0.012).toFixed(3)};${BURST};0.945;0.955;1`)} values="1;1;0;0;1;1"
+                  keySplines="0 0 1 1;0.3 0 0.6 1;0 0 1 1;0 0 1 1;0 0 1 1" />
+              </path>
+            ))}
+          </g>
+        </g>
+      </g>
+
+      <!-- until it bursts -->
+      <circle r="20" fill="url(#v5-flash)" opacity="0">
+        <animate attributeName="opacity" dur={DUR} repeatCount="indefinite"
+          keyTimes={kt(`0;${BURST - 0.002};${BURST};${BURST + 0.035};1`)} values="0;0;1;0;0" />
+        <animate attributeName="r" dur={DUR} repeatCount="indefinite" calcMode="spline"
+          keyTimes={kt(`0;${BURST - 0.002};${BURST + 0.035};1`)} values="20;20;70;20" keySplines="0 0 1 1;0.2 0.7 0.4 1;0 0 1 1" />
+      </circle>
+    </g>
+
+    <!-- The shared secret: a steady point where the braid crosses -->
+    <circle class="secret-core" cx={CX} cy={CY} r="3.5" opacity="0">
+      <animate attributeName="opacity" dur={DUR} repeatCount="indefinite" keyTimes={kt('0;0.46;0.5;0.9;0.93;1')} values="0;0;1;1;0;0" />
+    </circle>
+
+    <!-- Security: the toll's debris floats up, hovers, and recomposes into a
+         padlock above the crossing, which then stays. -->
+    <g transform={`translate(${CX} 0)`}>
+      {particles.map(({ start, float, drift, end, r, lag }) => {
+        const t = (n: number) => Math.min(0.999, n + lag).toFixed(3);
+        const times = `0;0.255;${t(0.31)};${t(0.35)};${t(0.395)};1`;
+        return (
+          <g opacity="0" fill="#fbbf24">
+            <animateTransform attributeName="transform" type="translate" dur={DUR} repeatCount="indefinite" calcMode="spline"
+              keyTimes={kt(times)}
+              values={`${at(start)};${at(start)};${at(float)};${at(drift)};${at(end)};${at(end)}`}
+              keySplines="0 0 1 1;0.1 0.8 0.3 1;0.45 0 0.55 1;0.7 0 0.25 1;0 0 1 1" />
+            <animate attributeName="opacity" dur={DUR} repeatCount="indefinite"
+              keyTimes={kt(`0;0.254;0.258;${t(0.4)};${t(0.44)};1`)} values="0;0;1;1;0;0" />
+            <animate attributeName="fill" dur={DUR} repeatCount="indefinite"
+              keyTimes={kt(`0;0.255;${t(0.31)};${t(0.39)};1`)} values="#fbbf24;#fbbf24;#a78bfa;#93c5fd;#93c5fd" />
+            <circle class="halo" r={r1(r * 2.2)} />
+            <circle r={r1(r)} />
+          </g>
+        );
+      })}
+
+      <g transform={`translate(0 ${LOCK_Y})`}>
+        <circle class="lock-halo" r="34" opacity="0">
+          <animate attributeName="opacity" dur={DUR} repeatCount="indefinite" keyTimes={kt('0;0.39;0.45;0.9;0.93;1')} values="0;0;1;1;0;0" />
+        </circle>
+        <g class="lock" opacity="0">
+          <animate attributeName="opacity" dur={DUR} repeatCount="indefinite" calcMode="spline"
+            keyTimes={kt('0;0.395;0.44;0.9;0.93;1')} values="0;0;1;1;0;0" keySplines="0 0 1 1;0.4 0 0.2 1;0 0 1 1;0 0 1 1;0 0 1 1" />
+          <path class="lock-fill" d={LOCK_BODY} />
+          {[LOCK_SHACKLE, LOCK_BODY, LOCK_KEYHOLE].map((d) => <path class="lock-line" d={d} />)}
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- Reduced motion: the braid, still -->
+  <g class="static-set">
+    {strands.map(({ sign, to }) => <path class="glow" d={to} stroke={sign === 1 ? '#3b82f6' : '#a855f7'} stroke-width="6" />)}
+    {strands.map(({ sign, to }) => <path class="strand" d={to} stroke={sign === 1 ? '#3b82f6' : '#a855f7'} />)}
+    <circle class="secret-core" cx={CX} cy={CY} r="3.5" />
+    <g transform={`translate(${CX} ${LOCK_Y})`}>
+      <circle class="lock-halo" r="34" opacity="0.6" />
+      <path class="lock-fill" d={LOCK_BODY} />
+      {[LOCK_SHACKLE, LOCK_BODY, LOCK_KEYHOLE].map((d) => <path class="lock-line" d={d} />)}
+    </g>
+  </g>
+
+  <CoinBadge x={80} y={CY} src={bitcoin.src} id="v5-btc" tint="#f7931a" />
+  <CoinBadge x={480} y={CY} src={monero.src} id="v5-xmr" tint="#ff6600" />
+</svg>
+
+<style>
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .static-set {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .morph-set {
+      display: none;
+    }
+
+    .static-set {
+      display: inline;
+    }
+  }
+
+  .strand {
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 7 13;
+    animation: v5-flow 1.6s linear infinite;
+  }
+
+  .glow {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.09;
+  }
+
+  @keyframes v5-flow {
+    to { stroke-dashoffset: -20; }
+  }
+
+  .tile {
+    fill: color-mix(in oklab, var(--surface) 96%, transparent);
+  }
+
+  .tile-edge {
+    stroke: color-mix(in oklab, var(--destructive) 55%, var(--border-strong));
+    stroke-width: 1.2;
+  }
+
+  .icon {
+    stroke: var(--text-muted);
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .tile-edge.hot {
+    stroke-width: 1.6;
+    filter: drop-shadow(0 0 3px #f59e0b);
+  }
+
+  .crack {
+    stroke: #fff7d6;
+    stroke-width: 1.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    filter: drop-shadow(0 0 2px #fbbf24);
+  }
+
+  .ring {
+    stroke: color-mix(in oklab, var(--destructive) 70%, var(--warning));
+    stroke-width: 1.2;
+    stroke-dasharray: 2 6 14 6;
+    stroke-linecap: round;
+    opacity: 0.7;
+  }
+
+  .fee {
+    fill: var(--warning);
+    opacity: 0;
+  }
+
+  .shock {
+    stroke: var(--destructive);
+    stroke-width: 1.5;
+    opacity: 0;
+  }
+
+  .secret-core {
+    fill: #ffffff;
+  }
+
+  :global(html[data-theme='light']) .secret-core {
+    fill: var(--brand);
+  }
+
+
+  .halo {
+    opacity: 0.1;
+  }
+
+  .lock-halo {
+    fill: url(#v5-charge);
+  }
+
+  .lock-fill {
+    fill: color-mix(in oklab, var(--surface) 92%, transparent);
+  }
+
+  .lock-line {
+    stroke: url(#v5-lock);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+</style>

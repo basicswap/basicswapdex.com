@@ -1,0 +1,57 @@
+---
+// Stand-in for a visual that has not been made yet. It reserves the final
+// size (so swapping in the real image causes no layout shift) and says what
+// belongs there. Replace with <ThemedImage> once the asset exists.
+interface Props {
+  /** What the finished visual will show. */
+  label: string;
+  width?: number;
+  height?: number;
+  class?: string;
+}
+const { label, width = 16, height = 9, class: className } = Astro.props;
+---
+
+<figure class:list={['placeholder', className]} style={`aspect-ratio: ${width} / ${height}`} role="img" aria-label={`Placeholder: ${label}`}>
+  <figcaption data-parity="new">
+    <span class="kind">Visual to come</span>
+    <span class="what">{label}</span>
+  </figcaption>
+</figure>
+
+<style>
+  .placeholder {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    overflow: hidden;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(var(--dot) 1px, transparent 1.5px) 0 0 / 14px 14px,
+      linear-gradient(160deg, color-mix(in oklab, var(--brand) 10%, var(--surface)), var(--surface) 60%);
+  }
+
+  figcaption {
+    display: grid;
+    gap: var(--space-1);
+    max-width: 80%;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .kind {
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  .what {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    font-weight: 500;
+  }
+</style>

@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.astro/
+.content-cache/
+blog-redirects/
+docs-redirects/
+
+# Private notes, not for the repository
+SEO-TODO.md
+DOCS-ROADMAP.md
+REDESIGN-PLAN.md
+
+# Local leftovers
+chrome-p-*/
+*.bak
+/basicswapdex-redesign-*.zip
+
+# The film's renders (the finished video is public/video/bitcoin-to-monero.mp4)
+video/*/build/
+video/*/out/
+video/*/node_modules/
+
+# Event business cards, kept out of the public repository
+tools/business-cards.mjs
+tools/business-cards/

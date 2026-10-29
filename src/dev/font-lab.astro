@@ -1,0 +1,143 @@
+---
+// Dev-only (injected by astro.config.mjs under `astro dev`, never built).
+// Every candidate in src/config/fonts.mjs, rendered with the site's real type
+// scale, so fonts can be compared side by side. To make one the site font,
+// set ACTIVE_SANS / ACTIVE_MONO in fonts.mjs, or run FONT_SANS=<id> npm run dev.
+import { Font } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SANS, MONO, ACTIVE_SANS, ACTIVE_MONO } from '../config/fonts.mjs';
+
+const sans = Object.keys(SANS);
+const mono = Object.keys(MONO);
+const activeSans = process.env.FONT_SANS || ACTIVE_SANS;
+const activeMono = process.env.FONT_MONO || ACTIVE_MONO;
+---
+
+<BaseLayout title="Font lab" description="Compare font candidates." path="/font-lab" noindex>
+  <Fragment slot="head">
+    {[...sans, ...mono].map((id) => <Font cssVariable={`--lab-${id}` as any} />)}
+  </Fragment>
+
+  <div class="container section">
+    <h1 class="lab-title">Font lab</h1>
+    <p class="intro">
+      Live font: <code>{activeSans}</code> + <code>{activeMono}</code>. Each card uses the site's real type scale. Change
+      fonts in <code>src/config/fonts.mjs</code>, or try one with <code>FONT_SANS=&lt;id&gt; npm run dev</code>.
+    </p>
+
+    <h2 class="group">Sans</h2>
+    <div class="grid">
+      {
+        sans.map((id) => (
+          <article class:list={['card', { live: id === activeSans }]} style={`--lab: var(--lab-${id})`}>
+            <p class="id"><code>{id}</code>{id === activeSans && <span class="badge">live</span>}</p>
+            <h3 class="h">Trade Bitcoin and Monero peer-to-peer</h3>
+            <p class="body">
+              You meet other traders and settle atomic swaps directly. No custodian, no account, no protocol fee. The
+              swap either completes on both chains or refunds on both.
+            </p>
+            <p class="small">FAQ · Protocol · Download for Linux, macOS and Windows · v0.14.6 · 1,234 swaps</p>
+            <p class="num">0123456789 BTC XMR LTC PART</p>
+          </article>
+        ))
+      }
+    </div>
+
+    <h2 class="group">Mono (amounts, addresses, hashes, commands)</h2>
+    <div class="grid">
+      {
+        mono.map((id) => (
+          <article class:list={['card', { live: id === activeMono }]} style={`--lab: var(--lab-${id})`}>
+            <p class="id"><code>{id}</code>{id === activeMono && <span class="badge">live</span>}</p>
+            <pre class="code">0.05210000 BTC → 1.234 XMR
+bc1q9h0yjdupyfpxfjg24rpx755xrplvzd9hz2nj7v
+sha256  3f1c…a9e2  basicswap-0.14.6-linux.tar.gz
+$ gpg --verify basicswap.tar.gz.sig</pre>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .lab-title {
+    margin-bottom: var(--space-3);
+  }
+
+  .intro {
+    max-width: var(--prose-max);
+    color: var(--text-muted);
+  }
+
+  .group {
+    margin: var(--space-8) 0 var(--space-5);
+    font-size: var(--step-2);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
+    gap: var(--space-5);
+  }
+
+  .card {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  .card.live {
+    border-color: var(--brand);
+  }
+
+  .card .h,
+  .card .body,
+  .card .small,
+  .card .num {
+    font-family: var(--lab);
+  }
+
+  .card .code {
+    font-family: var(--lab);
+    font-size: var(--step--1);
+  }
+
+  .id {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--step--1);
+  }
+
+  .badge {
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--brand);
+    color: #fff;
+    font-size: var(--step--2);
+    font-weight: 600;
+  }
+
+  .h {
+    font-size: var(--step-3);
+  }
+
+  .body {
+    color: var(--text-muted);
+  }
+
+  .small {
+    color: var(--text-subtle);
+    font-size: var(--step--1);
+  }
+
+  .num {
+    font-size: var(--step-1);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

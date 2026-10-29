@@ -1,0 +1,203 @@
+---
+// A post in a list: thumbnail, tags, title, description, date and reading
+// time. `feature` lays it out wide, image beside the text, for the newest
+// post at the top of the blog.
+import { Image } from 'astro:assets';
+import { type Post, formatDate, isoDate, postPath, readingTime } from '../../lib/blog';
+
+interface Props {
+  post: Post;
+  feature?: boolean;
+  /** Heading level for the title, to fit the page's outline. */
+  level?: 2 | 3;
+}
+const { post, feature = false, level = 2 } = Astro.props;
+const { title, description, date, tags, author, thumbnail } = post.data;
+const Heading = `h${level}` as 'h2' | 'h3';
+const search = [title, description, author, ...tags].join(' ').toLowerCase();
+---
+
+<article class:list={['post-card', { feature }]} data-search={search} data-tags={tags.join('|')}>
+  <div class="media">
+    <Image
+      src={thumbnail}
+      alt=""
+      widths={feature ? [640, 960, 1000] : [480, 720, 1000]}
+      sizes={feature ? '(min-width: 64rem) 36rem, 100vw' : '(min-width: 64rem) 22rem, (min-width: 40rem) 45vw, 100vw'}
+      loading={feature ? 'eager' : 'lazy'}
+    />
+  </div>
+  <div class="body">
+    <ul class="tags" role="list" aria-label="Tags">
+      {tags.map((tag) => <li>{tag}</li>)}
+    </ul>
+    <Heading class="title">
+      <a href={postPath(post)}>{title}</a>
+    </Heading>
+    <p class="desc">{description}</p>
+    <p class="meta">
+      <span>By {author}</span>
+      <span aria-hidden="true">·</span>
+      <time datetime={isoDate(date)}>{formatDate(date)}</time>
+      <span aria-hidden="true">·</span>
+      <span>{readingTime(post.body)} min read</span>
+    </p>
+  </div>
+</article>
+
+<style>
+  .post-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+    transition:
+      border-color var(--dur) var(--ease),
+      transform var(--dur-slow) var(--ease),
+      box-shadow var(--dur-slow) var(--ease);
+  }
+
+  .post-card[hidden] {
+    display: none;
+  }
+
+  .post-card:hover {
+    border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+    box-shadow: 0 18px 50px -24px hsl(var(--shadow-color) / 0.6);
+    transform: translateY(-2px);
+  }
+
+  .post-card:focus-within {
+    border-color: var(--primary);
+  }
+
+  .media {
+    aspect-ratio: 25 / 14;
+    overflow: hidden;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 600ms var(--ease);
+  }
+
+  .post-card:hover .media :global(img) {
+    transform: scale(1.025);
+  }
+
+  .body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tags li {
+    color: var(--link);
+    font-size: var(--step--2);
+    font-weight: 600;
+  }
+
+  .tags li + li::before {
+    content: '·';
+    margin-right: var(--space-2);
+    color: var(--text-subtle);
+  }
+
+  .title {
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+  }
+
+  .title a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  /* the whole card is the link's target */
+  .title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .title a:focus-visible {
+    outline: none;
+  }
+
+  .desc {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-2);
+    color: var(--text-subtle);
+    font-size: var(--step--2);
+  }
+
+  /* ---- Featured: image beside the text ---- */
+  .feature .title {
+    font-size: var(--step-3);
+    line-height: var(--leading-tight);
+  }
+
+  .feature .desc {
+    font-size: var(--step-0);
+    -webkit-line-clamp: 4;
+  }
+
+  @media (min-width: 52rem) {
+    .feature {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    }
+
+    .feature .media {
+      aspect-ratio: auto;
+      min-height: 100%;
+      border-bottom: 0;
+      border-right: 1px solid var(--border);
+    }
+
+    /* release thumbnails set their version on the left: crop from the right */
+    .feature .media :global(img) {
+      object-position: left center;
+    }
+
+    .feature .body {
+      justify-content: center;
+      gap: var(--space-4);
+      padding: var(--space-7) var(--space-6);
+    }
+
+    .feature .meta {
+      margin-top: var(--space-2);
+    }
+  }
+</style>

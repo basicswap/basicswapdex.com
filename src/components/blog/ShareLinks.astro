@@ -1,0 +1,57 @@
+---
+// Share links for a post, as on the old blog: X, Facebook and LinkedIn.
+// Plain links; nothing loads from those sites until one is followed.
+import Icon from '../Icon.astro';
+
+interface Props {
+  url: string;
+  title: string;
+  author: string;
+  description: string;
+}
+const { url, title, author, description } = Astro.props;
+const u = encodeURIComponent(url);
+const LINKS = [
+  { label: 'Share on X', icon: 'x' as const, href: `https://twitter.com/intent/tweet?url=${u}&text=${encodeURIComponent(`${title} by ${author} on BasicSwap Blog`)}` },
+  { label: 'Share on Facebook', icon: 'facebook' as const, href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
+  {
+    label: 'Share on LinkedIn',
+    icon: 'linkedin' as const,
+    href: `https://www.linkedin.com/shareArticle?mini=true&url=${u}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(description)}`,
+  },
+];
+---
+
+<ul class="share" role="list">
+  {
+    LINKS.map(({ label, icon, href }) => (
+      <li>
+        <a class="btn btn-outline" href={href} target="_blank" rel="noopener noreferrer">
+          <Icon name={icon} size={15} />
+          {label}
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .share {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .share .btn {
+    min-height: 2.4rem;
+    padding: 0.45rem 0.9rem;
+    border-color: var(--border-strong);
+  }
+
+  .share .btn:hover {
+    border-color: var(--primary);
+  }
+</style>

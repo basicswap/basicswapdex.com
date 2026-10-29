@@ -1,0 +1,131 @@
+---
+// A bar or line chart. Static data is drawn at build time. The showcase's
+// live chart (dataType "bitcoin-transactions") asks before it loads 30 days
+// of trading volume from CoinGecko, so a page view sends nothing there.
+import { chartSvg, type Dataset } from '../../../scripts/chart-svg';
+
+interface Props {
+  type: 'bar' | 'line' | 'pie';
+  data?: { labels: string[]; datasets: Dataset[] };
+  dataType?: 'static' | 'bitcoin-transactions';
+}
+const { type, data, dataType = 'static' } = Astro.props;
+const live = dataType === 'bitcoin-transactions';
+const chart = !live && data ? chartSvg(type === 'line' ? 'line' : 'bar', data.labels, data.datasets) : undefined;
+---
+
+<figure class="chart" data-live-chart={live ? '' : undefined}>
+  {live && <figcaption class="chart-title">Crypto Daily Volume (USD)</figcaption>}
+  <div class="legend" set:html={chart?.legend ?? ''} />
+  <div class="plot" set:html={chart?.svg ?? ''} />
+  {
+    live && (
+      <div class="load">
+        <button type="button" class="btn btn-outline">Load live data</button>
+        <p class="muted">Fetches 30 days of daily volume for BTC, XMR, LTC and USDT from CoinGecko.</p>
+      </div>
+    )
+  }
+</figure>
+
+<style>
+  .chart {
+    margin-block: var(--space-6);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+
+  .chart-title {
+    margin-bottom: var(--space-2);
+    font-weight: 600;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .legend :global(.key) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .legend :global(i) {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 3px;
+  }
+
+  .plot :global(svg) {
+    width: 100%;
+    margin-top: var(--space-3);
+    overflow: visible;
+  }
+
+  .plot :global(.grid) {
+    stroke: var(--border);
+    stroke-width: 1;
+  }
+
+  .plot :global(.tick) {
+    fill: var(--text-subtle);
+    font: 11px var(--font-sans);
+  }
+
+  .load {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    padding-block: var(--space-6);
+    text-align: center;
+  }
+
+  .load p {
+    font-size: var(--step--1);
+  }
+</style>
+
+<script>
+  import { chartSvg } from '../../../scripts/chart-svg';
+
+  const COINS = [
+    ['bitcoin', 'Bitcoin Daily Volume (USD)', '#f59e0b'],
+    ['monero', 'Monero Daily Volume (USD)', '#ef5944'],
+    ['litecoin', 'Litecoin Daily Volume (USD)', '#3b82f6'],
+    ['tether', 'Tether (USDT) Daily Volume (USD)', '#2ad168'],
+  ] as const;
+
+  document.querySelectorAll<HTMLElement>('[data-live-chart]').forEach((fig) => {
+    const load = fig.querySelector<HTMLElement>('.load')!;
+    load.querySelector('button')!.addEventListener('click', async () => {
+      load.innerHTML = '<p class="muted">Loading chart data...</p>';
+      try {
+        const series = await Promise.all(
+          COINS.map(async ([id]) => {
+            const r = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=usd&days=30&interval=daily`);
+            if (!r.ok) throw new Error(`${id}: ${r.status}`);
+            return ((await r.json()).total_volumes as [number, number][]) ?? [];
+          }),
+        );
+        const labels = series[0].map(([t]) => new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+        const { svg, legend } = chartSvg(
+          'line',
+          labels,
+          COINS.map(([, label, color], i) => ({ label, data: series[i].map(([, v]) => v), borderColor: color })),
+          'Crypto Daily Volume (USD)',
+        );
+        fig.querySelector('.legend')!.innerHTML = legend;
+        fig.querySelector('.plot')!.innerHTML = svg;
+        load.remove();
+      } catch (err) {
+        load.innerHTML = `<p class="muted">Failed to load crypto transaction data. You may be rate limited by the API. Error: ${String((err as Error).message ?? err)}</p>`;
+      }
+    });
+  });
+</script>
