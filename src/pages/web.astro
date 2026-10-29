@@ -1,14 +1,14 @@
 ---
 // BasicSwap Web: BasicSwap's atomic swaps in a browser tab. Not released yet,
 // so the page explains how it will work and what a site can and can't do, and
-// points to Desktop and Mobile for swapping today. Sections, in order:
+// points to Desktop for swapping today. Sections, in order:
 //   hero        the web swap played in a made-up exchange site (SwapTour)
 //   how         three steps from opening a site to a settled swap
 //   benefits    three things Web gives you that the others don't
 //   trust       what the site, your wallet and the blockchains each hold
-//   today       Mobile and Desktop, for swapping now
+//   today       Desktop for swapping now, and Mobile coming soon
 //   questions   a short FAQ (also the FAQPage structured data)
-//   other-ways  Desktop and Mobile again, to close
+//   other-ways  Desktop again, to close
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/sections/PageHero.astro';
 import SectionHead from '../components/sections/SectionHead.astro';
@@ -104,7 +104,7 @@ const faq = [
   },
   {
     q: 'What can I use until BasicSwap Web launches?',
-    a: '<a href="/desktop">BasicSwap Desktop</a> swaps every supported coin and pair today, on your own computer. <a href="/mobile">BasicSwap Mobile</a> is in beta inside the Litecoin Nexus Wallet on iOS and Android.',
+    a: '<a href="/desktop">BasicSwap Desktop</a> swaps every supported coin and pair today, on your own computer. <a href="/mobile">BasicSwap Mobile</a> is coming to the Litecoin Nexus Wallet on iOS and Android.',
   },
 ];
 // Search engines get the answers as plain text, without the links.
@@ -129,7 +129,7 @@ const faqLd = {
     title={'Cross-chain atomic swaps\nin your browser.'}
   >
     <p slot="after" class="not-out">
-      <strong>Not released yet.</strong> Until it launches, <a href="/desktop">Desktop</a> and <a href="/mobile">Mobile</a> have the same swaps.
+      <strong>Not released yet.</strong> Until it launches, <a href="/desktop">Desktop</a> has the same swaps, and <a href="/mobile">Mobile</a> is coming soon too.
     </p>
     <p>
       BasicSwap Web brings the protocol to the websites and web wallets you already use. They build it into their own
@@ -223,10 +223,10 @@ const faqLd = {
     </div>
   </section>
 
-  <CtaBand kicker="until web launches" title="Swap today with Desktop or Mobile." id="other-ways">
+  <CtaBand kicker="until web launches" title="Swap today with BasicSwap Desktop." id="other-ways">
     <p>
       BasicSwap Web is still in development. The same atomic swaps already run on your own computer with BasicSwap
-      Desktop, and on your phone inside the Litecoin Nexus Wallet with BasicSwap Mobile.
+      Desktop, and BasicSwap Mobile is coming to the Litecoin Nexus Wallet.
     </p>
     <Fragment slot="actions">
       <a class="btn btn-primary btn-lg" href="/desktop"><Icon name="download" />Get Desktop</a>

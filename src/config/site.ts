@@ -36,7 +36,7 @@ export type NavGroup = { label: string; items: ProductLink[] };
 
 export const PRODUCTS: ProductLink[] = [
   { label: 'Desktop', href: '/desktop', icon: 'monitor', blurb: 'The full protocol on your own computer' },
-  { label: 'Mobile', href: '/mobile', icon: 'phone', blurb: 'Swaps built into wallet apps on your phone' },
+  { label: 'Mobile', href: '/mobile', icon: 'phone', blurb: 'Swaps built into wallet apps on your phone', soon: true },
   { label: 'Web', href: '/web', icon: 'globe', blurb: 'Swaps built into websites you already use', soon: true, fresh: true },
 ];
 
