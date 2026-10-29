@@ -191,9 +191,17 @@ const isCurrent = (href: string) => href === current || (href !== '/' && current
     z-index: 50;
     background: color-mix(in oklab, var(--bg) 82%, transparent);
     backdrop-filter: saturate(1.4) blur(14px);
-    -webkit-backdrop-filter: saturate(1.4) blur(14px);
     border-bottom: 1px solid var(--border);
     view-transition-name: site-header;
+  }
+
+  /* Safari before 18 reads only the prefixed property. It has a rule of its
+     own: written beside the standard one, the minifier merged the two and
+     kept just the prefixed copy, which left every other browser unblurred. */
+  @supports not (backdrop-filter: blur(1px)) {
+    .site-header {
+      -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    }
   }
 
   .bar {
